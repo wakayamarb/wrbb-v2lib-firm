@@ -26,6 +26,7 @@ Wakayama.rb Ruby Board V2 library Firmware
 
 How to use Wakayama.rb board
 ------
+https://github.com/wakayamarb/wrbb-v2lib-firm/blob/master/description/Ruby%20Firmware%20on%20GR-CITRUS.pdf
 http://www.slideshare.net/MinaoYamamoto/grcitrusruby
 
 Link
