@@ -3,7 +3,7 @@ Wakayama.rb Ruby Board V2 library Firmware
 　Wakayama.rb のV2ライブラリを使ったRubyボードのソースです。
 　V2ライブラリとは、ルネサスさんが提供しているRX63NのV2ライブラリを示します。
 
-  バージョンのARIDAやUmeJamの後の数字は基板番号を表します。
+  バージョンのARIDAやUmeJamの後の数字は動作する基板種類を表します。GR-CITRUSはARIDA5に相当します。
   バージョン最後のf2やf3はバイトコードフォーマットの番号です。mruby1.0.0ベースの場合はf2となります。
 
   mruby ver1.0.0 -> ByteCode Format Ver.0002  
@@ -21,7 +21,7 @@ Wakayama.rb Ruby Board V2 library Firmware
                             |      |
                             | Firmware Version
                             |
-                       回路基板番号
+                       回路基板種類
 
 
 How to use Wakayama.rb board
