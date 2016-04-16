@@ -26,7 +26,7 @@ Wakayama.rb Ruby Board V2 library Firmware
 
 How to use Wakayama.rb board
 ------
-http://www.slideshare.net/MinaoYamamoto/wakayamarb-arida-4  
+http://www.slideshare.net/MinaoYamamoto/grcitrusruby
 
 Link
 ------
