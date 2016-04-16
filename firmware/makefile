@@ -7,7 +7,7 @@ OBJFILES = ./gr_sketch.o ./gr_common/core/Ethernet.o ./gr_common/core/HardwareSe
 			./wrbb_mruby/sMem.o \
 			./wrbb_mruby/sRtc.o \
 			./wrbb_mruby/sServo.o \
-			./wrbb_mruby/sSerial2.o \
+			./wrbb_mruby/sSerial.o \
 			./wrbb_mruby/sI2c.o \
 			./wrbb_mruby/sSdCard.o 
 LIBFILES = ./gr_common/lib/DSP/utility/libGNU_RX_DSP_Little.a \

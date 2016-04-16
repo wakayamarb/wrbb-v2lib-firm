@@ -122,6 +122,14 @@ MRuby::Build.new('test') do |conf|
   conf.gembox 'default'
 end
 
+MRuby::Build.new('bench') do |conf|
+  toolchain :gcc
+
+  conf.cc.flags << '-O3'
+
+  conf.gembox 'default'
+end
+
 # Define cross build settings
 # MRuby::CrossBuild.new('32bit') do |conf|
 #   toolchain :gcc
@@ -137,9 +145,9 @@ end
 #
 # end
 
-# Cross build for Renesas RX63N
-MRuby::CrossBuild.new('rx63n') do |conf|
-   toolchain :rx63n
+# Cross build for Renesas RX630
+MRuby::CrossBuild.new('rx630') do |conf|
+   toolchain :rx630
 
 #   conf.cc.flags << "-m32"
 #   conf.linker.flags << "-m32"
@@ -169,7 +177,7 @@ MRuby::CrossBuild.new('rx63n') do |conf|
    #conf.gem "#{root}/mrbgems/mruby-objectspace"
    #conf.gem "#{root}/mrbgems/mruby-print"
    #conf.gem "#{root}/mrbgems/mruby-proc-ext"
-   conf.gem "#{root}/mrbgems/mruby-random"
+   #conf.gem "#{root}/mrbgems/mruby-random"
    #conf.gem "#{root}/mrbgems/mruby-range-ext"
    #conf.gem "#{root}/mrbgems/mruby-sprintf"
    #conf.gem "#{root}/mrbgems/mruby-string-ext"	#str.split(",")

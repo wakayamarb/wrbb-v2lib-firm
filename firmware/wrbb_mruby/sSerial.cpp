@@ -8,144 +8,214 @@
  *
  */
 #include <Arduino.h>
-#include <HardwareSerial.h>
 
 #include <mruby.h>
-#include <mruby/string.h>
 #include <mruby/array.h>
+#include <mruby/data.h>
+#include <mruby/class.h>
+#include <mruby/string.h>
 
 #include "../wrbb.h"
 
 #define SERIAL_MAX	6
 
 HardwareSerial *RbSerial[SERIAL_MAX];		//0:Serial(USB), 1:Serial1, 2:Serial3, 3:Serial2, 4:Serial6 5:Serial7
+
 unsigned char BuffRead[SERIAL_BUFFER_SIZE];
 
 //**************************************************
-// シリアル通信を初期化します: Serial.begin
-//  Serial.begin(num, bps)
+// SerialをラップしたSerialcクラス作成
+//**************************************************
+class Serialc {
+public:
+	Serialc(int num){
+		num_ = num;
+	}
+	virtual ~Serialc() {
+		//num_ = -1;
+	}
+
+	void baudrate(int bps){
+		RbSerial[num_]->begin(bps);
+	}
+
+	void println(){
+		RbSerial[num_]->println();
+	}
+
+	void print(char *str){
+		RbSerial[num_]->print(str);
+	}
+
+	void println(char *str){
+		RbSerial[num_]->println(str);
+	}
+
+	int available(){
+		return RbSerial[num_]->available();
+	}
+
+	int read(){
+		int len = RbSerial[num_]->available();
+
+		for(int i=0; i<len; i++){
+			BuffRead[i] = RbSerial[num_]->read();
+		}
+		return len;
+	}
+
+	int write(const unsigned char *str, int len){
+		return RbSerial[num_]->write(str, len);
+	}
+
+	void flush(){
+		RbSerial[num_]->flush();
+	}
+
+private:
+	int num_;
+};
+
+
+//**************************************************
+// メモリの開放時に走る
+//**************************************************
+static void serial_free(mrb_state *mrb, void *ptr) {
+	Serialc* serial = static_cast<Serialc*>(ptr);
+	delete serial;
+}
+
+//**************************************************
+// この構造体の意味はよくわかっていない
+//**************************************************
+static struct mrb_data_type serial_type = { "Serial", serial_free };
+
+
+//**************************************************
+// シリアル通信を初期化します: Serial.new
+//  Serial.new(num[, bps])　
 //  num: 通信番号(0:USB, 1:TX-0/RX-1, 2:TX-5/RX-6, 3:TX-7/RX-8, 4:TX-12/RX-11, 5:TX-9(26)/RX-3)
+//  bps: ボーレート
+//
+// 戻り値
+//  Serialのインスタンス
+//**************************************************
+static mrb_value mrb_serial_initialize(mrb_state *mrb, mrb_value self) {
+	// Initialize data type first, otherwise segmentation fault occurs.
+	DATA_TYPE(self) = &serial_type;
+	DATA_PTR(self) = NULL;
+
+mrb_int num;
+mrb_int bps;
+
+	int n =  mrb_get_args(mrb, "i|i", &num,&bps);
+
+	if (num < 0 && num >= SERIAL_MAX)
+	{
+		return mrb_nil_value();			//戻り値は無しですよ。
+	}
+
+	Serialc* serialc = new Serialc(num);
+
+	if(n >= 2){
+		serialc->baudrate(bps);
+	}
+ 
+
+	DATA_PTR(self) = serialc;
+	return self;
+}
+
+//**************************************************
+// ボーレートを設定します: Serial.bps
+//  Serial.bps(bps)
 //  bps: ボーレート 
 //**************************************************
-mrb_value mrb_serial_begin(mrb_state *mrb, mrb_value self)
+mrb_value mrb_serial_bps(mrb_state *mrb, mrb_value self)
 {
-int num, bps;
+int bps;
 
-	mrb_get_args(mrb, "ii", &num, &bps);
+	Serialc* serialc = static_cast<Serialc*>(mrb_get_datatype(mrb, self, &serial_type));
 
-	if (num >= 0 && num < SERIAL_MAX)
-	{
-		RbSerial[num]->begin(bps);
-	}
+	mrb_get_args(mrb, "i", &bps);
 
-	return mrb_nil_value();			//戻り値は無しですよ。
-}
+	serialc->baudrate(bps);
 
-//**************************************************
-// シリアルに出力します: Serial.print|Serial.println
-//**************************************************
-void mrb_serial_msprint(int num, mrb_value text)
-{
-
-	if(num < 10)
-	{
-		RbSerial[num]->print( RSTRING_PTR(text) );
-	}
-	else if(num < 20)
-	{
-		RbSerial[num - 10]->println( RSTRING_PTR(text) );
-	}
-	else{
-		RbSerial[num - 20]->println();
-	}
-}
-
-mrb_value msprintMode(mrb_state *mrb, mrb_value self, int mode)
-{
-int num;
-mrb_value text;
-
-	int n = mrb_get_args(mrb, "i|S", &num, &text);
-
-	if (num < 0 || num >= SERIAL_MAX){
-		return mrb_nil_value();
-	}
-
-	if(mode == 0){
-		if(n >= 2){
-			mrb_serial_msprint(num,  text);
-		}
-	}
-	else{
-		if(n >= 2){
-			mrb_serial_msprint(num + 10,  text);
-		}
-		else{
-			mrb_serial_msprint(num + 20,  text);
-		}
-	}
 	return mrb_nil_value();			//戻り値は無しですよ。
 }
 
 //**************************************************
 // シリアルに出力します: Serial.print
-//  Serial.print(num[,str])
-//  num: 通信番号(0:USB, 1:TX-0/RX-1, 2:TX-5/RX-6, 3:TX-7/RX-8, 4:TX-12/RX-11, 5:TX-9(26)/RX-3)
+//  Serial.print([str])
 //  str: 文字列
 //    省略時は何も出力しません
 //**************************************************
 mrb_value mrb_serial_print(mrb_state *mrb, mrb_value self)
 {
-	return msprintMode(mrb, self, 0);
+mrb_value text;
+	
+	Serialc* serialc = static_cast<Serialc*>(mrb_get_datatype(mrb, self, &serial_type));
+
+	int n = mrb_get_args(mrb, "|S", &text);
+
+	if(n > 0){
+		serialc->print(RSTRING_PTR(text));
+	}
+	return mrb_nil_value();			//戻り値は無しですよ。
 }
 
 //**************************************************
 // シリアルに\r\n付きで出力します: Serial.println
-//  Serial.println(num[,str])
-//  num: 通信番号(0:USB, 1:TX-0/RX-1, 2:TX-5/RX-6, 3:TX-7/RX-8, 4:TX-12/RX-11, 5:TX-9(26)/RX-3)
+//  Serial.println([str])
 //  str: 文字列
 //    省略時は改行のみ
 //**************************************************
 mrb_value mrb_serial_println(mrb_state *mrb, mrb_value self)
 {
-	return msprintMode(mrb, self, 1);
+mrb_value text;
+	
+	Serialc* serialc = static_cast<Serialc*>(mrb_get_datatype(mrb, self, &serial_type));
+
+	int n = mrb_get_args(mrb, "|S", &text);
+
+	if(n > 0){
+		serialc->println(RSTRING_PTR(text));
+	}
+	else{
+		serialc->println();
+	}
+	return mrb_nil_value();			//戻り値は無しですよ。
 }
 
 //**************************************************
-// シリアルから1バイト取得します: Serial.read
-//  Serial.read(num)
-//  num: 通信番号(0:USB, 1:TX-0/RX-1, 2:TX-5/RX-6, 3:TX-7/RX-8, 4:TX-12/RX-11, 5:TX-9(26)/RX-3)
-//
+// シリアルデータがあるかどうか調べます: Serial.available
+//  Serial.available()
+//  戻り値 シリアルバッファにあるデータのバイト数。0の場合はデータなし
+//**************************************************
+mrb_value mrb_serial_available(mrb_state *mrb, mrb_value self)
+{
+	Serialc* serialc = static_cast<Serialc*>(mrb_get_datatype(mrb, self, &serial_type));
+	
+	return mrb_fixnum_value(serialc->available());
+}
+
+//**************************************************
+// シリアルからデータを取得します: Serial.read
+//  Serial.read()
 // 戻り値
-//	受信バッファから読み込んだバイト数, データ配列
+//	データ配列
 //**************************************************
 mrb_value mrb_serial_read(mrb_state *mrb, mrb_value self)
 {
-int num;
-int len = 0;
-mrb_value arv[2];
+	Serialc* serialc = static_cast<Serialc*>(mrb_get_datatype(mrb, self, &serial_type));
 
-	mrb_get_args(mrb, "i", &num);
-
-	if (num >= 0 && num < SERIAL_MAX){
-		len = RbSerial[num]->available();
-		if(len > 0)
-		{
-			for(int i=0; i<len; i++){
-				BuffRead[i] = RbSerial[num]->read();
-			}
-		}
-	}
-
-	arv[0] = mrb_fixnum_value(len);
-	arv[1] = mrb_str_new_cstr(mrb, (const char*)BuffRead);
-	return mrb_ary_new_from_values(mrb, 2, arv);
+	int len = serialc->read();
+	return mrb_str_new(mrb, (const char*)BuffRead, len);
 }
 
 //**************************************************
 // シリアルにデータを出力します: Serial.write
-//  Serial.write(num, buf, len)
-//  num: 通信番号(0:USB, 1:TX-0/RX-1, 2:TX-5/RX-6, 3:TX-7/RX-8, 4:TX-12/RX-11, 5:TX-9(26)/RX-3)
+//  Serial.write(buf, len)
 //	buf: 出力データ
 //	len: 出力データサイズ
 // 戻り値
@@ -153,80 +223,54 @@ mrb_value arv[2];
 //**************************************************
 mrb_value mrb_serial_write(mrb_state *mrb, mrb_value self)
 {
-int		num;
 int		len;
 mrb_value value;
 char	*str;
 
-	mrb_get_args(mrb, "iSi", &num, &value, &len);
+	Serialc* serialc = static_cast<Serialc*>(mrb_get_datatype(mrb, self, &serial_type));
+
+	mrb_get_args(mrb, "Si", &value, &len);
 
 	str = RSTRING_PTR(value);
 	
-	if (num >= 0 && num < SERIAL_MAX){
-		return mrb_fixnum_value( RbSerial[num]->write( (const unsigned char *)str, len));
-	}
-	
-	return mrb_fixnum_value( 0 );
-}
-
-//**************************************************
-// シリアルデータがあるかどうか調べます: Serial.available
-//  Serial.available(num)
-//  num: 通信番号(0:USB, 1:TX-0/RX-1, 2:TX-5/RX-6, 3:TX-7/RX-8, 4:TX-12/RX-11, 5:TX-9(26)/RX-3)
-//  戻り値 シリアルバッファにあるデータのバイト数。0の場合はデータなし
-//**************************************************
-mrb_value mrb_serial_available(mrb_state *mrb, mrb_value self)
-{
-int		num;
-	
-	mrb_get_args(mrb, "i", &num);
-
-	if (num >= 0 && num < SERIAL_MAX){
-		return mrb_fixnum_value(RbSerial[num]->available());
-	}
-	return mrb_fixnum_value( 0 );
+	return mrb_fixnum_value( serialc->write( (const unsigned char *)str, len));
 }
 
 //**************************************************
 // シリアルデータをフラッシュします: Serial.flash
-//  Serial.flash(num)
-//  num: 通信番号(0:USB, 1:TX-0/RX-1, 2:TX-5/RX-6, 3:TX-7/RX-8, 4:TX-12/RX-11, 5:TX-9(26)/RX-3)
-//  戻り値 シリアルバッファにあるデータのバイト数。0の場合はデータなし
+//  Serial.flash()
 //**************************************************
 mrb_value mrb_serial_flash(mrb_state *mrb, mrb_value self)
 {
-int		num;
-	
-	mrb_get_args(mrb, "i", &num);
+	Serialc* serialc = static_cast<Serialc*>(mrb_get_datatype(mrb, self, &serial_type));
 
-	if (num >= 0 && num < SERIAL_MAX){
-		RbSerial[num]->flush();
-	}
+	serialc->flush();
+
 	return mrb_nil_value();			//戻り値は無しですよ。
 }
 
 //**************************************************
 // ライブラリを定義します
 //**************************************************
-void serial_Init(mrb_state *mrb)
-{
-	//0:Serial(USB), 1:Serial1, 2:Serial3, 3:Serial2, 4:Serial6 5:Serial7
-	RbSerial[0] = &Serial;
-	RbSerial[1] = &Serial1;
-	RbSerial[2] = &Serial3;
-	RbSerial[3] = &Serial2;
-	RbSerial[4] = &Serial6;
-	RbSerial[5] = &Serial7;
+void serial_Init(mrb_state* mrb) {
 
-	struct RClass *serialModule = mrb_define_module(mrb, "Serial");
+	RbSerial[0] = &Serial;	//0:Serial(USB)
+	RbSerial[1] = &Serial1;	//1:Serial1
+	RbSerial[2] = &Serial3;	//2:Serial3
+	RbSerial[3] = &Serial2;	//3:Serial2
+	RbSerial[4] = &Serial6;	//4:Serial6
+	RbSerial[5] = &Serial7;	//5:Serial7
 
-	mrb_define_module_function(mrb, serialModule, "begin", mrb_serial_begin, MRB_ARGS_REQ(2));
-	mrb_define_module_function(mrb, serialModule, "print", mrb_serial_print, MRB_ARGS_REQ(1)|MRB_ARGS_OPT(1));
-	mrb_define_module_function(mrb, serialModule, "println", mrb_serial_println, MRB_ARGS_REQ(1)|MRB_ARGS_OPT(1));
+	struct RClass *serialModule = mrb_define_class(mrb, "Serial", mrb->object_class);
+	MRB_SET_INSTANCE_TT(serialModule, MRB_TT_DATA);
 
-	mrb_define_module_function(mrb, serialModule, "read", mrb_serial_read, MRB_ARGS_REQ(1));
-	mrb_define_module_function(mrb, serialModule, "write", mrb_serial_write, MRB_ARGS_REQ(3));
-	mrb_define_module_function(mrb, serialModule, "flash", mrb_serial_flash, MRB_ARGS_REQ(1));
+	mrb_define_method(mrb, serialModule, "initialize", mrb_serial_initialize, MRB_ARGS_REQ(1)|MRB_ARGS_OPT(1));
 
-	mrb_define_module_function(mrb, serialModule, "available", mrb_serial_available, MRB_ARGS_REQ(1));
+	mrb_define_method(mrb, serialModule, "bps", mrb_serial_bps, MRB_ARGS_REQ(1));
+	mrb_define_method(mrb, serialModule, "print", mrb_serial_print, MRB_ARGS_OPT(1));
+	mrb_define_method(mrb, serialModule, "println", mrb_serial_println, MRB_ARGS_OPT(1));
+	mrb_define_method(mrb, serialModule, "read", mrb_serial_read, MRB_ARGS_NONE());
+	mrb_define_method(mrb, serialModule, "write", mrb_serial_write, MRB_ARGS_REQ(2));
+	mrb_define_method(mrb, serialModule, "flash", mrb_serial_flash, MRB_ARGS_NONE());
+	mrb_define_method(mrb, serialModule, "available", mrb_serial_available, MRB_ARGS_NONE());
 }

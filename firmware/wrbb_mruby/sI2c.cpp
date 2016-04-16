@@ -299,7 +299,7 @@ mrb_value mrb_i2c_available(mrb_state *mrb, mrb_value self)
 //**************************************************
 // ライブラリを定義します
 //**************************************************
-void i2c2_Init(mrb_state *mrb)
+void i2c_Init(mrb_state *mrb)
 {
 	//0:Wire1, 1:Wire3, 2:Wire2, 3:Wire6 4:Wire7
 	RbWire[0] = &Wire1;

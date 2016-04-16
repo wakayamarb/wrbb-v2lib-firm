@@ -21,7 +21,7 @@ RTC_TIMETYPE TimeRTC;
 
 //**************************************************
 // RTCの時計を取得します: Rtc.getTime
-//  Rtc.getDateTime()
+//  Rtc.getTime()
 //
 //  戻り値は以下の値が配列で返ります
 //  year: 年(2000-2099)

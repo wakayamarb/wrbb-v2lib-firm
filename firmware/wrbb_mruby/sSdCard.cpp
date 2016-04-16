@@ -19,12 +19,6 @@
 
 File Fp[2];
 
-//File Sd0;
-//File Sd1;
-
-//File Sd0 = SD.open(__null);			//コマンド用
-//File Sd1 = SD.open(__null);			//コマンド用
-
 //**************************************************
 //ファイルが存在するかどうか調べる: SD.exists
 //	SD.exists( filename )

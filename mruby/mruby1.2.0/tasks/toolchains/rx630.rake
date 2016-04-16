@@ -1,11 +1,12 @@
-MRuby::Toolchain.new(:rx63n) do |conf|
+MRuby::Toolchain.new(:rx630) do |conf, _params|
   toolchain :gcc
 
-  TOOL_PATH = "/usr/local/tkdn-20110720/rx-elf/bin"
-
+  TOOL_PATH = "/cygdrive/d/Renesas/GNURXv14.03-ELF/rx-elf/rx-elf/bin"
+	
   conf.cc do |cc|
     cc.command="#{TOOL_PATH}/rx-elf-gcc"
     cc.flags << "-Wall -g -O2"
+		cc.defines << "__CYGWIN32__"
     cc.compile_options = "%{flags} -o %{outfile} -c %{infile}"
 
     conf.linker do |linker|
