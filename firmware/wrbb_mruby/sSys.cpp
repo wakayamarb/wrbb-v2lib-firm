@@ -28,6 +28,7 @@
 
 extern volatile char ProgVer[];
 extern char RubyFilename[];
+extern char ExeFilename[];
 
 //**************************************************
 // 終了させます
@@ -191,6 +192,17 @@ int ret = 0;
 }
 
 //**************************************************
+// 実行しているmrbファイルパスを取得します: System.getMrbPath
+// System.getMrbPath()
+//戻り値
+// 実行しているmrbファイルパス
+//**************************************************
+mrb_value mrb_system_getmrbpath(mrb_state *mrb, mrb_value self)
+{
+	return mrb_str_new_cstr(mrb, (const char*)ExeFilename);
+}
+
+//**************************************************
 // ライブラリを定義します
 //**************************************************
 void sys_Init(mrb_state *mrb)
@@ -208,4 +220,6 @@ void sys_Init(mrb_state *mrb)
 	mrb_define_module_function(mrb, systemModule, "fileload", mrb_system_fileload, MRB_ARGS_NONE());
 
 	mrb_define_module_function(mrb, systemModule, "useSD", mrb_system_useSD, MRB_ARGS_NONE());
+
+	mrb_define_module_function(mrb, systemModule, "getMrbPath", mrb_system_getmrbpath, MRB_ARGS_NONE());
 }

@@ -50,7 +50,7 @@
 #define LICENSE_WRBBURL		"https://github.com/wakayamarb/wrbb-v2lib-firm/blob/master/MITL"
 
 //バージョンと日付
-#define WRBB_VERSION	"-1.69(2016/4/17)"
+#define WRBB_VERSION	"-1.73(2016/4/25)"
 
 //バイトコードフォーマットの設定
 //#define BYTECODE	BYTE_CODE2

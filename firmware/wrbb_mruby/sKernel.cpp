@@ -511,7 +511,6 @@ void kernel_Init(mrb_state *mrb)
 	mrb_define_method(mrb, mrb->kernel_module, "randomSeed", mrb_kernel_randomSeed, MRB_ARGS_REQ(1));
 	mrb_define_method(mrb, mrb->kernel_module, "random", mrb_kernel_random, MRB_ARGS_REQ(1)|MRB_ARGS_OPT(1));
 
-
 	struct RClass *El_PsyModule = mrb_define_module(mrb, "El_Psy");
 	mrb_define_module_function(mrb, El_PsyModule, "Congroo", mrb_El_Psy_congroo, MRB_ARGS_NONE());
 }
