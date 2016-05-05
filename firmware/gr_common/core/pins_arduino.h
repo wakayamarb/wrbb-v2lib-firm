@@ -46,9 +46,7 @@
 #define analogInputToDigitalPin(p)  ((p < 6) ? (p) + 14 : -1)
 
 #if defined(GRSAKURA)
-#define digitalPinHasPWM(p)         ((p) == 0 || (p) == 1 || (p) == 2 || (p) == 3 || (p) == 4 || \
-                                     (p) == 5 || (p) == 6 || (p) == 7 || (p) == 9 || (p) == 10 || (p) == 11 \
-                                    )
+#define digitalPinHasPWM(p)         ((p) == 0 || (p) == 1 || (p) == 5 || (p) == 7 || (p) == 8 || (p) == 11)
 #elif defined(__AVR_ATmega8__)
 #define digitalPinHasPWM(p)         ((p) == 9 || (p) == 10 || (p) == 11)
 #else
@@ -70,10 +68,10 @@ static const uint8_t A0 = 14;
 static const uint8_t A1 = 15;
 static const uint8_t A2 = 16;
 static const uint8_t A3 = 17;
-static const uint8_t A4 = 18;
-static const uint8_t A5 = 19;
-static const uint8_t A6 = 20;
-static const uint8_t A7 = 21;
+//static const uint8_t A4 = 18;
+//static const uint8_t A5 = 19;
+//static const uint8_t A6 = 20;
+//static const uint8_t A7 = 21;
 
 #ifdef GRSAKURA
 /** IO pins, header CN8. */
@@ -271,67 +269,67 @@ const uint16_t PROGMEM port_to_input_PGM[] = {
 
 #define _offset(port) ((uint32_t)&port - (uint32_t)&PORT0)
 const uint8_t PROGMEM digital_pin_to_port_PGM[] = {
-	_offset(PORT2), /* PIN_IO0 (P21) */
-	_offset(PORT2), /* PIN_IO1 (P20) */
-	_offset(PORT2), /* PIN_IO2 (P22) */
-	_offset(PORT2), /* PIN_IO3 (P23) */
-	_offset(PORT2), /* PIN_IO4 (P24) */
-	_offset(PORT2), /* PIN_IO5 (P25) */
-	_offset(PORT3), /* PIN_IO6 (P32) */
-	_offset(PORT3), /* PIN_IO7 (P33) */
-	_offset(PORTC), /* PIN_IO8 (PC2) */
-	_offset(PORTC), /* PIN_IO9 (PC3) */
-	_offset(PORTC), /* PIN_IO10(PC4) */
-	_offset(PORTC), /* PIN_IO11(PC6) */
-	_offset(PORTC), /* PIN_IO12(PC7) */
-	_offset(PORTC), /* PIN_IO13(PC5) */
-	_offset(PORT4), /* PIN_IO14(P40) */
-	_offset(PORT4), /* PIN_IO15(P41) */
-	_offset(PORT4), /* PIN_IO16(P42) */
-	_offset(PORT4), /* PIN_IO17(P43) */
-	_offset(PORT4), /* PIN_IO18(P44) */
-	_offset(PORT4), /* PIN_IO19(P45) */
-	_offset(PORT4), /* PIN_IO20(P46) */
-	_offset(PORT4), /* PIN_IO21(P47) */
-	_offset(PORTC), /* PIN_IO22(PC0) */
-	_offset(PORTC), /* PIN_IO23(PC1) */
-	_offset(PORT5), /* PIN_IO24(P50) */
-	_offset(PORT5), /* PIN_IO25(P51) */
-	_offset(PORT5), /* PIN_IO26(P52) */
-	_offset(PORT5), /* PIN_IO27(P53) */
-	_offset(PORT5), /* PIN_IO28(P54) */
-	_offset(PORT5), /* PIN_IO29(P55) */
-	_offset(PORT1), /* PIN_IO30(P12) */
-	_offset(PORT1), /* PIN_IO31(P13) */
-	_offset(PORT1), /* PIN_IO32(P14) */
-	_offset(PORT1), /* PIN_IO33(P15) */
-	_offset(PORT1), /* PIN_IO34(P16) */
-	_offset(PORT1), /* PIN_IO35(P17) */
-	_offset(PORTD), /* PIN_IO36(PD0) */
-	_offset(PORTD), /* PIN_IO37(PD1) */
-	_offset(PORTD), /* PIN_IO38(PD2) */
-	_offset(PORTD), /* PIN_IO39(PD3) */
-	_offset(PORTD), /* PIN_IO40(PD4) */
-	_offset(PORTD), /* PIN_IO41(PD5) */
-	_offset(PORTD), /* PIN_IO42(PD6) */
-	_offset(PORTD), /* PIN_IO43(PD7) */
-	_offset(PORTE), /* PIN_IO44(PE0) */
-	_offset(PORTE), /* PIN_IO45(PE1) */
-	_offset(PORTE), /* PIN_IO46(PE2) */
-	_offset(PORTE), /* PIN_IO47(PE3) */
-	_offset(PORTE), /* PIN_IO48(PE4) */
-	_offset(PORTE), /* PIN_IO49(PE5) */
-	_offset(PORTE), /* PIN_IO50(PE6) */
-	_offset(PORTE), /* PIN_IO51(PE7) */
-	_offset(PORT0), /* PIN_IO52(P07) */
-	_offset(PORT0), /* PIN_IO53(P05) */
-	_offset(PORT3), /* PIN_IO54(P35) */
-	_offset(PORTJ), /* PIN_IO55(PJ3) */
-	_offset(PORT2), /* PIN_IO56(P27) */
-	_offset(PORT3), /* PIN_IO57(P34) */
-	_offset(PORT2), /* PIN_IO58(P26) */
-	_offset(PORT3), /* PIN_IO59(P31) */
-	_offset(PORT3), /* PIN_IO60(P30) */
+	_offset(PORT2), /* PIN_IO0 (P20) */
+	_offset(PORT2), /* PIN_IO1 (P21) */
+    _offset(PORTC), /* PIN_IO2 (PC0) */
+    _offset(PORTC), /* PIN_IO3 (PC1) */
+    _offset(PORTC), /* PIN_IO4 (PC2) */
+    _offset(PORT5), /* PIN_IO5 (P50) */
+    _offset(PORT5), /* PIN_IO6 (P52) */
+    _offset(PORT3), /* PIN_IO7 (P32) */
+    _offset(PORT3), /* PIN_IO8 (P33) */
+    _offset(PORT0), /* PIN_IO9 (P05) */
+    _offset(PORTC), /* PIN_IO10(PC4) */
+    _offset(PORTC), /* PIN_IO11(PC6) */
+    _offset(PORTC), /* PIN_IO12(PC7) */
+    _offset(PORTC), /* PIN_IO13(PC5) */
+    _offset(PORT4), /* PIN_IO14(P40) */
+    _offset(PORT4), /* PIN_IO15(P41) */
+    _offset(PORT4), /* PIN_IO16(P42) */
+    _offset(PORT4), /* PIN_IO17(P43) */
+    _offset(PORT1), /* PIN_IO18(P12) */
+    _offset(PORT1), /* PIN_IO19(P13) */
+    _offset(PORT1), /* PIN_IO20(P15) */
+    _offset(PORT3), /* PIN_IO21(P31) */
+    _offset(PORT3), /* PIN_IO22(P30) */
+    _offset(PORT2), /* PIN_IO23(P25) */
+    _offset(PORT3), /* PIN_IO24(P34) */
+    _offset(PORT5), /* PIN_IO25(P55) */
+    _offset(PORT2), /* PIN_IO26(P26) */
+    _offset(PORT2), /* PIN_IO27(P27) */
+	_offset(PORTB), /* PIN_IO28(PB3) */
+	_offset(PORTB), /* PIN_IO29(PB5) */
+    _offset(PORTE), /* PIN_IO30(PE1) */
+    _offset(PORT3), /* PIN_IO31(P35) */
+	_offset(PORT2), /* PIN_IO32(P24) */
+	_offset(PORTA), /* PIN_IO33(PA0) */
+	_offset(PORT4), /* PIN_IO34(P44) */
+	_offset(PORT4), /* PIN_IO35(P45) */
+	_offset(PORT4), /* PIN_IO36(P46) */
+	_offset(PORT4), /* PIN_IO37(P47) */
+	_offset(PORT5), /* PIN_IO38(P51) */
+	_offset(PORT5), /* PIN_IO39(P53) */
+	_offset(PORT5), /* PIN_IO40(P54) */
+	_offset(PORT1), /* PIN_IO41(P14) */
+	_offset(PORT1), /* PIN_IO42(P16) */
+	_offset(PORT1), /* PIN_IO43(P17) */
+	_offset(PORTD), /* PIN_IO44(PD0) */
+	_offset(PORTD), /* PIN_IO45(PD1) */
+	_offset(PORTD), /* PIN_IO46(PD2) */
+	_offset(PORTD), /* PIN_IO47(PD3) */
+	_offset(PORTD), /* PIN_IO48(PD4) */
+	_offset(PORTD), /* PIN_IO49(PD5) */
+	_offset(PORTD), /* PIN_IO50(PD6) */
+	_offset(PORTD), /* PIN_IO51(PD7) */
+	_offset(PORTE), /* PIN_IO52(PE0) */
+	_offset(PORTE), /* PIN_IO53(PE2) */
+	_offset(PORTE), /* PIN_IO54(PE3) */
+	_offset(PORTE), /* PIN_IO55(PE4) */
+	_offset(PORTE), /* PIN_IO56(PE5) */
+	_offset(PORTE), /* PIN_IO57(PE6) */
+	_offset(PORTE), /* PIN_IO58(PE7) */
+	_offset(PORT0), /* PIN_IO59(P07) */
+	_offset(PORTJ), /* PIN_IO60(PJ3) */
 	_offset(PORTA), /* PIN_LED0(PA0) */
 	_offset(PORTA), /* PIN_LED1(PA1) */
 	_offset(PORTA), /* PIN_LED2(PA2) */
@@ -341,67 +339,67 @@ const uint8_t PROGMEM digital_pin_to_port_PGM[] = {
 #undef _offset
 
 const uint8_t PROGMEM digital_pin_to_bit_PGM[] = {
-	1, /* PIN_IO0 (P21) */
-	0, /* PIN_IO1 (P20) */
-	2, /* PIN_IO2 (P22) */
-	3, /* PIN_IO3 (P23) */
-	4, /* PIN_IO4 (P24) */
-	5, /* PIN_IO5 (P25) */
-	2, /* PIN_IO6 (P32) */
-	3, /* PIN_IO7 (P33) */
-	2, /* PIN_IO8 (PC2) */
-	3, /* PIN_IO9 (PC3) */
-	4, /* PIN_IO10(PC4) */
-	6, /* PIN_IO11(PC6) */
-	7, /* PIN_IO12(PC7) */
-	5, /* PIN_IO13(PC5) */
-	0, /* PIN_IO14(P40) */
-	1, /* PIN_IO15(P41) */
-	2, /* PIN_IO16(P42) */
-	3, /* PIN_IO17(P43) */
-	4, /* PIN_IO18(P44) */
-	5, /* PIN_IO19(P45) */
-	6, /* PIN_IO20(P46) */
-	7, /* PIN_IO21(P47) */
-	0, /* PIN_IO22(PC0) */
-	1, /* PIN_IO23(PC1) */
-	0, /* PIN_IO24(P50) */
-	1, /* PIN_IO25(P51) */
-	2, /* PIN_IO26(P52) */
-	3, /* PIN_IO27(P53) */
-	4, /* PIN_IO28(P54) */
-	5, /* PIN_IO29(P55) */
-	2, /* PIN_IO30(P12) */
-	3, /* PIN_IO31(P13) */
-	4, /* PIN_IO32(P14) */
-	5, /* PIN_IO33(P15) */
-	6, /* PIN_IO34(P16) */
-	7, /* PIN_IO35(P17) */
-	0, /* PIN_IO36(PD0) */
-	1, /* PIN_IO37(PD1) */
-	2, /* PIN_IO38(PD2) */
-	3, /* PIN_IO39(PD3) */
-	4, /* PIN_IO40(PD4) */
-	5, /* PIN_IO41(PD5) */
-	6, /* PIN_IO42(PD6) */
-	7, /* PIN_IO43(PD7) */
-	0, /* PIN_IO44(PE0) */
-	1, /* PIN_IO45(PE1) */
-	2, /* PIN_IO46(PE2) */
-	3, /* PIN_IO47(PE3) */
-	4, /* PIN_IO48(PE4) */
-	5, /* PIN_IO49(PE5) */
-	6, /* PIN_IO50(PE6) */
-	7, /* PIN_IO51(PE7) */
-	7, /* PIN_IO52(P07) */
-	5, /* PIN_IO53(P05) */
-	5, /* PIN_IO54(P35) */
-	3, /* PIN_IO55(PJ3) */
-	7, /* PIN_IO56(P27) */
-	4, /* PIN_IO57(P34) */
-	6, /* PIN_IO58(P26) */
-	1, /* PIN_IO59(P31) */
-	0, /* PIN_IO60(P30) */
+	0, /* PIN_IO0 (P20) */
+	1, /* PIN_IO1 (P21) */
+    0, /* PIN_IO2 (PC0) */
+    1, /* PIN_IO3 (PC1) */
+    2, /* PIN_IO4 (PC2) */
+    0, /* PIN_IO5 (P50) */
+    2, /* PIN_IO6 (P52) */
+    2, /* PIN_IO7 (P32) */
+    3, /* PIN_IO8 (P33) */
+    5, /* PIN_IO9 (P05) */
+    4, /* PIN_IO10(PC4) */
+    6, /* PIN_IO11(PC6) */
+    7, /* PIN_IO12(PC7) */
+    5, /* PIN_IO13(PC5) */
+    0, /* PIN_IO14(P40) */
+    1, /* PIN_IO15(P41) */
+    2, /* PIN_IO16(P42) */
+    3, /* PIN_IO17(P43) */
+    2, /* PIN_IO18(P12) */
+    3, /* PIN_IO19(P13) */
+    5, /* PIN_IO20(P15) */
+    1, /* PIN_IO21(P31) */
+    0, /* PIN_IO22(P30) */
+    5, /* PIN_IO23(P25) */
+    4, /* PIN_IO24(P34) */
+    5, /* PIN_IO25(P55) */
+    6, /* PIN_IO26(P26) */
+    7, /* PIN_IO27(P27) */
+	3, /* PIN_IO28(PB3) */
+	5, /* PIN_IO29(PB5) */
+    1, /* PIN_IO30(PE1) */
+    5, /* PIN_IO31(P35) */
+	4, /* PIN_IO32(P24) */
+	0, /* PIN_IO33(PA0) */
+	4, /* PIN_IO34(P44) */
+	5, /* PIN_IO35(P45) */
+	6, /* PIN_IO36(P46) */
+	7, /* PIN_IO37(P47) */
+	1, /* PIN_IO38(P51) */
+	3, /* PIN_IO39(P53) */
+	4, /* PIN_IO40(P54) */
+	4, /* PIN_IO41(P14) */
+	6, /* PIN_IO42(P16) */
+	7, /* PIN_IO43(P17) */
+	0, /* PIN_IO44(PD0) */
+	1, /* PIN_IO45(PD1) */
+	2, /* PIN_IO46(PD2) */
+	3, /* PIN_IO47(PD3) */
+	4, /* PIN_IO48(PD4) */
+	5, /* PIN_IO49(PD5) */
+	6, /* PIN_IO50(PD6) */
+	7, /* PIN_IO51(PD7) */
+	0, /* PIN_IO52(PE0) */
+	2, /* PIN_IO53(PE2) */
+	3, /* PIN_IO54(PE3) */
+	4, /* PIN_IO55(PE4) */
+	5, /* PIN_IO56(PE5) */
+	6, /* PIN_IO57(PE6) */
+	7, /* PIN_IO58(PE7) */
+	7, /* PIN_IO59(P07) */
+	3, /* PIN_IO60(PJ3) */
 	0, /* PIN_LED0(PA0) */
 	1, /* PIN_LED1(PA1) */
 	2, /* PIN_LED2(PA2) */
@@ -410,67 +408,67 @@ const uint8_t PROGMEM digital_pin_to_bit_PGM[] = {
 };
 
 const uint8_t PROGMEM digital_pin_to_bit_mask_PGM[] = {
-	_BV(1), /* PIN_IO0 (P21) */
-	_BV(0), /* PIN_IO1 (P20) */
-	_BV(2), /* PIN_IO2 (P22) */
-	_BV(3), /* PIN_IO3 (P23) */
-	_BV(4), /* PIN_IO4 (P24) */
-	_BV(5), /* PIN_IO5 (P25) */
-	_BV(2), /* PIN_IO6 (P32) */
-	_BV(3), /* PIN_IO7 (P33) */
-	_BV(2), /* PIN_IO8 (PC2) */
-	_BV(3), /* PIN_IO9 (PC3) */
-	_BV(4), /* PIN_IO10(PC4) */
-	_BV(6), /* PIN_IO11(PC6) */
-	_BV(7), /* PIN_IO12(PC7) */
-	_BV(5), /* PIN_IO13(PC5) */
-	_BV(0), /* PIN_IO14(P40) */
-	_BV(1), /* PIN_IO15(P41) */
-	_BV(2), /* PIN_IO16(P42) */
-	_BV(3), /* PIN_IO17(P43) */
-	_BV(4), /* PIN_IO18(P44) */
-	_BV(5), /* PIN_IO19(P45) */
-	_BV(6), /* PIN_IO20(P46) */
-	_BV(7), /* PIN_IO21(P47) */
-	_BV(0), /* PIN_IO22(PC0) */
-	_BV(1), /* PIN_IO23(PC1) */
-	_BV(0), /* PIN_IO24(P50) */
-	_BV(1), /* PIN_IO25(P51) */
-	_BV(2), /* PIN_IO26(P52) */
-	_BV(3), /* PIN_IO27(P53) */
-	_BV(4), /* PIN_IO28(P54) */
-	_BV(5), /* PIN_IO29(P55) */
-	_BV(2), /* PIN_IO30(P12) */
-	_BV(3), /* PIN_IO31(P13) */
-	_BV(4), /* PIN_IO32(P14) */
-	_BV(5), /* PIN_IO33(P15) */
-	_BV(6), /* PIN_IO34(P16) */
-	_BV(7), /* PIN_IO35(P17) */
-	_BV(0), /* PIN_IO36(PD0) */
-	_BV(1), /* PIN_IO37(PD1) */
-	_BV(2), /* PIN_IO38(PD2) */
-	_BV(3), /* PIN_IO39(PD3) */
-	_BV(4), /* PIN_IO40(PD4) */
-	_BV(5), /* PIN_IO41(PD5) */
-	_BV(6), /* PIN_IO42(PD6) */
-	_BV(7), /* PIN_IO43(PD7) */
-	_BV(0), /* PIN_IO44(PE0) */
-	_BV(1), /* PIN_IO45(PE1) */
-	_BV(2), /* PIN_IO46(PE2) */
-	_BV(3), /* PIN_IO47(PE3) */
-	_BV(4), /* PIN_IO48(PE4) */
-	_BV(5), /* PIN_IO49(PE5) */
-	_BV(6), /* PIN_IO50(PE6) */
-	_BV(7), /* PIN_IO51(PE7) */
-	_BV(7), /* PIN_IO52(P07) */
-	_BV(5), /* PIN_IO53(P05) */
-	_BV(5), /* PIN_IO54(P35) */
-	_BV(3), /* PIN_IO55(PJ3) */
-	_BV(7), /* PIN_IO56(P27) */
-	_BV(4), /* PIN_IO57(P34) */
-	_BV(6), /* PIN_IO58(P26) */
-	_BV(1), /* PIN_IO59(P31) */
-	_BV(0), /* PIN_IO60(P30) */
+	_BV(0), /* PIN_IO0 (P20) */
+	_BV(1), /* PIN_IO1 (P21) */
+    _BV(0), /* PIN_IO2 (PC0) */
+    _BV(1), /* PIN_IO3 (PC1) */
+    _BV(2), /* PIN_IO4 (PC2) */
+    _BV(0), /* PIN_IO5 (P50) */
+    _BV(2), /* PIN_IO6 (P52) */
+    _BV(2), /* PIN_IO7 (P32) */
+    _BV(3), /* PIN_IO8 (P33) */
+    _BV(5), /* PIN_IO9 (P05) */
+    _BV(4), /* PIN_IO10(PC4) */
+    _BV(6), /* PIN_IO11(PC6) */
+    _BV(7), /* PIN_IO12(PC7) */
+    _BV(5), /* PIN_IO13(PC5) */
+    _BV(0), /* PIN_IO14(P40) */
+    _BV(1), /* PIN_IO15(P41) */
+    _BV(2), /* PIN_IO16(P42) */
+    _BV(3), /* PIN_IO17(P43) */
+    _BV(2), /* PIN_IO18(P12) */
+    _BV(3), /* PIN_IO19(P13) */
+    _BV(5), /* PIN_IO20(P15) */
+    _BV(1), /* PIN_IO21(P31) */
+    _BV(0), /* PIN_IO22(P30) */
+    _BV(5), /* PIN_IO23(P25) */
+    _BV(4), /* PIN_IO24(P34) */
+    _BV(5), /* PIN_IO25(P55) */
+    _BV(6), /* PIN_IO26(P26) */
+    _BV(7), /* PIN_IO27(P27) */
+	_BV(3), /* PIN_IO28(PB3) */
+	_BV(5), /* PIN_IO29(PB5) */
+    _BV(1), /* PIN_IO30(PE1) */
+    _BV(5), /* PIN_IO31(P35) */
+	_BV(4), /* PIN_IO32(P24) */
+	_BV(0), /* PIN_IO33(PA0) */
+	_BV(4), /* PIN_IO34(P44) */
+	_BV(5), /* PIN_IO35(P45) */
+	_BV(6), /* PIN_IO36(P46) */
+	_BV(7), /* PIN_IO37(P47) */
+	_BV(1), /* PIN_IO38(P51) */
+	_BV(3), /* PIN_IO39(P53) */
+	_BV(4), /* PIN_IO40(P54) */
+	_BV(4), /* PIN_IO41(P14) */
+	_BV(6), /* PIN_IO42(P16) */
+	_BV(7), /* PIN_IO43(P17) */
+	_BV(0), /* PIN_IO44(PD0) */
+	_BV(1), /* PIN_IO45(PD1) */
+	_BV(2), /* PIN_IO46(PD2) */
+	_BV(3), /* PIN_IO47(PD3) */
+	_BV(4), /* PIN_IO48(PD4) */
+	_BV(5), /* PIN_IO49(PD5) */
+	_BV(6), /* PIN_IO50(PD6) */
+	_BV(7), /* PIN_IO51(PD7) */
+	_BV(0), /* PIN_IO52(PE0) */
+	_BV(2), /* PIN_IO53(PE2) */
+	_BV(3), /* PIN_IO54(PE3) */
+	_BV(4), /* PIN_IO55(PE4) */
+	_BV(5), /* PIN_IO56(PE5) */
+	_BV(6), /* PIN_IO57(PE6) */
+	_BV(7), /* PIN_IO58(PE7) */
+	_BV(7), /* PIN_IO59(P07) */
+	_BV(3), /* PIN_IO60(PJ3) */
 	_BV(0), /* PIN_LED0(PA0) */
 	_BV(1), /* PIN_LED1(PA1) */
 	_BV(2), /* PIN_LED2(PA2) */
@@ -538,5 +536,4 @@ const uint8_t PROGMEM digital_pin_to_timer_PGM[] = {
 //                            pins are NOT connected to anything by default.
 #define SERIAL_PORT_MONITOR   Serial
 #define SERIAL_PORT_HARDWARE  Serial
-
 #endif

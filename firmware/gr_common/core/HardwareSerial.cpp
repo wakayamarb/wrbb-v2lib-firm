@@ -54,16 +54,17 @@ struct SciInterruptRegistersTableStruct {
   uint8_t _rxir;
   uint8_t _txipr;
   uint8_t _rxipr;
+  uint8_t _rxgen;
 };
 
 static const SciInterruptRegistersTableStruct SciInterruptRegistersTable[] = {
-  {IER_SCI0_TXI0, 7, IER_SCI0_RXI0, 6, IR_SCI0_TXI0, IR_SCI0_RXI0, IPR_SCI0_TXI0, IPR_SCI0_RXI0},
-  {IER_SCI6_TXI6, 1, IER_SCI6_RXI6, 0, IR_SCI6_TXI6, IR_SCI6_RXI6, IPR_SCI6_TXI6, IPR_SCI6_RXI6},
-  {IER_SCI2_TXI2, 5, IER_SCI2_RXI2, 4, IR_SCI2_TXI2, IR_SCI2_RXI2, IPR_SCI2_TXI2, IPR_SCI2_RXI2},
-  {IER_SCI3_TXI3, 0, IER_SCI3_RXI3, 7, IR_SCI3_TXI3, IR_SCI3_RXI3, IPR_SCI3_TXI3, IPR_SCI3_RXI3},
-  {IER_SCI5_TXI5, 6, IER_SCI5_RXI5, 5, IR_SCI5_TXI5, IR_SCI5_RXI5, IPR_SCI5_TXI5, IPR_SCI5_RXI5},
-  {IER_SCI8_TXI8, 7, IER_SCI8_RXI8, 6, IR_SCI8_TXI8, IR_SCI8_RXI8, IPR_SCI8_TXI8, IPR_SCI8_RXI8},
-  {IER_SCI1_TXI1, 2, IER_SCI1_RXI1, 1, IR_SCI1_TXI1, IR_SCI1_RXI1, IPR_SCI1_TXI1, IPR_SCI1_RXI1},
+  {IER_SCI0_TXI0, 7, IER_SCI0_RXI0, 6, IR_SCI0_TXI0, IR_SCI0_RXI0, IPR_SCI0_TXI0, IPR_SCI0_RXI0, 0},
+  {IER_SCI2_TXI2, 5, IER_SCI2_RXI2, 4, IR_SCI2_TXI2, IR_SCI2_RXI2, IPR_SCI2_TXI2, IPR_SCI2_RXI2, 2},
+  {IER_SCI6_TXI6, 1, IER_SCI6_RXI6, 0, IR_SCI6_TXI6, IR_SCI6_RXI6, IPR_SCI6_TXI6, IPR_SCI6_RXI6, 6},
+  {IER_SCI8_TXI8, 7, IER_SCI8_RXI8, 6, IR_SCI8_TXI8, IR_SCI8_RXI8, IPR_SCI8_TXI8, IPR_SCI8_RXI8, 8},
+  {IER_SCI1_TXI1, 2, IER_SCI1_RXI1, 1, IR_SCI1_TXI1, IR_SCI1_RXI1, IPR_SCI1_TXI1, IPR_SCI1_RXI1, 1},
+  {IER_SCI3_TXI3, 0, IER_SCI3_RXI3, 7, IR_SCI3_TXI3, IR_SCI3_RXI3, IPR_SCI3_TXI3, IPR_SCI3_RXI3, 3},
+  {IER_SCI5_TXI5, 6, IER_SCI5_RXI5, 5, IR_SCI5_TXI5, IR_SCI5_RXI5, IPR_SCI5_TXI5, IPR_SCI5_RXI5, 5},
 };
 #endif/*GRSAKURA*/
 
@@ -219,26 +220,20 @@ void HardwareSerial::begin(unsigned long baud, byte config)
   switch (_serial_channel) {
 #if defined(HAVE_HWSERIAL0)
   case 0:
-        {
+    {
         USB_ERR err = USBCDC_Init();
         if (err == USB_ERR_OK) {
-            bool isConnected = false;
             const unsigned long TimeOut = 3000;
             unsigned long start = millis();
             while ((millis() - start) < TimeOut) {
                 if (USBCDC_IsConnected()) {
-                    isConnected = true;
                     break;
                 }
             }
-            if (isConnected) {
-//                USBCDC_Read_Async(SERIAL_BUFFER_SIZE, g_Buffer, CBDoneRead);
-            } else {
-                USBCDC_Cancel();
-            }
         }
     }
-        break;
+    break;
+
 #endif
 #if defined(HAVE_HWSERIAL1)
   case 1:
@@ -382,6 +377,11 @@ void HardwareSerial::begin(unsigned long baud, byte config)
         _sci->SCR.BIT.RIE = 1;
         _sci->SCR.BIT.TE = 1;
         _sci->SCR.BIT.RE = 1;
+
+        ICU.IER[0xE].BIT.IEN2 = 1; // GROUP12 interrupt for error communication
+        ICU.IPR[114].BIT.IPR = 2;
+        ICU.IR[114].BIT.IR = 0;
+        ICU.GEN[12].LONG |= (1 << t->_rxgen);
       }
 
       {
@@ -463,6 +463,9 @@ void HardwareSerial::end()
 
         ICU.IPR[t->_txipr].BIT.IPR = 0;
         ICU.IPR[t->_rxipr].BIT.IPR = 0;
+
+        ICU.GEN[12].LONG &= ~(1 << t->_rxgen);
+
       }
 
       stopModule(_module);
@@ -704,16 +707,16 @@ bool Serial1_available() {
   return Serial1.available();
 }
 
-HardwareSerial Serial1(1, &SCI0, MstpIdSCI0, PIN_IO1, PIN_IO0);
+HardwareSerial Serial1(1, &SCI0, MstpIdSCI0, PIN_IO0, PIN_IO1);
 #endif/*HAVE_HWSERIAL1*/
 
 #ifdef HAVE_HWSERIAL2
-void INT_Excep_SCI6_RXI6()
+void INT_Excep_SCI2_RXI2()
 {
   Serial2._rx_complete_irq();
 }
 
-void INT_Excep_SCI6_TXI6()
+void INT_Excep_SCI2_TXI2()
 {
   Serial2._tx_udr_empty_irq();
 }
@@ -722,16 +725,16 @@ bool Serial2_available() {
   return Serial2.available();
 }
 
-HardwareSerial Serial2(2, &SCI6, MstpIdSCI6, PIN_IO6, PIN_IO7);
+HardwareSerial Serial2(2, &SCI2, MstpIdSCI2, PIN_IO5, PIN_IO6);
 #endif/*HAVE_HWSERIAL2*/
 
 #ifdef HAVE_HWSERIAL3
-void INT_Excep_SCI2_RXI2()
+void INT_Excep_SCI6_RXI6()
 {
   Serial3._rx_complete_irq();
 }
 
-void INT_Excep_SCI2_TXI2()
+void INT_Excep_SCI6_TXI6()
 {
   Serial3._tx_udr_empty_irq();
 }
@@ -740,16 +743,16 @@ bool Serial3_available() {
   return Serial3.available();
 }
 
-HardwareSerial Serial3(3, &SCI2, MstpIdSCI2, PIN_IO24, PIN_IO26);
+HardwareSerial Serial3(3, &SCI6, MstpIdSCI6, PIN_IO7, PIN_IO8);
 #endif/*HAVE_HWSERIAL3*/
 
 #ifdef HAVE_HWSERIAL4
-void INT_Excep_SCI3_RXI3()
+void INT_Excep_SCI8_RXI8()
 {
   Serial4._rx_complete_irq();
 }
 
-void INT_Excep_SCI3_TXI3()
+void INT_Excep_SCI8_TXI8()
 {
   Serial4._tx_udr_empty_irq();
 }
@@ -758,16 +761,16 @@ bool Serial4_available() {
   return Serial4.available();
 }
 
-HardwareSerial Serial4(4, &SCI3, MstpIdSCI3, PIN_IO3, PIN_IO5);
+HardwareSerial Serial4(4, &SCI8, MstpIdSCI8, PIN_IO12, PIN_IO11);
 #endif/*HAVE_HWSERIAL4*/
 
 #ifdef HAVE_HWSERIAL5
-void INT_Excep_SCI5_RXI5()
+void INT_Excep_SCI1_RXI1()
 {
   Serial5._rx_complete_irq();
 }
 
-void INT_Excep_SCI5_TXI5()
+void INT_Excep_SCI1_TXI1()
 {
   Serial5._tx_udr_empty_irq();
 }
@@ -776,16 +779,16 @@ bool Serial5_available() {
   return Serial5.available();
 }
 
-HardwareSerial Serial5(5, &SCI5, MstpIdSCI5, PIN_IO9, PIN_IO8);
+HardwareSerial Serial5(5, &SCI1, MstpIdSCI1, PIN_IO26, PIN_IO22);
 #endif/*HAVE_HWSERIAL5*/
 
 #ifdef HAVE_HWSERIAL6
-void INT_Excep_SCI8_RXI8()
+void INT_Excep_SCI3_RXI3()
 {
   Serial6._rx_complete_irq();
 }
 
-void INT_Excep_SCI8_TXI8()
+void INT_Excep_SCI3_TXI3()
 {
   Serial6._tx_udr_empty_irq();
 }
@@ -794,16 +797,16 @@ bool Serial6_available() {
   return Serial6.available();
 }
 
-HardwareSerial Serial6(6, &SCI8, MstpIdSCI8, PIN_IO12, PIN_IO11);
+HardwareSerial Serial6(6, &SCI3, MstpIdSCI3, PIN_IO29, PIN_IO23);
 #endif/*HAVE_HWSERIAL6*/
 
 #ifdef HAVE_HWSERIAL7
-void INT_Excep_SCI1_RXI1()
+void INT_Excep_SCI5_RXI5()
 {
   Serial7._rx_complete_irq();
 }
 
-void INT_Excep_SCI1_TXI1()
+void INT_Excep_SCI5_TXI5()
 {
   Serial7._tx_udr_empty_irq();
 }
@@ -812,7 +815,37 @@ bool Serial7_available() {
   return Serial7.available();
 }
 
-HardwareSerial Serial7(7, &SCI1, MstpIdSCI1, PIN_IO58, PIN_IO60);
+HardwareSerial Serial7(7, &SCI5, MstpIdSCI5, PIN_IO33, PIN_IO4);
 #endif/*HAVE_HWSERIAL7*/
+
+void INT_Excep_ICU_GROUP12(void){ // For receive error interrupt. Only clear the flag of error.
+    if(ICU.GRP[12].BIT.IS0 == 1){
+        SCI0.SSR.BYTE &= 0x07;
+    }
+    if(ICU.GRP[12].BIT.IS1 == 1){
+        SCI1.SSR.BYTE &= 0x07;
+    }
+    if(ICU.GRP[12].BIT.IS2 == 1){
+        SCI2.SSR.BYTE &= 0x07;
+    }
+    if(ICU.GRP[12].BIT.IS3 == 1){
+        SCI3.SSR.BYTE &= 0x07;
+    }
+    if(ICU.GRP[12].BIT.IS4 == 1){
+        SCI4.SSR.BYTE &= 0x07;
+    }
+    if(ICU.GRP[12].BIT.IS5 == 1){
+        SCI5.SSR.BYTE &= 0x07;
+    }
+    if(ICU.GRP[12].BIT.IS6 == 1){
+        SCI6.SSR.BYTE &= 0x07;
+    }
+    if(ICU.GRP[12].BIT.IS7 == 1){
+        SCI7.SSR.BYTE &= 0x07;
+    }
+    if(ICU.GRP[12].BIT.IS8 == 1){
+        SCI8.SSR.BYTE &= 0x07;
+    }
+}
 
 #endif/*GRSAKURA*/

@@ -286,16 +286,16 @@ void digitalWrite(uint8_t pin, uint8_t val)
 
 	SREG = oldSREG;
 #else /*GRSAKURA*/
+    if (val == LOW) {
+        BCLR(out, bit);
+    } else {
+        BSET(out, bit);
+    }
 	switch (getPinMode(pin)) {
 	case PinModeOutput:
 	case PinModeOutputHigh:
 	case PinModeOutputOpenDrain:
 	default:
-		if (val == LOW) {
-			BCLR(out, bit);
-		} else {
-			BSET(out, bit);
-		}
 		break;
 	case PinModeInput:
 		if (val != LOW) {

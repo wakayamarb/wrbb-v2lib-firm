@@ -10,7 +10,7 @@
 #ifndef _WRBB_H_
 #define _WRBB_H_  1
 
-//#define	DEBUG		// Define if you want to debug
+#define	DEBUG		// Define if you want to debug
 
 #ifdef DEBUG
 #  define DEBUG_PRINT(m,v)    { Serial.print("** "); Serial.print((m)); Serial.print(":"); Serial.println((v)); }
@@ -30,6 +30,7 @@
 #define JAM			1001
 #define SDBT		1002
 #define SDWF		1003
+#define CITRUS		1004
 
 //基板の設計バージョンを定義します
 #define BOARD_GR	0
@@ -38,6 +39,7 @@
 #define BOARD_P03	3
 #define BOARD_P04	4
 #define BOARD_P05	5
+#define BOARD_P06	6
 
 //RX600シリーズの型番を定義します
 #define CPU_RX63N	128		//メモリ128KB
@@ -50,7 +52,7 @@
 #define LICENSE_WRBBURL		"https://github.com/wakayamarb/wrbb-v2lib-firm/blob/master/MITL"
 
 //バージョンと日付
-#define WRBB_VERSION	"-1.73(2016/4/25)"
+#define WRBB_VERSION	"-1.77(2016/5/5)"
 
 //バイトコードフォーマットの設定
 //#define BYTECODE	BYTE_CODE2
@@ -67,7 +69,8 @@
 //#define BOARD	BOARD_P02
 //#define BOARD	BOARD_P03
 //#define BOARD	BOARD_P04
-#define BOARD	BOARD_P05
+//#define BOARD	BOARD_P05
+#define BOARD	BOARD_P06
 #if BOARD == BOARD_GR || BOARD == BOARD_P01
 #	define BOARDNUM	"1"
 #elif BOARD == BOARD_P02
@@ -78,13 +81,17 @@
 #	define BOARDNUM	"4"
 #elif BOARD == BOARD_P05
 #	define BOARDNUM	"5"
+#elif BOARD == BOARD_P06
+#	define BOARDNUM	""
 #endif
 
 //ファームウェア設定
-#define FIRMWARE	MASTER
+//#define FIRMWARE	MASTER
 //#define FIRMWARE	JAM
 //#define FIRMWARE	SDBT
 //#define FIRMWARE	SDWF
+#define FIRMWARE	CITRUS
+
 #if BOARD == BOARD_GR
 #	if FIRMWARE == MASTER
 #		define FIRMWARE_TEXT	"SakuRuby"
@@ -100,6 +107,8 @@
 #		define FIRMWARE_TEXT	"SDBT"
 #	elif FIRMWARE == SDWF
 #		define FIRMWARE_TEXT	"SDWF"
+#	elif FIRMWARE == CITRUS
+#		define FIRMWARE_TEXT	"CITRUS"
 #	endif
 #endif
 
@@ -119,7 +128,7 @@
 #define RUBY_FILENAME  "main.mrb"
 #define RUBY_FILENAME_SIZE 32
 
-#if BOARD == BOARD_GR || BOARD == BOARD_P02 || BOARD == BOARD_P03 || BOARD == BOARD_P04 || BOARD == BOARD_P05
+#if BOARD == BOARD_GR || BOARD == BOARD_P02 || BOARD == BOARD_P03 || BOARD == BOARD_P04 || BOARD == BOARD_P05 || BOARD == BOARD_P06
 	#define REALTIMECLOCK	1
 #endif
 
@@ -247,10 +256,46 @@
 //	#define RB_PIN32	EMLE
 	#define RB_PIN33	61
 
+#elif BOARD == BOARD_P06
+	#define RB_PIN0		0
+	#define RB_PIN1		1
+	#define RB_PIN18	18
+	#define RB_PIN19	19
+	#define RB_PIN2		2
+	#define RB_PIN3		3
+	#define RB_PIN4		4
+	#define RB_PIN5		5
+	#define RB_PIN6		6
+	#define RB_PIN7		7
+	#define RB_PIN8		8
+	#define RB_PIN9		9
+	#define RB_PIN10	10
+	#define RB_PIN11	11
+	#define RB_PIN12	12
+	#define RB_PIN13	13
+	#define RB_PIN14	14
+	#define RB_PIN15	15
+	#define RB_PIN16	16
+	#define RB_PIN17	17
+
+	#define RB_PIN20	20
+	#define RB_PIN21	21
+	#define RB_PIN22	22
+	#define RB_PIN23	23
+	#define RB_PIN24	24
+	#define RB_PIN25	25
+	#define RB_PIN26	26
+	#define RB_PIN27	27
+	#define RB_PIN28	28
+	#define RB_PIN29	29
+	#define RB_PIN30	30
+	#define RB_PIN31	31
+//	#define RB_PIN32	EMLE
+	#define RB_PIN33	33
+
 #endif
 
-#define RB_LED	PIN_LED0
+#define RB_LED	33
 
 
 #endif // _WRBB_H_
-

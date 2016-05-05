@@ -41,6 +41,7 @@
 #include "rx63n/specific_instructions.h"
 #include "Types.h"
 #include "binary.h"
+#include "Utilities.h"
 #endif/*GRSAKURA*/
 
 #ifdef __cplusplus

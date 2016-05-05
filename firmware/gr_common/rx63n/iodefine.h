@@ -23319,7 +23319,8 @@ GCR_RSPI0_SPEI0=12,GCR_RSPI1_SPEI1=12,GCR_RSPI2_SPEI2=12
 #define RSPI0   (*(volatile struct st_rspi    *)0x88380)
 #define RSPI1   (*(volatile struct st_rspi    *)0x883A0)
 #define RSPI2   (*(volatile struct st_rspi    *)0x883C0)
-#define RTC     (*(volatile struct st_rtc     *)0x8C400)
+// rename RTC0 from RTC, becase of creating RTC class in RTC.h
+#define RTC0     (*(volatile struct st_rtc     *)0x8C400)
 #define S12AD   (*(volatile struct st_s12ad   *)0x89000)
 #define SCI0    (*(volatile struct st_sci0    *)0x8A000)
 #define SCI1    (*(volatile struct st_sci0    *)0x8A020)

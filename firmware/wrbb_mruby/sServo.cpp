@@ -60,10 +60,10 @@ int max;
 	servo[ch] = new Servo();
 
 	if (n >= 3){
-		servo[ch]->attach(wrb2sakura(pin), min, max);
+		servo[ch]->attach(pin, min, max);
 	}
 	else{
-		servo[ch]->attach(wrb2sakura(pin));
+		servo[ch]->attach(pin);
 	}
 
 	return mrb_nil_value();			//戻り値は無しですよ。

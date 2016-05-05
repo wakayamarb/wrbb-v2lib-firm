@@ -59,8 +59,8 @@ void (*TwoWire::user_onReceive)(int);
 static uint8_t i2c_rxBuffer[8][BUFFER_LENGTH];
 static uint8_t i2c_txBuffer[8][BUFFER_LENGTH];
 
-SoftI2cMaster rtc(A4, A5);
-static const uint8_t g_sci_i2c_channel_table[8] = {0, 0, 6, 2, 3, 5, 8, 1};
+static SoftI2cMaster wire(18, 19);
+static const uint8_t g_sci_i2c_channel_table[8] = {0, 0, 2, 6, 8, 1, 3, 5};
 static bool g_sci_i2c_channel_inRepStart[8] = { false };
 #endif
 
@@ -103,7 +103,7 @@ void TwoWire::begin(void)
   twi_init();
 #else
   if(wire_channel == 0){ // if Software I2C
-      rtc.setFrequency(wire_frequency);
+      wire.setFrequency(wire_frequency);
   } else { // or not Software I2C
       twi_rx_init(g_sci_i2c_channel_table[wire_channel], wire_frequency);
   }
@@ -148,16 +148,16 @@ uint8_t TwoWire::requestFrom(uint8_t address, uint8_t quantity, uint8_t sendStop
       bool di = isNoInterrupts();
       noInterrupts();
       if (g_sci_i2c_channel_inRepStart[wire_channel] != true) {
-          rtc.start(address);
+          wire.start(address);
       } else {
-          rtc.restart(address);
+          wire.restart(address);
       }
       for (int i = 0; i < quantity; i++) {
-          i2c_rxBuffer[wire_channel][i] = rtc.read(i == (quantity - 1));
+          i2c_rxBuffer[wire_channel][i] = wire.read(i == (quantity - 1));
           read++;
       }
       if (sendStop == true) {
-          rtc.stop();
+          wire.stop();
           g_sci_i2c_channel_inRepStart[wire_channel] = false;
       } else {
           g_sci_i2c_channel_inRepStart[wire_channel] = true;
@@ -247,15 +247,15 @@ uint8_t TwoWire::endTransmission(uint8_t sendStop)
         noInterrupts();
 
         if (g_sci_i2c_channel_inRepStart[wire_channel] != true) {
-            rtc.start(address);
+            wire.start(address);
         } else {
-            rtc.restart(address);
+            wire.restart(address);
         }
         for (int i = 0; i < txBufferLength; i++) {
-            rtc.write(i2c_txBuffer[wire_channel][i]);
+            wire.write(i2c_txBuffer[wire_channel][i]);
         }
         if (sendStop == true) {
-            rtc.stop();
+            wire.stop();
             g_sci_i2c_channel_inRepStart[wire_channel] = false;
         } else {
             g_sci_i2c_channel_inRepStart[wire_channel] = true;
@@ -393,7 +393,7 @@ void TwoWire::flush(void)
 void TwoWire::setFrequency(int freq){
     wire_frequency = freq;
     if(wire_channel == 0){
-        rtc.setFrequency(wire_frequency);
+        wire.setFrequency(wire_frequency);
     } else {
         twi_rx_setFrequency(g_sci_i2c_channel_table[wire_channel], wire_frequency);
     }

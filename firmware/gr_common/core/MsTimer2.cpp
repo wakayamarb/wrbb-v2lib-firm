@@ -125,8 +125,7 @@ void MsTimer2::set(unsigned long ms, void (*f)()) {
 
     // Set the count to occur on rising edge of PCLK.
     TPU1.TSR.BIT.TGFA = 0U;
-    /* Set TGI6A interrupt priority level to 5*/
-//    IPR(TPU1,TGI1A) = 0x5;
+    /* Set TGI6A interrupt priority level to 4*/
     IPR(TPU1,TGI1A) = 0x4;
     /* Enable TGI6A interrupts */
     IEN(TPU1,TGI1A) = 0x1;

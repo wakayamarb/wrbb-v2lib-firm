@@ -21,7 +21,7 @@
  * See file LICENSE.txt for further informations on licensing terms.
  ***************************************************************************/
 /**
- * @file  RTC.cpp
+ * @file  RTC0.cpp
  * @brief RX63Nマイコン内蔵の時計機能（RTC：リアル・タイム・クロック）を使うためのライブラリです。
  *
  * RTCクラスはこのライブラリをC++でカプセル化して使いやすくしたものです。
@@ -32,10 +32,9 @@
 /***************************************************************************/
 /*    Include Header Files                                                 */
 /***************************************************************************/
-#include "RTC.h"
+#include <utility/RX63_RTC.h>
 #include "rx63n/iodefine.h"
 #include "rx63n/interrupt_handlers.h"
-
 
 /***************************************************************************/
 /*    Macro Definitions                                                    */
@@ -109,10 +108,10 @@ int rtc_init()
         while(1 != SYSTEM.SOSCCR.BIT.SOSTP);
 
         /* Disable the input from the sub-clock */
-        RTC.RCR3.BYTE = 0x0C;
+        RTC0.RCR3.BYTE = 0x0C;
 
         /* Wait for the register modification to complete */
-        while(0 != RTC.RCR3.BIT.RTCEN);
+        while(0 != RTC0.RCR3.BIT.RTCEN);
 
         /* Wait for at least 5 cycles of sub-clock */
         uint32_t wait = 0x6000;
@@ -139,8 +138,8 @@ int rtc_init()
     }
 
     /* Set RTC clock input from sub-clock, and supply to RTC module */
-    RTC.RCR4.BIT.RCKSEL = 0;
-    RTC.RCR3.BIT.RTCEN = 1;
+    RTC0.RCR4.BIT.RCKSEL = 0;
+    RTC0.RCR3.BIT.RTCEN = 1;
 
     /* Wait for at least 5 cycles of sub-clock */
     uint32_t wait = 0x6000;
@@ -149,21 +148,21 @@ int rtc_init()
     /* It is now safe to set the RTC registers */
 
     /* Stop the clock */
-    RTC.RCR2.BIT.START = 0x0;
+    RTC0.RCR2.BIT.START = 0x0;
 
     /* Wait for start bit to clear */
-    while(0 != RTC.RCR2.BIT.START);
+    while(0 != RTC0.RCR2.BIT.START);
 
     /* Reset the RTC unit */
-    RTC.RCR2.BIT.RESET = 1;
+    RTC0.RCR2.BIT.RESET = 1;
 
     /* Wait until reset is complete */
-    while(RTC.RCR2.BIT.RESET);
+    while(RTC0.RCR2.BIT.RESET);
 
     // コールバックハンドラの初期化
     g_fRTCInterruptFunc = NULL;
 
-    return true;
+    return 1;
 }
 
 
@@ -177,8 +176,8 @@ int rtc_init()
  ***************************************************************************/
 int rtc_deinit()
 {
-    RTC.RCR3.BIT.RTCEN = 0;
-    RTC.RCR4.BIT.RCKSEL = 1;
+    RTC0.RCR3.BIT.RTCEN = 0;
+    RTC0.RCR4.BIT.RCKSEL = 1;
 
     // コールバックハンドラの初期化
     g_fRTCInterruptFunc = NULL;
@@ -200,39 +199,39 @@ int rtc_deinit()
 int rtc_set_time(RTC_TIMETYPE* time)
 {
 
-    if(RTC.RCR3.BIT.RTCEN == 0){
+    if(RTC0.RCR3.BIT.RTCEN == 0){
         rtc_init();
     }
 
     /* Write 0 to RTC start bit */
-    RTC.RCR2.BIT.START = 0x0;
+    RTC0.RCR2.BIT.START = 0x0;
     /* Wait for start bit to clear */
-    while(0 != RTC.RCR2.BIT.START);
+    while(0 != RTC0.RCR2.BIT.START);
     /* Alarm enable bits are undefined after a reset,
        disable non-required alarm features */
 
-    RTC.RWKAR.BIT.ENB = 0;
-    RTC.RDAYAR.BIT.ENB = 0;
-    RTC.RMONAR.BIT.ENB = 0;
-    RTC.RYRAREN.BIT.ENB = 0;
+    RTC0.RWKAR.BIT.ENB = 0;
+    RTC0.RDAYAR.BIT.ENB = 0;
+    RTC0.RMONAR.BIT.ENB = 0;
+    RTC0.RYRAREN.BIT.ENB = 0;
 
     /* Operate RTC in 24-hr mode */
-    RTC.RCR2.BIT.HR24 = 0x1;
+    RTC0.RCR2.BIT.HR24 = 0x1;
 
-    RTC.RYRCNT.WORD  = HEX2BCD(time->year);
-    RTC.RMONCNT.BYTE = HEX2BCD(time->mon);
-    RTC.RDAYCNT.BYTE = HEX2BCD(time->day);
-    RTC.RHRCNT.BYTE  = HEX2BCD(time->hour);
-    RTC.RMINCNT.BYTE = HEX2BCD(time->min);
-    RTC.RSECCNT.BYTE = HEX2BCD(time->second);
-    RTC.RWKCNT.BYTE  = HEX2BCD(time->weekday);
+    RTC0.RYRCNT.WORD  = HEX2BCD(time->year % 100);
+    RTC0.RMONCNT.BYTE = HEX2BCD(time->mon);
+    RTC0.RDAYCNT.BYTE = HEX2BCD(time->day);
+    RTC0.RHRCNT.BYTE  = HEX2BCD(time->hour);
+    RTC0.RMINCNT.BYTE = HEX2BCD(time->min);
+    RTC0.RSECCNT.BYTE = HEX2BCD(time->second);
+    RTC0.RWKCNT.BYTE  = HEX2BCD(time->weekday);
 
     /* Start the clock */
-    RTC.RCR2.BIT.START = 0x1;
+    RTC0.RCR2.BIT.START = 0x1;
     /* Wait until the start bit is set to 1 */
-    while(1 != RTC.RCR2.BIT.START);
+    while(1 != RTC0.RCR2.BIT.START);
 
-    return true;
+    return 1;
 }
 
 
@@ -248,14 +247,55 @@ int rtc_set_time(RTC_TIMETYPE* time)
  ***************************************************************************/
 int rtc_get_time(RTC_TIMETYPE* time)
 {
-    time->year    = BCD2HEX(RTC.RYRCNT.WORD);
-    time->mon     = BCD2HEX(RTC.RMONCNT.BYTE);
-    time->day     = BCD2HEX(RTC.RDAYCNT.BYTE);
-    time->hour    = BCD2HEX(0x3f & RTC.RHRCNT.BYTE);
-    time->min     = BCD2HEX(RTC.RMINCNT.BYTE);
-    time->second  = BCD2HEX(RTC.RSECCNT.BYTE);
-    time->weekday = BCD2HEX(RTC.RWKCNT.BYTE);
-    return true;
+    IEN(RTC, CUP) = 0;
+    RTC0.RCR1.BIT.CIE = 1;
+    do {
+        IR(RTC, CUP) = 0;
+        time->year    = BCD2HEX(RTC0.RYRCNT.WORD) + 2000;
+        time->mon     = BCD2HEX(RTC0.RMONCNT.BYTE);
+        time->day     = BCD2HEX(RTC0.RDAYCNT.BYTE);
+        time->hour    = BCD2HEX(0x3f & RTC0.RHRCNT.BYTE);
+        time->min     = BCD2HEX(RTC0.RMINCNT.BYTE);
+        time->second  = BCD2HEX(RTC0.RSECCNT.BYTE);
+        time->weekday = BCD2HEX(RTC0.RWKCNT.BYTE);
+    } while (IR(RTC, CUP));
+    RTC0.RCR1.BIT.CIE = 0;
+    return 1;
+}
+
+unsigned short rtc_get_year()
+{
+    return BCD2HEX(RTC0.RYRCNT.WORD) + 2000;
+}
+
+unsigned char rtc_get_mon()
+{
+    return BCD2HEX(RTC0.RMONCNT.BYTE);
+}
+
+unsigned char rtc_get_day()
+{
+    return BCD2HEX(RTC0.RDAYCNT.BYTE);
+}
+
+unsigned char rtc_get_hour()
+{
+    return BCD2HEX(0x3f & RTC0.RHRCNT.BYTE);
+}
+
+unsigned char rtc_get_min()
+{
+    return BCD2HEX(RTC0.RMINCNT.BYTE);
+}
+
+unsigned char rtc_get_second()
+{
+    return BCD2HEX(RTC0.RSECCNT.BYTE);
+}
+
+unsigned char rtc_get_weekday()
+{
+    return BCD2HEX(RTC0.RWKCNT.BYTE);
 }
 
 
@@ -291,23 +331,30 @@ int rtc_set_alarm_time(int hour, int min, int week_flag)
     /* Configure the alarm as follows -
         Alarm time - 12:00:00
         Enable the hour, minutes and seconds alarm      */
-    RTC.RMINAR.BYTE = HEX2BCD(min);
-    RTC.RHRAR.BYTE  = HEX2BCD(hour);
-    RTC.RWKAR.BYTE  = week_flag;
+    RTC0.RMINAR.BYTE = HEX2BCD(min);
+    RTC0.RHRAR.BYTE  = HEX2BCD(hour);
+    if(week_flag <= 0x06){
+        RTC0.RWKAR.BYTE  = week_flag;
+    }
 
-    RTC.RMINAR.BIT.ENB = 1;
-    RTC.RHRAR.BIT.ENB = 1;
-    RTC.RWKAR.BIT.ENB = (week_flag != RTC_ALARM_EVERYDAY);
+    RTC0.RMINAR.BIT.ENB = 1;
+    RTC0.RHRAR.BIT.ENB = 1;
+    if(week_flag <= 0x06){
+        RTC0.RWKAR.BIT.ENB = week_flag;
+    } else {
+        RTC0.RWKAR.BIT.ENB = 0;
+    }
 
     /* Enable alarm and interrupts*/
-    RTC.RCR1.BIT.AIE = 1;
+    RTC0.RCR1.BIT.AIE = 1;
+    while(!RTC0.RCR1.BIT.AIE);
 
     /* Enable RTC Alarm interrupts */
-    IPR(RTC, ALM) = 7u;
+    IPR(RTC, ALM) = 3u;
     IEN(RTC, ALM) = 1u;
     IR(RTC, ALM)  = 0u;
 
-    return true;
+    return 1;
 }
 
 /**
@@ -320,7 +367,8 @@ int rtc_set_alarm_time(int hour, int min, int week_flag)
 void rtc_alarm_on()
 {
     /* Enable alarm and periodic interrupts*/
-    RTC.RCR1.BIT.AIE = 1;
+    RTC0.RCR1.BIT.AIE = 1;
+    while(!RTC0.RCR1.BIT.AIE);
 }
 
 /**
@@ -333,7 +381,8 @@ void rtc_alarm_on()
 void rtc_alarm_off()
 {
     /* Disable alarm and periodic interrupts*/
-    RTC.RCR1.BIT.AIE = 0;
+    RTC0.RCR1.BIT.AIE = 0;
+    while(RTC0.RCR1.BIT.AIE);
 }
 
 /// @cond
@@ -344,7 +393,9 @@ void rtc_alarm_off()
  *
  * @attention なし
  ***************************************************************************/
-void INT_Excep_RTC_ALM(void){
+extern "C" {
+void INT_Excep_RTC_ALM(void)
+{
      if (g_fRTCInterruptFunc != NULL) {
          (*g_fRTCInterruptFunc)();
      }
@@ -352,7 +403,7 @@ void INT_Excep_RTC_ALM(void){
     IR(RTC, ALM) = 0;
 
 }
-
+} //extern C
 /***************************************************************************/
 /*    Local Routines                                                       */
 /***************************************************************************/

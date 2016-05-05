@@ -18,32 +18,14 @@
 */
 
 #include <Arduino.h>
-#if defined(__T4__)
-  #include "Ethernet.h"
-#endif  //#if defined(__T4__)
-
-
-
-
 
 int main(void)
 {
-    //init(); //moved to reset_program.asm
-#if defined(__T4__)
-    Ethernet.maininit();
-#endif
-
-#if defined(USBCON)
-	USBDevice.attach();
-#endif
     setup();
 
     for (;;) {
         loop();
         //if (serialEventRun) serialEventRun();
-#if defined(__T4__)
-        Ethernet.mainloop();
-#endif
 	}
 	return 0;
 }

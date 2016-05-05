@@ -147,6 +147,7 @@ class HardwareSerial : public Stream
     inline void _rx_complete_irq(void);
 #else /*GRSAKURA*/
     void _rx_complete_irq(void);
+    void _rx_error_irq(void);
     inline int _store_char(unsigned char c);
 #endif/*GRSAKURA*/
     void _tx_udr_empty_irq(void);
@@ -177,8 +178,8 @@ class HardwareSerial : public Stream
 #define HAVE_HWSERIAL1
 #define HAVE_HWSERIAL2
 #define HAVE_HWSERIAL3
-//#define HAVE_HWSERIAL4
-//#define HAVE_HWSERIAL5
+#define HAVE_HWSERIAL4
+#define HAVE_HWSERIAL5
 #define HAVE_HWSERIAL6
 #define HAVE_HWSERIAL7
 

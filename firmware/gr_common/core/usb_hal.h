@@ -52,7 +52,7 @@
 #define USB_MODULE_0
 
 /*Set the priority of the USB interrupts according to your syastem.*/
-#define USB_HAL_INTERRUPT_PROIRITY 5
+#define USB_HAL_INTERRUPT_PROIRITY 9
 
 /*USB packet sizes*/
 #define CONTROL_IN_PACKET_SIZE      64

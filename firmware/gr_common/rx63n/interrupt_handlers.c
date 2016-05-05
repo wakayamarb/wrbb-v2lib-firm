@@ -81,8 +81,7 @@ void INT_Excep_CMT1_CMI1(void){ }
 void INT_Excep_CMT3_CMI3(void){ }
 
 // ETHER EINT
-/** MOD EK 25/02/14: Rewired into rx63n/drivers/ethernet/ */
-//void INT_Excep_ETHER_EINT(void){ }
+void INT_Excep_ETHER_EINT(void){ }
 
 // USB0 D0FIFO0
 void INT_Excep_USB0_D0FIFO0(void){}
@@ -277,7 +276,8 @@ void INT_Excep_ICU_GROUP6(void){ }
 // vector 113 reserved
 
 // ICU GROUP12
-void INT_Excep_ICU_GROUP12(void){ }
+// moved to HardwareSerial.cpp
+//void INT_Excep_ICU_GROUP12(void){ }
 
 // SCI12 SCIX0
 void INT_Excep_SCI2_SCIX0(void){ }

@@ -191,12 +191,9 @@ void resetPinModeSoftwarePWM(int pin);
 ( \
 	   ((pin) == PIN_IO0) \
 	|| ((pin) == PIN_IO1) \
-	|| ((pin) == PIN_IO2) \
-	|| ((pin) == PIN_IO3) \
-	|| ((pin) == PIN_IO4) \
 	|| ((pin) == PIN_IO5) \
-	|| ((pin) == PIN_IO6) \
 	|| ((pin) == PIN_IO7) \
+	|| ((pin) == PIN_IO8) \
 	|| ((pin) == PIN_IO11) \
 )
 

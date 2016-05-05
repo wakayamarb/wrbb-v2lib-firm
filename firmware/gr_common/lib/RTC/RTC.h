@@ -1,17 +1,18 @@
 ﻿/***************************************************************************
  *
  * PURPOSE
- *   RTC(Real Time Clock) function module file.
+ *   RTC(Real Time Clock) class header file.
  *
  * TARGET DEVICE
- *   RX63N
+ *   RX
  *
  * AUTHOR
  *   Renesas Electronics Corp.
  *
+ * $Date:: 2013-01-25 14:32:21 +0900#$
  *
  ***************************************************************************
- * Copyright (C) 2014 Renesas Electronics. All rights reserved.
+ * Copyright (C) 2016 Renesas Electronics. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,18 +21,14 @@
  *
  * See file LICENSE.txt for further informations on licensing terms.
  ***************************************************************************/
-/**
- * @file  RTC.h
- * @brief RTC（リアル・タイム・クロック）関数 ヘッダファイル
- *
- * Modified 27th May 2014 by Yuuki Okamiya from RL78duino.cpp
- */
+
 #ifndef RTC_H
 #define RTC_H
 /***************************************************************************/
 /*    Include MCU depend defines.                                          */
 /***************************************************************************/
-#include "Arduino.h"
+#include <utility/RX63_RTC.h>
+
 
 
 /***************************************************************************/
@@ -47,50 +44,43 @@
 /***************************************************************************/
 /*    Macro Definitions                                                    */
 /***************************************************************************/
-#define RTC_WEEK_SUNDAY     0x00    //!< 曜日設定（日曜日）
-#define RTC_WEEK_MONDAY     0x01    //!< 曜日設定（月曜日）
-#define RTC_WEEK_TUESDAY    0x02    //!< 曜日設定（月曜日）
-#define RTC_WEEK_WEDNESDAY  0x03    //!< 曜日設定（月曜日）
-#define RTC_WEEK_THURSDAY   0x04    //!< 曜日設定（月曜日）
-#define RTC_WEEK_FRIDAY     0x05    //!< 曜日設定（月曜日）
-#define RTC_WEEK_SATURDAY   0x06    //!< 曜日設定（月曜日）
-
-#define RTC_ALARM_SUNDAY    0x01    //!< アラーム曜日設定（日曜日）
-#define RTC_ALARM_MONDAY    0x02    //!< アラーム曜日設定（月曜日）
-#define RTC_ALARM_TUESDAY   0x04    //!< アラーム曜日設定（火曜日）
-#define RTC_ALARM_WEDNESDAY 0x08    //!< アラーム曜日設定（水曜日）
-#define RTC_ALARM_THURSDAY  0x10    //!< アラーム曜日設定（木曜日）
-#define RTC_ALARM_FRIDAY    0x20    //!< アラーム曜日設定（金曜日）
-#define RTC_ALARM_SATURDAY  0x40    //!< アラーム曜日設定（土曜日）
-#define RTC_ALARM_EVERYDAY  (RTC_ALARM_SUNDAY | RTC_ALARM_MONDAY | RTC_ALARM_TUESDAY | RTC_ALARM_WEDNESDAY | RTC_ALARM_THURSDAY | RTC_ALARM_FRIDAY | RTC_ALARM_SATURDAY)        //!< アラーム曜日指定（毎日）
 
 
 /***************************************************************************/
 /*    Type  Definitions                                                    */
 /***************************************************************************/
-/*! RTC構造体 */
-typedef struct tagRTC_TIMETYPE {
-    unsigned short  year;   //!< 年
-    unsigned char   mon;    //!< 月
-    unsigned char   day;    //!< 日
-    unsigned char   weekday;//!< 曜日
-    unsigned char   hour;   //!< 時
-    unsigned char   min;    //!< 分
-    unsigned char   second; //!< 秒
-} RTC_TIMETYPE;
+/**
+ * RTCクラス
+ ***************************************************************************/
+class RTC {
+
+public:
+	RTC();
+	~RTC();	
+
+	bool begin();
+	bool end();
+	bool setDateTime(int year, int mon, int day, int hour, int min, int sec, int week = -1);
+	bool getDateTime(int &year, int &mon, int &day, int &hour, int &min, int &sec, int &week);
+	unsigned short getYear();
+	unsigned char getMon();
+	unsigned char getDay();
+	unsigned char getHour();
+	unsigned char getMin();
+	unsigned char getSecond();
+	unsigned char getWeekday();
+
+
+	void attachAlarmHandler(void (*fFunction)(void));
+	bool setAlarmTime(int hour, int min, int week_flag = RTC_ALARM_EVERYDAY);
+	void alarmOn();
+	void alarmOff();
+};
 
 
 /***************************************************************************/
 /*    Function prototypes                                                  */
 /***************************************************************************/
-int rtc_init();
-int rtc_deinit();
-int rtc_set_time(RTC_TIMETYPE* time);
-int rtc_get_time(RTC_TIMETYPE* time);
-void rtc_attach_alarm_handler(void (*fFunction)(void));
-int rtc_set_alarm_time(int hour, int min, int week_flag = RTC_ALARM_EVERYDAY);
-void rtc_alarm_on();
-void rtc_alarm_off();
 
 
 /***************************************************************************/

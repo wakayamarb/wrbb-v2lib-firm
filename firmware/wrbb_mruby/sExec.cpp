@@ -38,10 +38,6 @@
 //#endif
 //
 
-//#if FIRMWARE == SDWF
-//	#include "sWiFi.h"
-//#endif
-
 //バージョンのセット
 volatile char	ProgVer[] = {FIRMWARE_TEXT BOARDNUM WRBB_VERSION BYTECODE_TEXT CPURAM};
 
@@ -82,10 +78,6 @@ bool notFinishFlag = true;
 
 //#if FIRMWARE == JAM
 //	pancake_Init(mrb);		//PanCake関連メソッドの設定
-//#endif
-
-//#if FIRMWARE == SDWF
-//	esp8266_Init(mrb);		//WiFi関連メソッドの設定
 //#endif
 
 
@@ -159,12 +151,22 @@ bool notFinishFlag = true;
 	}
 	EEP.fclose(fp);
 
-	DEBUG_PRINT("mruby", "START");
+	DEBUG_PRINT("mruby", "START_0");
 
 	int arena = mrb_gc_arena_save(mrb);
 
+	DEBUG_PRINT("mruby", "START_1");
+
+	//for(int i=0; i<499; i++){
+	//	char az[5];
+	//	sprintf( az,  "%02X ", RubyCode[i] );
+	//	Serial.print( az );
+	//}
+
 	//mrubyを実行します
 	mrb_load_irep( mrb, (const uint8_t *)RubyCode);
+
+	DEBUG_PRINT("mruby", "START_2");
 
 	if( mrb->exc ){
 		//struct RString *str;
