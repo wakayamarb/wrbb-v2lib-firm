@@ -215,7 +215,7 @@ mrb_value mrb_serial_read(mrb_state *mrb, mrb_value self)
 
 //**************************************************
 // シリアルにデータを出力します: Serial.write
-//  Serial.write(array)
+//  Serial.write(buf,len)
 //	buf: 出力データ
 //	len: 出力データサイズ
 // 戻り値
@@ -246,43 +246,54 @@ mrb_value mrb_serial_flash(mrb_state *mrb, mrb_value self)
 	return mrb_nil_value();			//戻り値は無しですよ。
 }
 
-unsigned char WiFiData[256];
-//**************************************************
-// USBポートとESP8266をシリアルで直結します: WiFi.bypass
-//  WiFi.bypass()
-// リセットするまで、処理は戻りません。
-//**************************************************
-mrb_value mrb_wifi_bypass(mrb_state *mrb, mrb_value self)
-{
-	int len0, len1,len;
-
-	//RbSerial[0]->begin(115200);
-	//RbSerial[3]->begin(115200);
-
-	while(true){
-		len0 = RbSerial[0]->available();
-		len1 = RbSerial[3]->available();
-
-		if(len0 > 0){
-			len = len0<256 ? len0 : 256;
-
-			for(int i=0; i<len; i++){
-				WiFiData[i] = (unsigned char)RbSerial[0]->read();
-			}	        
-			RbSerial[3]->write( WiFiData, len );
-		}
-
-		if(len1 > 0){
-			len = len1<256 ? len1 : 256;
-			
-			for(int i=0; i<len; i++){
-				WiFiData[i] = (unsigned char)RbSerial[3]->read();
-			}
-	        RbSerial[0]->write( WiFiData, len );
-		}
-	}
-	return mrb_nil_value();			//戻り値は無しですよ。
-}
+//unsigned char WiFiData[256];
+////**************************************************
+//// USBポートとESP8266をシリアルで直結します: WiFi.bypass
+////  WiFi.bypass()
+//// リセットするまで、処理は戻りません。
+////**************************************************
+//mrb_value mrb_wifi_bypass(mrb_state *mrb, mrb_value self)
+//{
+//	int len0, len1,len;
+//
+//	//RbSerial[0]->begin(115200);
+//	//RbSerial[3]->begin(115200);
+//
+//	int retCnt = 0;
+//	while(true){
+//		len0 = RbSerial[0]->available();
+//		len1 = RbSerial[3]->available();
+//
+//		if(len0 > 0){
+//			len = len0<256 ? len0 : 256;
+//
+//			for(int i=0; i<len; i++){
+//				WiFiData[i] = (unsigned char)RbSerial[0]->read();
+//
+//				if(WiFiData[i] == 0x0d){ //0x0Dのみの改行を連打したらbypassモードを抜ける
+//					retCnt++;
+//					if(retCnt > 20){
+//						return mrb_nil_value();			//戻り値は無しですよ。
+//					}
+//				}
+//				else{
+//					retCnt = 0;
+//				}
+//			}
+//			RbSerial[3]->write( WiFiData, len );
+//		}
+//
+//		if(len1 > 0){
+//			len = len1<256 ? len1 : 256;
+//			
+//			for(int i=0; i<len; i++){
+//				WiFiData[i] = (unsigned char)RbSerial[3]->read();
+//			}
+//	        RbSerial[0]->write( WiFiData, len );
+//		}
+//	}
+//	return mrb_nil_value();			//戻り値は無しですよ。
+//}
 
 
 //**************************************************
@@ -310,6 +321,6 @@ void serial_Init(mrb_state* mrb) {
 	mrb_define_method(mrb, serialModule, "flash", mrb_serial_flash, MRB_ARGS_NONE());
 	mrb_define_method(mrb, serialModule, "available", mrb_serial_available, MRB_ARGS_NONE());
 	
-	struct RClass *wifiModule = mrb_define_module(mrb, "WiFi");
-	mrb_define_module_function(mrb, wifiModule, "bypass", mrb_wifi_bypass, MRB_ARGS_NONE());
+	//struct RClass *wifiModule = mrb_define_module(mrb, "WiFi");
+	//mrb_define_module_function(mrb, wifiModule, "bypass", mrb_wifi_bypass, MRB_ARGS_NONE());
 }

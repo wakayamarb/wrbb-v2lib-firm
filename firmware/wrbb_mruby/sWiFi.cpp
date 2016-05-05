@@ -17,12 +17,11 @@
 #include "sKernel.h"
 #include "sSerial.h"
 
-extern int Ack_FE_mode;
-extern RB_Serial rbserial[];
+extern HardwareSerial *RbSerial[];		//0:Serial(USB), 1:Serial1, 2:Serial3, 3:Serial2, 4:Serial6 5:Serial7
 
 #define  WIFI_SERIAL	3
 #define  WIFI_BAUDRATE	115200
-#define  WIFI_CTS		15
+//#define  WIFI_CTS		15
 #define  WIFI_WAIT_MSEC	10000
 
 unsigned char WiFiData[256];
@@ -34,83 +33,78 @@ int WiFiRecvOutlNum = -1;	//ESP8266からの受信を出力するシリアル番
 //**************************************************
 void getData(int wait_msec)
 {
-char f[16];
+//char f[16];
 unsigned long times;
 int c;
 int okt = 0;
 int ert = 0;
 int len = 0;
+int n = 0;
 
 	//DEBUG_PRINT("getData", a);
 
-	//受信バッファを空にします
-	digitalWrite(wrb2sakura(WIFI_CTS), 0);	//送信許可
-	while((len=sci_rxcount_ex(rbserial[WIFI_SERIAL].sci)) > 0){
-		for(int i=0; i<len; i++){ Serial.read(); }
-		delay(0);
-	}
-
 	WiFiData[0] = 0;
-	for(int i=0; i<255; i++){
+	times = millis();
+	while(n < 256){
+		//digitalWrite(wrb2sakura(WIFI_CTS), 0);	//送信許可
 
-		digitalWrite(wrb2sakura(WIFI_CTS), 0);	//送信許可
+		//wait_msec 待つ
+		if(millis() - times > wait_msec){
+			DEBUG_PRINT("WiFi get Data","Time OUT");
+			WiFiData[n] = 0;
+			return;
+		}
 
-		times = millis();
-		while(!(len=sci_rxcount_ex(rbserial[WIFI_SERIAL].sci)))
+		while(len = RbSerial[WIFI_SERIAL]->available())
 		{
-			//wait_msec 待つ
-			if(millis() - times > wait_msec){
-				DEBUG_PRINT("WiFi get Data","Time OUT");
-				WiFiData[i + 1] = 0;
-				return;
+			for(int i=0; i<len; i++){
+				c = RbSerial[WIFI_SERIAL]->read();
+
+				//指定のシリアルポートに出す設定であれば、受信値を出力します
+				if(WiFiRecvOutlNum >= 0){
+					RbSerial[WiFiRecvOutlNum]->write((unsigned char)c);
+				}
+
+				WiFiData[n] = c;
+				n++;
+				//DEBUG_PRINT("c",c);
+
+				if(c == 'O'){
+					okt++;
+					ert++;
+				}
+				else if(c == 'K'){
+					okt++;
+				}
+				else if(c == 0x0d){
+					ert++;
+					okt++;
+				}
+				else if(c == 0x0a){
+					ert++;
+					okt++;
+					if(okt == 4 || ert == 7){
+						WiFiData[n] = 0;
+						n = 256;
+						break;
+					}
+					else{
+						ert = 0;
+						okt = 0;
+					}
+				}
+				else if(c == 'E' || c == 'R'){
+					ert++;
+				}
+				else{
+					okt = 0;
+					ert = 0;
+				}
 			}
-
-			//DEBUG_PRINT("getData","DATA Waiting");
-		}
-		digitalWrite(wrb2sakura(WIFI_CTS), 1);	//送信許可しない
-
-		c = rbserial[WIFI_SERIAL].serial->read();
-		
-		//指定のシリアルポートに出す設定であれば、受信値を出力します
-		if(WiFiRecvOutlNum >= 0){
-			rbserial[WiFiRecvOutlNum].serial->write((unsigned char)c);
-		}
-
-		WiFiData[i] = c;
-		//DEBUG_PRINT("c",c);
-
-		if(c == 'O'){
-			okt++;
-			ert++;
-		}
-		else if(c == 'K'){
-			okt++;
-		}
-		else if(c == 0x0d){
-			ert++;
-			okt++;
-		}
-		else if(c == 0x0a){
-			ert++;
-			okt++;
-			if(okt == 4 || ert == 7){
-				WiFiData[i + 1] = 0;
-				break;
-			}
-			else{
-				ert = 0;
-				okt = 0;
-			}
-		}
-		else if(c == 'E' || c == 'R'){
-			ert++;
-		}
-		else{
-			okt = 0;
-			ert = 0;
+			times = millis();
 		}
 	}
-	digitalWrite(wrb2sakura(WIFI_CTS), 0);	//送信許可
+	//digitalWrite(wrb2sakura(WIFI_CTS), 0);	//送信許可
 }
 
 //**************************************************
@@ -124,8 +118,8 @@ int	mode;
 
 	mrb_get_args(mrb, "i", &mode);
 
-	rbserial[WIFI_SERIAL].serial->print("AT+CWMODE=");
-	rbserial[WIFI_SERIAL].serial->println(mode);
+	RbSerial[WIFI_SERIAL]->print("AT+CWMODE=");
+	RbSerial[WIFI_SERIAL]->println(mode);
 
 	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読か、指定されたシリアルポートに出力します
 	getData(WIFI_WAIT_MSEC);
@@ -176,7 +170,7 @@ int mode = 0;
 	int len = RSTRING_LEN(text);
 
 	if(n <= 1 || mode == 0){
-		rbserial[WIFI_SERIAL].serial->print("AT+");
+		RbSerial[WIFI_SERIAL]->print("AT+");
 	}
 
 	for(int i=0; i<254; i++){
@@ -185,7 +179,7 @@ int mode = 0;
 	}
 	WiFiData[len] = 0;
 
-	rbserial[WIFI_SERIAL].serial->println((const char*)WiFiData);
+	RbSerial[WIFI_SERIAL]->println((const char*)WiFiData);
 	//DEBUG_PRINT("WiFi.at",(const char*)WiFiData);
 
 	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読か、指定されたシリアルポートに出力します
@@ -213,34 +207,34 @@ mrb_value passwd;
 	char *p = RSTRING_PTR(passwd);
 	int plen = RSTRING_LEN(passwd);
 
-	rbserial[WIFI_SERIAL].serial->print("AT+CWJAP=");
+	RbSerial[WIFI_SERIAL]->print("AT+CWJAP=");
 	WiFiData[0] = 0x22;		//-> "
 	WiFiData[1] = 0;
-	rbserial[WIFI_SERIAL].serial->print((const char*)WiFiData);
+	RbSerial[WIFI_SERIAL]->print((const char*)WiFiData);
 
 	for(int i=0; i<254; i++){
 		if( i >= slen){ break; }
 		WiFiData[i] = s[i];
 	}
 	WiFiData[slen] = 0;
-	rbserial[WIFI_SERIAL].serial->print((const char*)WiFiData);
+	RbSerial[WIFI_SERIAL]->print((const char*)WiFiData);
 
 	WiFiData[0] = 0x22;		//-> "
 	WiFiData[1] = 0x2C;		//-> ,
 	WiFiData[2] = 0x22;		//-> "
 	WiFiData[3] = 0;
-	rbserial[WIFI_SERIAL].serial->print((const char*)WiFiData);
+	RbSerial[WIFI_SERIAL]->print((const char*)WiFiData);
 
 	for(int i=0; i<254; i++){
 		if( i >= plen){ break; }
 		WiFiData[i] = p[i];
 	}
 	WiFiData[plen] = 0;
-	rbserial[WIFI_SERIAL].serial->print((const char*)WiFiData);
+	RbSerial[WIFI_SERIAL]->print((const char*)WiFiData);
 
 	WiFiData[0] = 0x22;		//-> "
 	WiFiData[1] = 0;
-	rbserial[WIFI_SERIAL].serial->println((const char*)WiFiData);
+	RbSerial[WIFI_SERIAL]->println((const char*)WiFiData);
 
 	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読か、指定されたシリアルポートに出力します
 	getData(WIFI_WAIT_MSEC);
@@ -254,7 +248,7 @@ mrb_value passwd;
 //**************************************************
 mrb_value mrb_wifi_Cifsr(mrb_state *mrb, mrb_value self)
 {
-	rbserial[WIFI_SERIAL].serial->println("AT+CIFSR");
+	RbSerial[WIFI_SERIAL]->println("AT+CIFSR");
 
 	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読か、指定されたシリアルポートに出力します
 	getData(WIFI_WAIT_MSEC);
@@ -270,67 +264,73 @@ mrb_value mrb_wifi_Cifsr(mrb_state *mrb, mrb_value self)
 mrb_value mrb_wifi_bypass(mrb_state *mrb, mrb_value self)
 {
 	int len0, len1,len;
-	sci_str *Sci0 = Serial.get_handle();
+	int retCnt = 0;
 
 	while(true){
-		len0 = sci_rxcount_ex(Sci0);
-		len1 = sci_rxcount_ex(rbserial[WIFI_SERIAL].sci);
+		len0 = RbSerial[0]->available();
+		len1 = RbSerial[WIFI_SERIAL]->available();
 
 		if(len0 > 0){
 			len = len0<256 ? len0 : 256;
 
 			for(int i=0; i<len; i++){
-				WiFiData[i] = (unsigned char)Serial.read();
-			}	        
-			rbserial[WIFI_SERIAL].serial->write( WiFiData, len );
+				WiFiData[i] = (unsigned char)RbSerial[0]->read();
+
+				//if(WiFiData[i] == 0x0d){ //0x0Dのみの改行を連打したらbypassモードを抜ける
+				//	retCnt++;
+				//	if(retCnt > 20){
+				//		return mrb_nil_value();			//戻り値は無しですよ。
+				//	}
+				//}
+				//else{
+				//	retCnt = 0;
+				//}
+			}
+			RbSerial[WIFI_SERIAL]->write( WiFiData, len );
 		}
 
 		if(len1 > 0){
 			len = len1<256 ? len1 : 256;
 			
 			for(int i=0; i<len; i++){
-				WiFiData[i] = (unsigned char)rbserial[WIFI_SERIAL].serial->read();
+				WiFiData[i] = (unsigned char)RbSerial[WIFI_SERIAL]->read();
 			}
-	        Serial.write( WiFiData, len );
+	        RbSerial[0]->write( WiFiData, len );
 		}
 	}
 	return mrb_nil_value();			//戻り値は無しですよ。
 }
 
-
 //**************************************************
 // ライブラリを定義します
 //**************************************************
-void esp8266_Init(mrb_state *mrb)
+int esp8266_Init(mrb_state *mrb)
 {	
 	//ESP8266からの受信を出力しないに設定
 	WiFiRecvOutlNum = -1;
 
 	//CTS用にPIN15をOUTPUTに設定します
-	pinMode(wrb2sakura(WIFI_CTS), 1);
-	digitalWrite(wrb2sakura(WIFI_CTS), 1);
+	//pinMode(wrb2sakura(WIFI_CTS), 1);
+	//digitalWrite(wrb2sakura(WIFI_CTS), 1);
 
 	//WiFiのシリアル3を設定
 	//シリアル通信の初期化をします
-	if(rbserial[WIFI_SERIAL].enable){
-		rbserial[WIFI_SERIAL].serial->end();
-		delay(50);
-		delete rbserial[WIFI_SERIAL].serial;
+	RbSerial[WIFI_SERIAL]->begin(WIFI_BAUDRATE);
+	int len;
+
+	//受信バッファを空にします
+	while((len = RbSerial[WIFI_SERIAL]->available()) > 0){
+		RbSerial[0]->print(len);
+		for(int i=0; i<len; i++){
+			RbSerial[WIFI_SERIAL]->read();
+		}
 	}
-	rbserial[WIFI_SERIAL].serial = new CSerial();
-	rbserial[WIFI_SERIAL].serial->begin(WIFI_BAUDRATE, SCI_SCI6B);
-	rbserial[WIFI_SERIAL].enable = true;
-	rbserial[WIFI_SERIAL].sci = rbserial[WIFI_SERIAL].serial->get_handle();
-
-	sci_convert_crlf_ex(rbserial[WIFI_SERIAL].sci, CRLF_NONE, CRLF_NONE);		//バイナリを通せるようにする
-
 
 	//ECHOオフコマンドを送信する
-	rbserial[WIFI_SERIAL].serial->println("ATE0");
+	RbSerial[WIFI_SERIAL]->println("ATE0");
 
 	getData(500);	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読む
-
-
+		
 	struct RClass *wifiModule = mrb_define_module(mrb, "WiFi");
 
 	mrb_define_module_function(mrb, wifiModule, "at", mrb_wifi_at, MRB_ARGS_REQ(1)|MRB_ARGS_OPT(1));
@@ -340,6 +340,8 @@ void esp8266_Init(mrb_state *mrb)
 	mrb_define_module_function(mrb, wifiModule, "cifsr", mrb_wifi_Cifsr, MRB_ARGS_NONE());
 
 	mrb_define_module_function(mrb, wifiModule, "bypass", mrb_wifi_bypass, MRB_ARGS_NONE());
+
+	return 1;
 
 	//mrb_define_module_function(mrb, pancakeModule, "clear", mrb_pancake_Clear, MRB_ARGS_REQ(1));
 	//mrb_define_module_function(mrb, pancakeModule, "line", mrb_pancake_Line, MRB_ARGS_REQ(5));

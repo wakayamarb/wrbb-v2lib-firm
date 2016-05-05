@@ -38,10 +38,6 @@
 //#endif
 //
 
-//#if FIRMWARE == SDWF
-//	#include "sWiFi.h"
-//#endif
-
 //バージョンのセット
 volatile char	ProgVer[] = {FIRMWARE_TEXT BOARDNUM WRBB_VERSION BYTECODE_TEXT CPURAM};
 
@@ -82,10 +78,6 @@ bool notFinishFlag = true;
 
 //#if FIRMWARE == JAM
 //	pancake_Init(mrb);		//PanCake関連メソッドの設定
-//#endif
-
-//#if FIRMWARE == SDWF
-//	esp8266_Init(mrb);		//WiFi関連メソッドの設定
 //#endif
 
 

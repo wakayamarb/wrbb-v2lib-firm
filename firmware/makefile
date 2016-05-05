@@ -9,7 +9,8 @@ OBJFILES = ./gr_sketch.o ./gr_common/core/Ethernet.o ./gr_common/core/HardwareSe
 			./wrbb_mruby/sServo.o \
 			./wrbb_mruby/sSerial.o \
 			./wrbb_mruby/sI2c.o \
-			./wrbb_mruby/sSdCard.o 
+			./wrbb_mruby/sSdCard.o \
+			./wrbb_mruby/sWiFi.o 
 LIBFILES = ./gr_common/lib/DSP/utility/libGNU_RX_DSP_Little.a \
 			./wrbb_mruby/libmruby.a 
 CCINC = -I./gr_build -I./gr_common -I./gr_common/core -I./gr_common/core/avr -I./gr_common/core/utility -I./gr_common/core/utility/driver -I./gr_common/core/utility/r_byteq_v1.30 -I./gr_common/core/utility/r_config -I./gr_common/core/utility/T4_src -I./gr_common/core/utility/T4_src/checksum -I./gr_common/core/utility/T4_src/checksum/rx -I./gr_common/lib -I./gr_common/lib/DSP -I./gr_common/lib/DSP/utility -I./gr_common/lib/EEPROM -I./gr_common/lib/EEPROM/utility -I./gr_common/lib/Firmata -I./gr_common/lib/LiquidCrystal -I./gr_common/lib/SD -I./gr_common/lib/SD/utility -I./gr_common/lib/Servo -I./gr_common/lib/SPI -I./gr_common/lib/Stepper -I./gr_common/lib/Wire -I./gr_common/lib/Wire/utility -I./gr_common/rx63n -I./USB_Driver \
