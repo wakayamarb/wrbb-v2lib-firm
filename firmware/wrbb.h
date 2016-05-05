@@ -45,12 +45,6 @@
 #define CPU_RX63N	128		//メモリ128KB
 #define CPU_RX631F	256		//メモリ256KB
 
-//License表示
-#define LICENSE_MRUBY		"mruby is released under the MIT License."
-#define LICENSE_MRUBYURL	"https://github.com/mruby/mruby/blob/master/MITL"
-#define LICENSE_WRBB		"Wakayama-mruby-board is released under the MIT License."
-#define LICENSE_WRBBURL		"https://github.com/wakayamarb/wrbb-v2lib-firm/blob/master/MITL"
-
 //バージョンと日付
 #define WRBB_VERSION	"-1.80(2016/5/5)"
 
@@ -112,13 +106,24 @@
 #	endif
 #endif
 
-
 //RX600シリーズの設定
 #define CPU		CPU_RX631F
 #if CPU == CPU_RX63N
 #	define CPURAM	"(128KB)"		//メモリ128KB
 #else
 #	define CPURAM	"(256KB)"		//メモリ256KB
+#endif
+
+//License表示
+#define LICENSE_MRUBY		"mruby is released under the MIT License."
+#define LICENSE_MRUBYURL	"https://github.com/mruby/mruby/blob/master/MITL"
+
+#ifndef BOARD == BOARD_P06
+	#define LICENSE_WRBB		"Wakayama-mruby-board is released under the MIT License."
+	#define LICENSE_WRBBURL		"https://github.com/wakayamarb/wrbb-v2lib-firm/blob/master/MITL"
+#else
+	#define LICENSE_WRBB		"Circuit and firmware of GR-CITRUS is released under the MIT License."
+	#define LICENSE_WRBBURL		"https://github.com/wakayamarb/wrbb-v2lib-firm/blob/master/MITL"
 #endif
 
 #define PIN_LED		61						//LEDのピン番号 GR-SAKURAのV2ファームの場合, GR-CITRUSのV2ファームの場合は33
