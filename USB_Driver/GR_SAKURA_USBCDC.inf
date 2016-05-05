@@ -1,0 +1,95 @@
+[Version]
+Signature="$Windows NT$"
+Class=Ports
+ClassGuid={4D36E978-E325-11CE-BFC1-08002BE10318}
+Provider=%STRING_PROVIDER%
+LayoutFile=layout.inf
+DriverVer=20/03/2012,1.0.0.0
+
+[MANUFACTURER]
+%STRING_PROVIDER%=DeviceList, NTx86, NTamd64
+
+;------------------------------------------------------------------------------
+;  Device list
+;------------------------------------------------------------------------------
+
+[DeviceList.NTx86]
+%STRING_DISPLAY_NAME%=DriverInstall,USB\VID_045B&PID_0234
+
+[DeviceList.NTamd64]
+%STRING_DISPLAY_NAME%=DriverInstall,USB\VID_045B&PID_0234
+
+;------------------------------------------------------------------------------
+;  Installation
+;------------------------------------------------------------------------------
+
+[SourceDisksNames]
+;;; this blank section satisfies chkinf
+[SourceDisksFiles]
+;;; this blank section satisfies chkinf
+
+[DestinationDirs]
+FakeModemCopyFileSection=12
+DefaultDestDir = 12
+
+;------------------------------------------------------------------------------
+;  NTx86 Specific
+;------------------------------------------------------------------------------
+[DriverInstall.NTx86] 
+CopyFiles=DriverInstall.NTx86.Copy 
+AddReg=DriverInstall.NTx86.AddReg 
+
+[DriverInstall.NTx86.Copy] 
+usbser.sys,,,0x20
+
+[DriverInstall.NTx86.AddReg] 
+HKR,,DevLoader,,*ntkern 
+HKR,,NTMPDriver,,usbser.sys 
+HKR,,EnumPropPages32,,"MsPorts.dll,SerialPortPropPageProvider" 
+
+[DriverInstall.NTx86.Services] 
+AddService = usbser, 0x00000002, Service_Inst.NTx86 
+
+[Service_Inst.NTx86] 
+DisplayName = %STRING_DISPLAY_NAME% 
+ServiceType = 1 ; SERVICE_KERNEL_DRIVER 
+StartType = 3 ; SERVICE_DEMAND_START 
+ErrorControl = 1 ; SERVICE_ERROR_NORMAL 
+ServiceBinary = %12%\usbser.sys 
+LoadOrderGroup = Base 
+
+
+;------------------------------------------------------------------------------
+;  NTamd64 Specific
+;------------------------------------------------------------------------------
+
+[DriverInstall.NTamd64]
+include=mdmcpq.inf
+CopyFiles=FakeModemCopyFileSection
+AddReg=LowerFilterAddReg,SerialPropPageAddReg.NTamd64
+
+[DriverInstall.NTamd64.AddReg]
+HKR,,DevLoader,,*ntkern
+HKR,,NTMPDriver,,usbser.sys
+HKR,,EnumPropPages32,,"MsPorts.dll,SerialPortPropPageProvider"
+
+[DriverInstall.NTamd64.Services]
+include=mdmcpq.inf
+AddService=usbser, 0x00000002, LowerFilter_Service_Inst
+
+[DriverInstall.NTamd64.HW]
+include=mdmcpq.inf 
+AddReg=LowerFilterAddReg, SerialPropPageAddReg.NTamd64
+
+; This adds the serial port property tab to the device properties dialog
+[SerialPropPageAddReg.NTamd64]
+HKR,,EnumPropPages32,,"MsPorts.dll,SerialPortPropPageProvider"
+
+
+;------------------------------------------------------------------------------
+;  Strings
+;------------------------------------------------------------------------------
+
+[Strings]
+STRING_PROVIDER = "Renesas"
+STRING_DISPLAY_NAME = "Gadget Renesas SAKURA"
