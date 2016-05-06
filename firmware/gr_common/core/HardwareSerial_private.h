@@ -175,6 +175,7 @@ int HardwareSerial::_store_char(unsigned char c)
     return 0;
   }
 }
+
 #endif/*GRSAKURA*/
 
 #endif // whole file

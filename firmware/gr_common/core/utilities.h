@@ -52,7 +52,6 @@ See file LICENSE.txt for further informations on licensing terms.
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "Arduino.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -55,6 +55,9 @@ void analogReadClock(uint8_t clock)
 #ifdef GRSAKURA
 void setPinModeAnalogRead(int pin)
 {
+    // GR-CITRUS does not assign analog pins from A4(18) to 27,
+    // but the codes remain. Even though user specify 18 or 19,
+    // each pin doesn't work.
 	int an0 = pin - PIN_AN000;
 	if (an0 >= 0 && an0 <= 7) {
 		BCLR(&PORT4.PDR.BYTE, an0);
@@ -429,7 +432,7 @@ void resetPinModeAnalogWrite(int pin)
 #ifdef GRSAKURA
 void analogWriteDAC(int port, int val)
 {
-	int pin = PIN_IO53;
+	int pin = PIN_IO9;
 	if (getPinMode(pin) != PinModeDac) {
 		setPinMode(pin, PinModeDac);
 	}
@@ -444,7 +447,7 @@ void analogWriteDAC(int port, int val)
 
 void setPinModeDac(int pin)
 {
-	if (pin == PIN_IO53) {
+	if (pin == PIN_IO9) {
 		int port = digitalPinToPort(pin);
 		int bit = digitalPinToBit(pin);
 		startModule(MstpIdDA);
@@ -456,7 +459,7 @@ void setPinModeDac(int pin)
 
 void resetPinModeDac(int pin)
 {
-	if (pin == PIN_IO53) {
+	if (pin == PIN_IO9) {
 		stopModule(MstpIdDA);
 		pinMode(pin, INPUT);
 	}

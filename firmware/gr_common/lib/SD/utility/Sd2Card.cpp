@@ -247,9 +247,11 @@ uint8_t Sd2Card::init(uint8_t sckRateID, uint8_t chipSelectPin) {
   uint32_t arg;
 
   // set pin modes
+#if defined(GRSAKURA)
   if (chipSelectPin_ != SS){
       RSPI0.SPCR.BIT.SPMS = 1; // 3-line mode
   }
+#endif
 
   pinMode(chipSelectPin_, OUTPUT);
   digitalWrite(chipSelectPin_, HIGH);

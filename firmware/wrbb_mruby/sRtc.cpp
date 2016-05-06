@@ -37,7 +37,8 @@ mrb_value mrb_rtc_getTime(mrb_state *mrb, mrb_value self)
 mrb_value arv[7];
 
 	if(rtc_get_time(&TimeRTC)){
-		arv[0] = mrb_fixnum_value(TimeRTC.year + 2000);
+		//arv[0] = mrb_fixnum_value(TimeRTC.year + 2000);
+		arv[0] = mrb_fixnum_value(TimeRTC.year);
 		arv[1] = mrb_fixnum_value(TimeRTC.mon);
 		arv[2] = mrb_fixnum_value(TimeRTC.day);
 		arv[3] = mrb_fixnum_value(TimeRTC.hour);
@@ -120,7 +121,7 @@ int year, mon;
 	}
 
 	TimeRTC.weekday = (year + year/4 - year/100 + year/400 + (13 * mon + 8)/5 + TimeRTC.day) % 7;
-	TimeRTC.year = TimeRTC.year % 100;
+	//TimeRTC.year = TimeRTC.year % 100;
 	
     return mrb_fixnum_value(rtc_set_time(&TimeRTC));
 }

@@ -46,7 +46,7 @@
 #define CPU_RX631F	256		//メモリ256KB
 
 //バージョンと日付
-#define WRBB_VERSION	"-1.80(2016/5/5)"
+#define WRBB_VERSION	"-1.84(2016/5/7)"
 
 //バイトコードフォーマットの設定
 //#define BYTECODE	BYTE_CODE2
@@ -126,8 +126,8 @@
 	#define LICENSE_WRBBURL		"https://github.com/wakayamarb/wrbb-v2lib-firm/blob/master/MITL"
 #endif
 
-#define PIN_LED		61						//LEDのピン番号 GR-SAKURAのV2ファームの場合, GR-CITRUSのV2ファームの場合は33
-//#define PIN_LED		33					//LEDのピン番号 GR-SAKURAのV2ファームの場合, GR-CITRUSのV2ファームの場合は33
+//#define PIN_LED		61				//LEDのピン番号 GR-SAKURAのV2ファームの場合
+#define PIN_LED		33					//LEDのピン番号 GR-CITRUSのV2ファームの場合
 
 #define	FILE_LOAD	PORT3.PIDR.BIT.B5		//PORT 3-5
 

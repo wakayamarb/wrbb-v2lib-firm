@@ -19,14 +19,14 @@
 #include <sExec.h>
 #include "wrbb.h"
 
-char RubyStartFileName[RUBY_FILENAME_SIZE];	//xmlに指定された最初に起動するmrubyファイル名
+char RubyStartFileName[RUBY_FILENAME_SIZE];	//xml�Ɏw�肳�ꂽ�ŏ��ɋN������mruby�t�@�C����
 char RubyFilename[RUBY_FILENAME_SIZE];
-char ExeFilename[RUBY_FILENAME_SIZE];		//現在実行されているファイルのパス名
+char ExeFilename[RUBY_FILENAME_SIZE];		//���ݎ��s����Ă���t�@�C���̃p�X��
 
 extern volatile char ProgVer[];
 
 //**********************************
-//初期化を行います
+//���������s���܂�
 //**********************************
 void init_vm( void )
 {
@@ -34,21 +34,21 @@ char dat[4];
 int en;
 int i;
 
-	//EEPファイル関連の初期化
+	//EEP�t�@�C���֘A�̏�����
 	EEP.begin();
 
-	//スタートファイル名を読み込みます
+	//�X�^�[�g�t�@�C������ǂݍ��݂܂�
 	RubyStartFileName[0] = 0;
 
 	FILEEEP fpj;
 	FILEEEP *fp = &fpj;
 
-	//スタートファイル名を読み込みます
+	//�X�^�[�g�t�@�C������ǂݍ��݂܂�
 	if(EEP.fopen( fp, XML_FILENAME, EEP_READ ) == -1){
 		strcpy( RubyStartFileName, RUBY_FILENAME );
 	}
 	else{
-		//file と ack が出るまでひたすら読み込みます
+		//file �� ack ���o��܂łЂ�����ǂݍ��݂܂�
 		int pos = 0;
 		while( !EEP.fEof(fp) ){
 			EEP.fseek(fp, pos, EEP_SEEKTOP);
@@ -65,13 +65,13 @@ int i;
 
 			if( RubyStartFileName[0]==0 && dat[0]=='f' && dat[1]=='i' && dat[2]=='l' && dat[3]=='e'  ){
 
-				//見つかったので " or ' まで読み飛ばす
+				//���������̂� " or ' �܂œǂݔ�΂�
 				while( !EEP.fEof(fp) ){
 					en = EEP.fread(fp);
 					if( en<0 ){ break; }
 					if( (char)en==0x22 || (char)en==0x27 ){
 
-						//見つかったので " or ' まで取り込みます
+						//���������̂� " or ' �܂Ŏ�荞�݂܂�
 						for( i=0; i<EEPFILENAME_SIZE; i++ ){
 							en = EEP.fread(fp);
 							if( en<0 ){
@@ -98,12 +98,12 @@ int i;
 		strcpy( RubyStartFileName, RUBY_FILENAME );
 	}
 
-	//RubyFilenameにスタートファイル名をコピーします
+	//RubyFilename�ɃX�^�[�g�t�@�C�������R�s�[���܂�
 	strcpy( RubyFilename, RubyStartFileName );
 }
 
 //**************************************************
-// セットアップします
+// �Z�b�g�A�b�v���܂�
 //**************************************************
 void setup()
 {
@@ -116,25 +116,25 @@ void setup()
     pinMode(PIN_LED3, OUTPUT);
 #endif
 
-	//ピンモードを入力に初期化します
+	//�s�����[�h����͂ɏ��������܂�
 	pinModeInit();
 	
-	//シリアル通信の初期化
-	Serial.begin(115200);		//仮想USBシリアル
+	//�V���A���ʐM�̏�����
+	Serial.begin(115200);		//���zUSB�V���A��
     //Serial.setDefault();
-	//sci_convert_crlf_ex(Serial.get_handle(), CRLF_NONE, CRLF_NONE);	//バイナリを通せるようにする
+	//sci_convert_crlf_ex(Serial.get_handle(), CRLF_NONE, CRLF_NONE);	//�o�C�i����ʂ���悤�ɂ���
 
-	//vmの初期化
+	//vm�̏�����
 	init_vm();
 
-	//Port 3-5がHIGHだったら、EEPROMファイルローダーに飛ぶ
+	//Port 3-5��HIGH��������AEEPROM�t�@�C�����[�_�[�ɔ��
 	if( FILE_LOAD == 1 ){
 		fileloader((const char*)ProgVer,MRUBY_VERSION);
 	}
 }
 
 //**************************************************
-// 無限ループです
+// �������[�v�ł�
 //**************************************************
 void loop()
 {

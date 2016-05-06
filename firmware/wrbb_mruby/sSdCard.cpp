@@ -18,6 +18,7 @@
 #include "sSdCard.h"
 
 File Fp[2];
+bool SdBeginFlag = false;	//SD.begin()で1が返ってきたら true となる
 
 //**************************************************
 //ファイルが存在するかどうか調べる: SD.exists
@@ -382,9 +383,10 @@ mrb_int ret = 0;
 int sdcard_Init(mrb_state *mrb)
 {
 	//SDカードライブラリを初期化します
-	if(!SD.begin()){
+	if(!SdBeginFlag && !SD.begin()){
 		return 0;
 	}
+	SdBeginFlag = true;
 	
 	//日付と時刻を返す関数を登録
 	SdFile::dateTimeCallback( &SD_DateTime );
@@ -419,7 +421,8 @@ uint8_t month = 1, day = 1, hour = 0, minute = 0, second = 0;
 RTC_TIMETYPE timertc;
 
 	if(rtc_get_time(&timertc)){
-		year = timertc.year + 2000;
+		//year = timertc.year + 2000;
+		year = timertc.year;
 		month = timertc.mon;
 		day = timertc.day;
 		hour = timertc.hour;

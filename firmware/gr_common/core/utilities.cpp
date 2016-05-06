@@ -48,7 +48,6 @@ See file LICENSE.txt for further informations on licensing terms.
 
 #include "Arduino.h"
 #include "Time.h"
-#include "Utilities.h"
 
 #include "rx63n/interrupt_handlers.h"
 #include "rx63n/iodefine.h"

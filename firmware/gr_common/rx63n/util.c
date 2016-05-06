@@ -405,7 +405,7 @@ void setPinModeHardwarePWM(int pin, int period, int term, unsigned long length)
         int bit = digitalPinToBit(pin);
         int tpsc = 0b10; // PCLK/16
         switch (pin) {
-        case PIN_IO0:
+        case PIN_IO1:
             startModule(MstpIdTPU3);
             assignPinFunction(pin, 0b00011, 0, 0);
             BSET(portModeRegister(port), bit);
@@ -417,7 +417,7 @@ void setPinModeHardwarePWM(int pin, int period, int term, unsigned long length)
             changePinModeHardwarePWM(pin, period, term, length);
             TPUA.TSTR.BIT.CST3 = 1;
             break;
-        case PIN_IO1:
+        case PIN_IO0:
             startModule(MstpIdMTU1);
             assignPinFunction(pin, 0b00001, 0, 0);
             BSET(portModeRegister(port), bit);
@@ -429,7 +429,7 @@ void setPinModeHardwarePWM(int pin, int period, int term, unsigned long length)
             changePinModeHardwarePWM(pin, period, term, length);
             MTU.TSTR.BIT.CST1 = 1;
             break;
-        case PIN_IO2:
+        case PIN_IO28:
             startModule(MstpIdTPU3);
             assignPinFunction(pin, 0b00011, 0, 0);
             BSET(portModeRegister(port), bit);
@@ -441,7 +441,7 @@ void setPinModeHardwarePWM(int pin, int period, int term, unsigned long length)
             changePinModeHardwarePWM(pin, period, term, length);
             TPUA.TSTR.BIT.CST3 = 1;
             break;
-        case PIN_IO3:
+        case PIN_IO29:
             startModule(MstpIdTPU3);
             assignPinFunction(pin, 0b00011, 0, 0);
             BSET(portModeRegister(port), bit);
@@ -453,7 +453,7 @@ void setPinModeHardwarePWM(int pin, int period, int term, unsigned long length)
             changePinModeHardwarePWM(pin, period, term, length);
             TPUA.TSTR.BIT.CST3 = 1;
             break;
-        case PIN_IO4:
+        case PIN_IO32:
             startModule(MstpIdMTU4);
             assignPinFunction(pin, 0b00001, 0, 0);
             BSET(portModeRegister(port), bit);
@@ -466,10 +466,13 @@ void setPinModeHardwarePWM(int pin, int period, int term, unsigned long length)
             changePinModeHardwarePWM(pin, period, term, length);
             MTU.TSTR.BIT.CST4 = 1;
             break;
-        case PIN_IO5:
+        case PIN_IO5: //IO5 is connected to IO23(P25), that enables hwPwm.
             // TIOCA4
             startModule(MstpIdTPU4);
+            pin = PIN_IO23; // for multiple connection
             assignPinFunction(pin, 0b00011, 0, 0);
+            port = digitalPinToPort(pin); // for multiple connection
+            bit = digitalPinToBit(pin);
             BSET(portModeRegister(port), bit);
             TPUA.TSTR.BIT.CST4 = 0;
             TPU4.TCR.BIT.TPSC = tpsc;
@@ -479,7 +482,7 @@ void setPinModeHardwarePWM(int pin, int period, int term, unsigned long length)
             changePinModeHardwarePWM(pin, period, term, length);
             TPUA.TSTR.BIT.CST4 = 1;
             break;
-        case PIN_IO6:
+        case PIN_IO7:
             startModule(MstpIdTPU0);
             assignPinFunction(pin, 0b00011, 0, 0);
             BSET(portModeRegister(port), bit);
@@ -491,7 +494,7 @@ void setPinModeHardwarePWM(int pin, int period, int term, unsigned long length)
             changePinModeHardwarePWM(pin, period, term, length);
             TPUA.TSTR.BIT.CST0 = 1;
             break;
-        case PIN_IO7:
+        case PIN_IO8:
             startModule(MstpIdTPU0);
             assignPinFunction(pin, 0b00011, 0, 0);
             BSET(portModeRegister(port), bit);
@@ -527,7 +530,7 @@ void changePinModeHardwarePWM(int pin, int period, int term, unsigned long lengt
             return;
         }
         switch (pin) {
-        case PIN_IO0:
+        case PIN_IO1:
             if (term <= 0) {
                 TPU3.TIORH.BIT.IOA = 0b0001;
                 TPU3.TGRA = 0;
@@ -538,7 +541,7 @@ void changePinModeHardwarePWM(int pin, int period, int term, unsigned long lengt
             TPU3.TIORH.BIT.IOB = 0b0110;
             TPU3.TGRB = period - 1;
             break;
-        case PIN_IO1:
+        case PIN_IO0:
             MTU1.TIOR.BIT.IOB = 0b0001;
             if (term <= 0) {
                 MTU1.TGRB = 0;
@@ -552,7 +555,7 @@ void changePinModeHardwarePWM(int pin, int period, int term, unsigned long lengt
             }
             MTU1.TGRA = period - 1;
             break;
-        case PIN_IO2:
+        case PIN_IO28:
             if (term <= 0) {
                 TPU3.TIORL.BIT.IOC = 0b0001;
                 TPU3.TGRC = 0;
@@ -563,7 +566,7 @@ void changePinModeHardwarePWM(int pin, int period, int term, unsigned long lengt
             TPU3.TIORH.BIT.IOB = 0b0110;
             TPU3.TGRB = period - 1;
             break;
-        case PIN_IO3:
+        case PIN_IO29:
             if (term <= 0) {
                 TPU3.TIORL.BIT.IOD = 0b0001;
                 TPU3.TGRD = 0;
@@ -574,7 +577,7 @@ void changePinModeHardwarePWM(int pin, int period, int term, unsigned long lengt
             TPU3.TIORH.BIT.IOB = 0b0110;
             TPU3.TGRB = period - 1;
             break;
-        case PIN_IO4:
+        case PIN_IO32:
             MTU4.TIORH.BIT.IOB = 0b0001;
             if (term <= 0) {
                 MTU4.TGRB = 0;
@@ -600,7 +603,7 @@ void changePinModeHardwarePWM(int pin, int period, int term, unsigned long lengt
             }
             TPU4.TGRA = period - 1;
             break;
-        case PIN_IO6:
+        case PIN_IO7:
             if (term <= 0) {
                 TPU0.TIORL.BIT.IOC = 0b0001;
                 TPU0.TGRC = 0;
@@ -611,7 +614,7 @@ void changePinModeHardwarePWM(int pin, int period, int term, unsigned long lengt
             TPU0.TIORH.BIT.IOA = 0b0110;
             TPU0.TGRA = period - 1;
             break;
-        case PIN_IO7:
+        case PIN_IO8:
             if (term <= 0) {
                 TPU0.TIORL.BIT.IOD = 0b0001;
                 TPU0.TGRD = 0;
@@ -648,35 +651,36 @@ void resetPinModeHardwarePWM(int pin)
             return;
         }
         switch (pin) {
-        case PIN_IO0:
+        case PIN_IO1:
             setPinMode(pin, PinModeInput);
             //stopModule(MstpIdTPU3);
             break;
-        case PIN_IO1:
+        case PIN_IO0:
             setPinMode(pin, PinModeInput);
             //stopModule(MstpIdMTU1);
             break;
-        case PIN_IO2:
+        case PIN_IO28:
             setPinMode(pin, PinModeInput);
             //stopModule(MstpIdTPU3);
             break;
-        case PIN_IO3:
+        case PIN_IO29:
             setPinMode(pin, PinModeInput);
             //stopModule(MstpIdTPU3);
             break;
-        case PIN_IO4:
+        case PIN_IO32:
             setPinMode(pin, PinModeInput);
             //stopModule(MstpIdMTU4);
             break;
         case PIN_IO5:
             setPinMode(pin, PinModeInput);
+            setPinMode(PIN_IO23, PinModeInput); // for multiple connection
             //stopModule(MstpIdTPU4);
             break;
-        case PIN_IO6:
+        case PIN_IO7:
             setPinMode(pin, PinModeInput);
             //stopModule(MstpIdTPU0);
             break;
-        case PIN_IO7:
+        case PIN_IO8:
             setPinMode(pin, PinModeInput);
             //stopModule(MstpIdTPU0);
             break;

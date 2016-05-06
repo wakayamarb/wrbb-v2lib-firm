@@ -16,11 +16,11 @@ usb.println "WiFi Ready"
 
 #usb.println WiFi.at("CWQAP")
 
-usb.println WiFi.cifsr
-usb.println WiFi.cwjap("000740DE0D79","hama1297noiti")
+usb.println WiFi.config
+usb.println WiFi.connect("000740DE0D79","hama1297noiti")
 #usb.println WiFi.cwjap("TAROSAY","37000")
 
-usb.println WiFi.cifsr
+usb.println WiFi.config
 
 usb.println "WiFi disconnect"
 usb.println WiFi.at("CWQAP")

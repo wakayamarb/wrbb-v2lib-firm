@@ -66,7 +66,7 @@ uint8_t const SPI_QUARTER_SPEED = 2;
 #ifndef GRSAKURA
 uint8_t const  SD_CHIP_SELECT_PIN = SS_PIN;
 #else
-uint8_t const  SD_CHIP_SELECT_PIN = 22;
+uint8_t const  SD_CHIP_SELECT_PIN = 2;
 #endif
 // The following three pins must not be redefined for hardware SPI.
 /** SPI Master Out Slave In pin */

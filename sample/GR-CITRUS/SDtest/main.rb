@@ -1,7 +1,7 @@
 #!mruby
 usb = Serial.new(0)
 Rtc.init
-Rtc.setTime([2016,5,5,17,25,12])
+Rtc.setTime([2016,5,7,1,8,0])
 
 if( System.useSD() == 0)then
     usb.println "SD Card can't use."

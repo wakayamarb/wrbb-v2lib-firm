@@ -259,14 +259,16 @@ uint8_t SdFile::make83Name(const char* str, uint8_t* name) {
       i = 8;   // place for extension
     } else {
       // illegal FAT characters
-//      uint8_t b; // b is not used in GRSAKURA
+      uint8_t b;
 #if defined(__AVR__)
       PGM_P p = PSTR("|<>^+=?/[];,*\"\\");
       while ((b = pgm_read_byte(p++))) if (b == c) return false;
-#elif defined(__arm__)
+#elif defined(__arm__) || defined(__RX__) || defined(__RL78__)
       const uint8_t valid[] = "|<>^+=?/[];,*\"\\";
       const uint8_t *p = valid;
       while ((b = *p++)) if (b == c) return false;
+#else
+#error "unknown architecture"
 #endif
       // check size and only allow ASCII printable characters
       if (i > n || c < 0X21 || c > 0X7E)return false;

@@ -14,116 +14,6 @@
 
 #include "../wrbb.h"
 
-//**************************************************
-// WRBB - SAKURAピン番コンバート
-//**************************************************
-int wrb2sakura(int pin)
-{
-int ret = 0;
-
-	switch(pin){
-	case 0:
-		ret = RB_PIN0;
-		break;
-	case 1:
-		ret = RB_PIN1;
-		break;
-	case 2:
-		ret = RB_PIN2;
-		break;
-	case 3:
-		ret = RB_PIN3;
-		break;
-	case 4:
-		ret = RB_PIN4;
-		break;
-	case 5:
-		ret = RB_PIN5;
-		break;
-	case 6:
-		ret = RB_PIN6;
-		break;
-	case 7:
-		ret = RB_PIN7;
-		break;
-	case 8:
-		ret = RB_PIN8;
-		break;
-	case 9:
-		ret = RB_PIN9;
-		break;
-	case 10:
-		ret = RB_PIN10;
-		break;
-	case 11:
-		ret = RB_PIN11;
-		break;
-	case 12:
-		ret = RB_PIN12;
-		break;
-	case 13:
-		ret = RB_PIN13;
-		break;
-	case 14:
-		ret = RB_PIN14;
-		break;
-	case 15:
-		ret = RB_PIN15;
-		break;
-	case 16:
-		ret = RB_PIN16;
-		break;
-	case 17:
-		ret = RB_PIN17;
-		break;
-	case 18:
-		ret = RB_PIN18;
-		break;
-	case 19:
-		ret = RB_PIN19;
-		break;
-
-	case 20:
-		ret = RB_PIN20;
-		break;
-	case 21:
-		ret = RB_PIN21;
-		break;
-	case 22:
-		ret = RB_PIN22;
-		break;
-	case 23:
-		ret = RB_PIN23;
-		break;
-	case 24:
-		ret = RB_PIN24;
-		break;
-	case 25:
-		ret = RB_PIN25;
-		break;
-	case 26:
-		ret = RB_PIN26;
-		break;
-	case 27:
-		ret = RB_PIN27;
-		break;
-	case 30:
-		ret = RB_PIN30;
-		break;
-	case 31:
-		ret = RB_PIN31;
-		break;
-	case 33:
-		ret = RB_PIN33;
-		break;
-
-	default:
-		ret = 55;
-		break;
-	}
-
-return ret;
-}
 
 //**************************************************
 // デジタルライト
@@ -144,7 +34,7 @@ int pin, value;
 	if(pin >=20 && pin <= 30){
 		return mrb_nil_value();			//戻り値は無しですよ。
 	}
-	digitalWrite( wrb2sakura(pin), value );
+	digitalWrite( pin, value );
 
 	return mrb_nil_value();	//戻り値は無しですよ。
 }
@@ -164,7 +54,7 @@ int pin, value;
 
 	mrb_get_args(mrb, "ii", &pin, &value);
 
-	pinMode( wrb2sakura(pin), value );
+	pinMode( pin, value );
 
 	return mrb_nil_value();			//戻り値は無しですよ。
 }
@@ -228,7 +118,7 @@ int pin, value;
 
 	mrb_get_args(mrb, "i", &pin);
 
-	value = digitalRead(wrb2sakura(pin));
+	value = digitalRead(pin);
 
 	return mrb_fixnum_value( value );
 }
@@ -315,7 +205,7 @@ int pin, value;
 		return mrb_nil_value();			//戻り値は無しですよ。
 	}
 
-	analogWrite(wrb2sakura(pin), value );
+	analogWrite(pin, value );
 
 	return mrb_nil_value();			//戻り値は無しですよ。
 }
@@ -353,7 +243,7 @@ int pin;
 		return mrb_nil_value();			//戻り値は無しですよ。
 	}
 
-	noTone(wrb2sakura(pin));
+	noTone(pin);
 
 	return mrb_nil_value();			//戻り値は無しですよ。
 }
@@ -380,7 +270,7 @@ unsigned long dura;
 	dura = n < 3 ? 0 : dura;
 
 	if( freq>=2 && freq<=62500 ){
-		tone(wrb2sakura(pin), freq, dura);
+		tone(pin, freq, dura);
 	}
 	return mrb_nil_value();			//戻り値は無しですよ。
 }

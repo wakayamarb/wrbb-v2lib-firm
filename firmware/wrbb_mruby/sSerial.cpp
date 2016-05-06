@@ -303,10 +303,10 @@ void serial_Init(mrb_state* mrb) {
 
 	RbSerial[0] = &Serial;	//0:Serial(USB)
 	RbSerial[1] = &Serial1;	//1:Serial1
-	RbSerial[2] = &Serial3;	//2:Serial3
-	RbSerial[3] = &Serial2;	//3:Serial2
-	RbSerial[4] = &Serial6;	//4:Serial6
-	RbSerial[5] = &Serial7;	//5:Serial7
+	RbSerial[2] = &Serial2;	//2:Serial3
+	RbSerial[3] = &Serial3;	//3:Serial2
+	RbSerial[4] = &Serial4;	//4:Serial6
+	RbSerial[5] = &Serial5;	//5:Serial7
 
 	struct RClass *serialModule = mrb_define_class(mrb, "Serial", mrb->object_class);
 	MRB_SET_INSTANCE_TT(serialModule, MRB_TT_DATA);

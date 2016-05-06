@@ -30,8 +30,10 @@ int WiFiRecvOutlNum = -1;	//ESP8266からの受信を出力するシリアル番
 //**************************************************
 // OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読むか、
 // 指定されたシリアルポートに出力します
+//
+// 1:受信した, 0:受信できなかった
 //**************************************************
-void getData(int wait_msec)
+int getData(int wait_msec)
 {
 //char f[16];
 unsigned long times;
@@ -52,7 +54,7 @@ int n = 0;
 		if(millis() - times > wait_msec){
 			DEBUG_PRINT("WiFi get Data","Time OUT");
 			WiFiData[n] = 0;
-			return;
+			return 0;
 		}
 
 		while(len = RbSerial[WIFI_SERIAL]->available())
@@ -105,6 +107,7 @@ int n = 0;
 		}
 	}
 	//digitalWrite(wrb2sakura(WIFI_CTS), 0);	//送信許可
+	return 1;
 }
 
 //**************************************************
@@ -275,16 +278,6 @@ mrb_value mrb_wifi_bypass(mrb_state *mrb, mrb_value self)
 
 			for(int i=0; i<len; i++){
 				WiFiData[i] = (unsigned char)RbSerial[0]->read();
-
-				//if(WiFiData[i] == 0x0d){ //0x0Dのみの改行を連打したらbypassモードを抜ける
-				//	retCnt++;
-				//	if(retCnt > 20){
-				//		return mrb_nil_value();			//戻り値は無しですよ。
-				//	}
-				//}
-				//else{
-				//	retCnt = 0;
-				//}
 			}
 			RbSerial[WIFI_SERIAL]->write( WiFiData, len );
 		}
@@ -329,7 +322,10 @@ int esp8266_Init(mrb_state *mrb)
 	//ECHOオフコマンドを送信する
 	RbSerial[WIFI_SERIAL]->println("ATE0");
 
-	getData(500);	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読む
+	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読む
+	if(getData(500) == 0){
+		return 0;
+	}
 		
 	struct RClass *wifiModule = mrb_define_module(mrb, "WiFi");
 
@@ -337,7 +333,9 @@ int esp8266_Init(mrb_state *mrb)
 	mrb_define_module_function(mrb, wifiModule, "sout", mrb_wifi_Sout, MRB_ARGS_REQ(1)|MRB_ARGS_OPT(1));
 	mrb_define_module_function(mrb, wifiModule, "cwmode", mrb_wifi_Cwmode, MRB_ARGS_REQ(1));
 	mrb_define_module_function(mrb, wifiModule, "cwjap", mrb_wifi_Cwjap, MRB_ARGS_REQ(2));
+	mrb_define_module_function(mrb, wifiModule, "connect", mrb_wifi_Cwjap, MRB_ARGS_REQ(2));
 	mrb_define_module_function(mrb, wifiModule, "cifsr", mrb_wifi_Cifsr, MRB_ARGS_NONE());
+	mrb_define_module_function(mrb, wifiModule, "config", mrb_wifi_Cifsr, MRB_ARGS_NONE());
 
 	mrb_define_module_function(mrb, wifiModule, "bypass", mrb_wifi_bypass, MRB_ARGS_NONE());
 

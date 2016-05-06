@@ -303,10 +303,10 @@ void i2c_Init(mrb_state *mrb)
 {
 	//0:Wire1, 1:Wire3, 2:Wire2, 3:Wire6 4:Wire7
 	RbWire[0] = &Wire1;
-	RbWire[1] = &Wire3;
-	RbWire[2] = &Wire2;
-	RbWire[3] = &Wire6;
-	RbWire[4] = &Wire7;
+	RbWire[1] = &Wire2;
+	RbWire[2] = &Wire3;
+	RbWire[3] = &Wire4;
+	RbWire[4] = &Wire5;
 	
 	struct RClass *i2cModule = mrb_define_class(mrb, "I2c", mrb->object_class);
 	MRB_SET_INSTANCE_TT(i2cModule, MRB_TT_DATA);
