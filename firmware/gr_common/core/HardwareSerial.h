@@ -147,8 +147,9 @@ class HardwareSerial : public Stream
     inline void _rx_complete_irq(void);
 #else /*GRSAKURA*/
     void _rx_complete_irq(void);
-    void _rx_error_irq(void);
     inline int _store_char(unsigned char c);
+    inline unsigned char _extract_char();
+    bool _buffer_available();
 #endif/*GRSAKURA*/
     void _tx_udr_empty_irq(void);
 };

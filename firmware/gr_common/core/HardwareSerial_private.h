@@ -176,6 +176,19 @@ int HardwareSerial::_store_char(unsigned char c)
   }
 }
 
+unsigned char HardwareSerial::_extract_char()
+{
+    unsigned char c = _tx_buffer[_tx_buffer_tail];
+    if (_tx_buffer_head != _tx_buffer_tail) {
+      _tx_buffer_tail = (_tx_buffer_tail + 1) % SERIAL_BUFFER_SIZE;
+    }
+    return c;
+}
+bool HardwareSerial::_buffer_available()
+{
+    return (_tx_buffer_head != _tx_buffer_tail);
+}
+
 #endif/*GRSAKURA*/
 
 #endif // whole file

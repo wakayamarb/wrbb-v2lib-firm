@@ -179,7 +179,6 @@ void HardwareSerial::_tx_udr_empty_irq(void)
   }
 #endif/*GRSAKURA*/
 }
-
 // Public Methods //////////////////////////////////////////////////////////////
 
 void HardwareSerial::begin(unsigned long baud, byte config)
@@ -227,6 +226,7 @@ void HardwareSerial::begin(unsigned long baud, byte config)
             unsigned long start = millis();
             while ((millis() - start) < TimeOut) {
                 if (USBCDC_IsConnected()) {
+                    _begin = true;
                     break;
                 }
             }
@@ -395,8 +395,8 @@ void HardwareSerial::begin(unsigned long baud, byte config)
 
         BSET(portModeRegister(txPort), txBit);
         BSET(portModeRegister(rxPort), rxBit);
+        _begin = true;
       }
-      _begin = true;
     }
     break;
 #endif
@@ -579,8 +579,25 @@ size_t HardwareSerial::write(uint8_t c)
 #if defined(HAVE_HWSERIAL0)
   case 0:
     {
-      USBCDC_PutChar(c);
-      return 1;
+        unsigned int i = (_tx_buffer_head + 1) % SERIAL_BUFFER_SIZE;
+
+        if (_begin) {
+            if (i != _tx_buffer_tail) {
+              USB0.INTENB0.BIT.BRDYE = 0;
+              _tx_buffer[_tx_buffer_head] = c;
+              _tx_buffer_head = i;
+              USB0.INTENB0.BIT.BRDYE = 1;
+              USB0.BRDYENB.BIT.PIPE2BRDYE = 1;
+            }
+        } else {
+            if (USBCDC_IsConnected()) {
+                _begin = true;
+            }
+            _tx_buffer[_tx_buffer_head] = c;
+            _tx_buffer_head = i;
+        }
+        return 1;
+
     }
 #endif
 #if defined(HAVE_HWSERIAL1)
@@ -687,6 +704,48 @@ void ReadBulkOUTPacket(void)
     }
 
 }
+
+void WriteBulkINPacket(void)
+{
+    uint32_t Count = 0;
+
+    /*Write data to Bulk IN pipe using D0FIFO*/
+    /*Select pipe (Check this happens before continuing)*/
+    /*Set 8 bit access*/
+    USBIO.D0FIFOSEL.BIT.MBW = 0;
+    do{
+        USBIO.D0FIFOSEL.BIT.CURPIPE = PIPE_BULK_IN;
+    }while(USBIO.D0FIFOSEL.BIT.CURPIPE != PIPE_BULK_IN);
+
+
+    /*Wait for buffer to be ready*/
+    while(USBIO.D0FIFOCTR.BIT.FRDY == 0){;}
+
+    /* Write data to the IN Fifo until have written a full packet
+     or we have no more data to write */
+    while((Count < BULK_IN_PACKET_SIZE) && Serial._buffer_available())
+    {
+        USBIO.D0FIFO = Serial._extract_char();
+        Count++;
+    }
+
+    /*Send the packet */
+    /*Set PID to BUF*/
+    USBIO.PIPE2CTR.BIT.PID = PID_BUF;
+
+    /*If we have not written a full packets worth to the buffer then need to
+    signal that the buffer is now ready to be sent, set the buffer valid flag (BVAL).*/
+    if(Count != BULK_IN_PACKET_SIZE)
+    {
+        USBIO.D0FIFOCTR.BIT.BVAL = 1;
+    }
+
+    if(!Serial._buffer_available())
+    {
+        USBIO.BRDYENB.BIT.PIPE2BRDYE = 0;
+    }
+}
+
 } // extern C
 
 HardwareSerial Serial(0, NULL, MstpIdINVALID, INVALID_IO, INVALID_IO);

@@ -313,7 +313,7 @@ int esp8266_Init(mrb_state *mrb)
 
 	//受信バッファを空にします
 	while((len = RbSerial[WIFI_SERIAL]->available()) > 0){
-		RbSerial[0]->print(len);
+		//RbSerial[0]->print(len);
 		for(int i=0; i<len; i++){
 			RbSerial[WIFI_SERIAL]->read();
 		}

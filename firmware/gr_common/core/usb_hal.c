@@ -208,7 +208,10 @@ static void SetDefaultInterrupts(void);
 
 /*Operations*/
 static void WriteControlINPacket(void);
+#if 0
 static void WriteBulkINPacket(void);
+#endif
+extern void WriteBulkINPacket(void);
 static void WriteIntINPacket(void);
 static void ReadControlOUTPacket(void);
 #if 0
@@ -1369,6 +1372,7 @@ End WriteIntINPacket function
 * Argument      : none
 * Return value  : none
 **********************************************************************/
+#if 0
 static void WriteBulkINPacket(void)
 {
     uint32_t Count = 0;
@@ -1486,6 +1490,7 @@ static void WriteBulkINPacket(void)
         USBIO.BRDYENB.BIT.PIPE2BRDYE = 1;
     }
 }
+#endif
 /**********************************************************************
 End WriteBulkINPacket function
 **********************************************************************/
