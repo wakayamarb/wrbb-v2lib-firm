@@ -2,9 +2,11 @@
 digitalWrite(4,1)   # HIGH:Enable, LOW:Disable
 digitalWrite(5,1)   # LOW:RESET
 digitalWrite(17,1)  # LOW + RESET ... Firmware Writing Mode
+digitalWrite(6,0)
 pinMode(4,1)
 pinMode(5,1)
 pinMode(17,1)
+pinMode(6,1)
 
 usb = Serial.new(0,115200)
 esp = Serial.new(3,115200)

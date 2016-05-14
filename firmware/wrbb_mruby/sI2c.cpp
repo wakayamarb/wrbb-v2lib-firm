@@ -17,7 +17,7 @@
 #include "../wrbb.h"
 #include "sKernel.h"
 
-#define WIRE_MAX	5
+#define WIRE_MAX	6
 
 TwoWire *RbWire[WIRE_MAX];		//0:Wire1, 1:Wire3, 2:Wire2, 3:Wire6 4:Wire7
 
@@ -125,7 +125,7 @@ mrb_int num;
 
 	mrb_get_args(mrb, "i", &num);
 
-	if (num < 0 && num >= WIRE_MAX)
+	if (num <= 0 && num >= WIRE_MAX)
 	{
 		return mrb_nil_value();			//戻り値は無しですよ。
 	}
@@ -302,12 +302,13 @@ mrb_value mrb_i2c_available(mrb_state *mrb, mrb_value self)
 void i2c_Init(mrb_state *mrb)
 {
 	//0:Wire1, 1:Wire3, 2:Wire2, 3:Wire6 4:Wire7
-	RbWire[0] = &Wire1;
-	RbWire[1] = &Wire2;
-	RbWire[2] = &Wire3;
-	RbWire[3] = &Wire4;
-	RbWire[4] = &Wire5;
-	
+	RbWire[0] = NULL;
+	RbWire[1] = &Wire1;
+	RbWire[2] = &Wire2;
+	RbWire[3] = &Wire3;
+	RbWire[4] = &Wire4;
+	RbWire[5] = &Wire5;
+
 	struct RClass *i2cModule = mrb_define_class(mrb, "I2c", mrb->object_class);
 	MRB_SET_INSTANCE_TT(i2cModule, MRB_TT_DATA);
 
