@@ -68,11 +68,17 @@ void lineinput(char *arry)
 		return;
 	}
 
+	int cnt = 0;
 	while(true){
 		k = 0;
 		while(k <= 0 ){
 			k = USB_Serial->read();
 			delay(8);
+			if (cnt >= 125){
+				USB_Serial->print(">");
+				cnt = 0;
+			}
+			cnt++;
 		}
 		DEBUG_PRINT("2:USB_Serial->read", k);
 
