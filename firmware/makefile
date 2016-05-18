@@ -44,7 +44,6 @@ rom:	$(OBJS) $(MAKEFILE)
 	$(LNK) $(OBJS) $(LFLAGS) -o ./gr_build/$(TARGET).x
 	$(CNVB) ./gr_build/$(TARGET).x  $(TARGET).bin
 	$(CNVS) ./gr_build/$(TARGET).x  ./gr_build/$(TARGET).mot
-	rm -f *.o
 
 %.o: %.s
 	$(AS) $(SFLAGS) $(CCINC) $< -o $@

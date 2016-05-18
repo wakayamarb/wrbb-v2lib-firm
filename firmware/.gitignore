@@ -1,4 +1,4 @@
 *.o
-*/gr_build
+gr_build/*
 *.mot
 *.map
