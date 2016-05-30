@@ -160,7 +160,7 @@ void HardwareSerial::_rx_complete_irq(void)
 }
 
 #ifdef GRSAKURA
-int HardwareSerial::_store_char(unsigned char c)
+bool HardwareSerial::_store_char(unsigned char c)
 {
 #if SERIAL_BUFFER_SIZE < 256
   uint8_t i = (uint8_t)(_rx_buffer_head + 1) % SERIAL_BUFFER_SIZE;

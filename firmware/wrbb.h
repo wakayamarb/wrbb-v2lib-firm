@@ -42,11 +42,11 @@
 #define BOARD_P06	6
 
 //RX600シリーズの型番を定義します
-#define CPU_RX63N	128		//メモリ128KB
+#define CPU_RX63NB	128		//メモリ128KB
 #define CPU_RX631F	256		//メモリ256KB
 
 //バージョンと日付
-#define WRBB_VERSION	"-1.92(2016/5/15)"
+#define WRBB_VERSION	"-1.95(2016/5/30)"
 
 //バイトコードフォーマットの設定
 //#define BYTECODE	BYTE_CODE2
@@ -107,8 +107,9 @@
 #endif
 
 //RX600シリーズの設定
+//#define CPU		CPU_RX63NB
 #define CPU		CPU_RX631F
-#if CPU == CPU_RX63N
+#if CPU == CPU_RX63NB
 #	define CPURAM	"(128KB)"		//メモリ128KB
 #else
 #	define CPURAM	"(256KB)"		//メモリ256KB

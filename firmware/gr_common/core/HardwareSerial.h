@@ -44,7 +44,7 @@
   #define SERIAL_BUFFER_SIZE 64
 #endif
 #else /*GRSAKURA*/
-  #define SERIAL_BUFFER_SIZE 512
+  #define SERIAL_BUFFER_SIZE 1024
 #endif/*GRSAKURA*/
 
 // Define config for Serial.begin(baud, config);
@@ -147,7 +147,7 @@ class HardwareSerial : public Stream
     inline void _rx_complete_irq(void);
 #else /*GRSAKURA*/
     void _rx_complete_irq(void);
-    inline int _store_char(unsigned char c);
+    inline bool _store_char(unsigned char c);
     inline unsigned char _extract_char();
     bool _buffer_available();
 #endif/*GRSAKURA*/
@@ -181,8 +181,10 @@ class HardwareSerial : public Stream
 #define HAVE_HWSERIAL3
 #define HAVE_HWSERIAL4
 #define HAVE_HWSERIAL5
+#if 0 // GR-CITRUS doesn't have following serial
 #define HAVE_HWSERIAL6
 #define HAVE_HWSERIAL7
+#endif
 
 #if defined(HAVE_HWSERIAL0)
   extern HardwareSerial Serial;

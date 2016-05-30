@@ -688,6 +688,11 @@ void ReadBulkOUTPacket(void)
     /*Read length of data */
     DataLength = USBIO.D1FIFOCTR.BIT.DTLN;
 
+    if( DataLength == 0 ) {
+        USBIO.D1FIFOCTR.BIT.BCLR = 1;
+        return;
+    }
+
     while(DataLength != 0){
         /*Read from the FIFO*/
         uint16_t Data = USBIO.D1FIFO;

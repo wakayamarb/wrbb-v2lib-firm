@@ -28,7 +28,8 @@ extern uint8_t RubyCode[];
 
 char *WriteData = (char*)RubyCode;
 char CommandData[COMMAND_LENGTH];
-bool StopFlg = false;		//強制終了フラグ
+bool StopFlg = false;				//強制終了フラグ
+bool AutoPrintSwitchFlg = true;		//'>'の自動送信フラグ
 
 HardwareSerial *USB_Serial = &Serial;
 
@@ -74,7 +75,7 @@ void lineinput(char *arry)
 		while(k <= 0 ){
 			k = USB_Serial->read();
 			delay(8);
-			if (cnt >= 125){
+			if (cnt >= 125 && AutoPrintSwitchFlg == true){
 				USB_Serial->print(">");
 				cnt = 0;
 			}
@@ -565,6 +566,9 @@ int fileloader(const char* str0, const char* str1)
 			USB_Serial->println(LICENSE_WRBB);
 			USB_Serial->println(LICENSE_WRBBURL);
 		}
+		else if (CommandData[0] == 'T'){
+			AutoPrintSwitchFlg = !AutoPrintSwitchFlg;
+		}
 		else{
 			USB_Serial->println();
 			USB_Serial->println("EEPROM FileWriter Ver. 1.74.v2");
@@ -583,6 +587,7 @@ int fileloader(const char* str0, const char* str1)
 			USB_Serial->println(" Q:Quit...................>Q [ENTER]");
 			USB_Serial->println(" E:System Reset...........>E [ENTER]");
 			USB_Serial->println(" U:Write File B2A.........>U Filename Size [ENTER]");
+			USB_Serial->println(" T:'>'Auto Print Switch...>T [ENTER]");
 			//USB_Serial->println(" V:Execute File B2A.......>V Filename Size [ENTER]");
 			USB_Serial->println(" C:License................>C [ENTER]");
 		}

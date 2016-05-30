@@ -1,4 +1,4 @@
-/* GR-CITRUS Sketch Template E1.00b */
+/* GR-CITRUS Sketch Template E1.00c */
 #include <Arduino.h>
 
 void setup()
@@ -8,7 +8,7 @@ void setup()
     digitalWrite(PIN_LED0, LOW);
 
     digitalWrite(4, HIGH);
-    digitalWrite(5, HIGH);
+    digitalWrite(5, LOW);  //Disable ESP8266
     digitalWrite(17, HIGH);
     pinMode(4, OUTPUT);
     pinMode(5, OUTPUT);
@@ -16,10 +16,13 @@ void setup()
 
     Serial.begin(115200);
     Serial3.begin(115200);
+//    Serial3.begin(76800); //for read the message of boot
 
     while(!Serial.available()); // Wait to press any key.
     Serial.read();
     Serial.println("GR-CITRUS start");
+
+    digitalWrite(5, HIGH);  //Enable ESP8266
 
 }
 
