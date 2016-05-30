@@ -369,7 +369,7 @@ int fileloader(const char* str0, const char* str1)
 			USB_Serial->print(str1);
 		}
 		USB_Serial->println(" (H [ENTER])");
-		USB_Serial->print(">>");
+		USB_Serial->print(">");
 		USB_Serial->flush();
 
 		lineinput((char*)CommandData);
@@ -571,7 +571,7 @@ int fileloader(const char* str0, const char* str1)
 		}
 		else{
 			USB_Serial->println();
-			USB_Serial->println("EEPROM FileWriter Ver. 1.74.v2");
+			USB_Serial->println("EEPROM FileWriter Ver. 1.75.v2");
 			USB_Serial->println(" Command List");
 			USB_Serial->println(" L:List Filename..........>L [ENTER]");
 			USB_Serial->println(" W:Write File.............>W Filename Size [ENTER]");
