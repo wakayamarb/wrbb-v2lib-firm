@@ -169,6 +169,11 @@
 	#define RB_PIN24	24
 	#define RB_PIN25	25
 
+	#define RB_PIN26	26
+	#define RB_PIN27	27
+	#define RB_PIN30	30
+	#define RB_PIN31	31
+
 #elif BOARD == BOARD_P01
 	#define RB_PIN0		1
 	#define RB_PIN1		0
