@@ -46,7 +46,7 @@
 #define CPU_RX631F	256		//メモリ256KB
 
 //バージョンと日付
-#define WRBB_VERSION	"-1.95(2016/5/30)"
+#define WRBB_VERSION	"-1.96(2016/6/12)"
 
 //バイトコードフォーマットの設定
 //#define BYTECODE	BYTE_CODE2
@@ -58,13 +58,13 @@
 #endif
 
 //基板のタイプ設定
-//#define BOARD	BOARD_GR
+#define BOARD	BOARD_GR
 //#define BOARD	BOARD_P01
 //#define BOARD	BOARD_P02
 //#define BOARD	BOARD_P03
 //#define BOARD	BOARD_P04
 //#define BOARD	BOARD_P05
-#define BOARD	BOARD_P06
+//#define BOARD	BOARD_P06
 #if BOARD == BOARD_GR || BOARD == BOARD_P01
 #	define BOARDNUM	"1"
 #elif BOARD == BOARD_P02
@@ -80,11 +80,11 @@
 #endif
 
 //ファームウェア設定
-//#define FIRMWARE	MASTER
+#define FIRMWARE	MASTER
 //#define FIRMWARE	JAM
 //#define FIRMWARE	SDBT
 //#define FIRMWARE	SDWF
-#define FIRMWARE	CITRUS
+//#define FIRMWARE	CITRUS
 
 #if BOARD == BOARD_GR
 #	if FIRMWARE == MASTER
