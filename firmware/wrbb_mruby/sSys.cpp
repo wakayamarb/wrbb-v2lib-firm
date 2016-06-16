@@ -202,7 +202,7 @@ mrb_value mrb_system_useWiFi(mrb_state *mrb, mrb_value self)
 {
 int ret = 0;
 
-#if BOARD == FIRMWARE == SDWF || BOARD == BOARD_P05 || BOARD == BOARD_P06
+#if FIRMWARE == SDWF || BOARD == BOARD_P05 || BOARD == BOARD_P06
 	ret = esp8266_Init(mrb);		//ESP8266ボード関連メソッドの設定
 #endif
 
