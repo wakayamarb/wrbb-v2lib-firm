@@ -18,7 +18,6 @@
 #  define DEBUG_PRINT(m,v)    // do nothing
 #endif
 
-
 #define RUBY_CODE_SIZE (1024 * 4)		//4kBまで実行可能とする
 
 //バイトコードバージョンを定義します
@@ -46,7 +45,7 @@
 #define CPU_RX631F	256		//メモリ256KB
 
 //バージョンと日付
-#define WRBB_VERSION	"-1.96(2016/6/12)"
+#define WRBB_VERSION	"-1.97(2016/6/12)"
 
 //バイトコードフォーマットの設定
 //#define BYTECODE	BYTE_CODE2
@@ -107,8 +106,8 @@
 #endif
 
 //RX600シリーズの設定
-//#define CPU		CPU_RX63NB
-#define CPU		CPU_RX631F
+#define CPU		CPU_RX63NB
+//#define CPU		CPU_RX631F
 #if CPU == CPU_RX63NB
 #	define CPURAM	"(128KB)"		//メモリ128KB
 #else
