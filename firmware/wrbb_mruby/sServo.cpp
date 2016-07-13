@@ -18,8 +18,11 @@
 #include "../wrbb.h"
 #include "sKernel.h"
 
-#define ATTACH_MAX	12
-Servo *servo[ATTACH_MAX];
+#define ATTACH_MAX	20
+
+//newはシステム起動後、1回しかさせないために、ここで初期化している。
+Servo *servo[ATTACH_MAX] ={ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+							0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 //**************************************************
 // サーボ出力を任意のピンに割り当てます: Servo.attach
@@ -51,13 +54,14 @@ int max;
 		return mrb_nil_value();			//戻り値は無しですよ。
 	}
 
-	if (servo[ch] != 0){
+	if ((int)servo[ch] != 0){
 		servo[ch]->detach();
-		delete servo[ch];
+		//delete servo[ch];
 		//servo[ch] = 0;
 	}
-	
-	servo[ch] = new Servo();
+	else{
+		servo[ch] = new Servo();
+	}
 
 	if (n >= 3){
 		servo[ch]->attach(pin, min, max);
@@ -86,7 +90,7 @@ mrb_value mrb_servo_write(mrb_state *mrb, mrb_value self)
 		return mrb_nil_value();			//戻り値は無しですよ。
 	}
 
-	if (servo[ch] == 0){
+	if ((int)servo[ch] == 0){
 		return mrb_nil_value();			//戻り値は無しですよ。
 	}
 
@@ -116,7 +120,7 @@ mrb_value mrb_servo_us(mrb_state *mrb, mrb_value self)
 		return mrb_nil_value();			//戻り値は無しですよ。
 	}
 
-	if (servo[ch] == 0){
+	if ((int)servo[ch] == 0){
 		return mrb_nil_value();			//戻り値は無しですよ。
 	}
 
@@ -143,7 +147,7 @@ mrb_value mrb_servo_read(mrb_state *mrb, mrb_value self)
 		return mrb_fixnum_value(ret);
 	}
 
-	if (servo[ch] == 0){
+	if ((int)servo[ch] == 0){
 		return mrb_fixnum_value(ret);
 	}
 
@@ -171,7 +175,7 @@ mrb_value mrb_servo_attached(mrb_state *mrb, mrb_value self)
 		return mrb_fixnum_value(ret);
 	}
 
-	if (servo[ch] == 0){
+	if ((int)servo[ch] == 0){
 		return mrb_fixnum_value(ret);
 	}
 
@@ -197,13 +201,13 @@ mrb_value mrb_servo_detach(mrb_state *mrb, mrb_value self)
 		return mrb_nil_value();			//戻り値は無しですよ。
 	}
 
-	if (servo[ch] == 0){
+	if ((int)servo[ch] == 0){
 		return mrb_nil_value();			//戻り値は無しですよ。
 	}
 
 	servo[ch]->detach();
-	delete servo[ch];
-	servo[ch] = 0;
+	//delete servo[ch];
+	//servo[ch] = 0;
 
 	return mrb_nil_value();			//戻り値は無しですよ。
 }
@@ -213,9 +217,9 @@ mrb_value mrb_servo_detach(mrb_state *mrb, mrb_value self)
 //**************************************************
 void servo_Init(mrb_state *mrb)
 {
-	for (int i = 0; i < ATTACH_MAX; i++){
-		servo[i] = 0;
-	}
+	//for (int i = 0; i < ATTACH_MAX; i++){
+	//	servo[i] = 0;
+	//}
 
 	struct RClass *servoModule = mrb_define_module(mrb, "Servo");
 

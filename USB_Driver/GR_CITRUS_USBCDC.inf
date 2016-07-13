@@ -14,10 +14,10 @@ DriverVer=20/03/2012,1.0.0.0
 ;------------------------------------------------------------------------------
 
 [DeviceList.NTx86]
-%STRING_DISPLAY_NAME%=DriverInstall,USB\VID_045B&PID_0234
+%STRING_DISPLAY_NAME%=DriverInstall,USB\VID_2A50&PID_0277
 
 [DeviceList.NTamd64]
-%STRING_DISPLAY_NAME%=DriverInstall,USB\VID_045B&PID_0234
+%STRING_DISPLAY_NAME%=DriverInstall,USB\VID_2A50&PID_0277
 
 ;------------------------------------------------------------------------------
 ;  Installation
@@ -91,5 +91,5 @@ HKR,,EnumPropPages32,,"MsPorts.dll,SerialPortPropPageProvider"
 ;------------------------------------------------------------------------------
 
 [Strings]
-STRING_PROVIDER = "Renesas"
-STRING_DISPLAY_NAME = "Gadget Renesas SAKURA"
+STRING_PROVIDER = "Akizuki"
+STRING_DISPLAY_NAME = "Gadget Renesas CITRUS"

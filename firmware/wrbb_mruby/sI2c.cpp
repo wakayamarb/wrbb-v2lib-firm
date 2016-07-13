@@ -29,6 +29,12 @@ class I2c2 {
 public:
 	I2c2(int num){
 		num_ = num;
+
+		//ソフトI2Cの場合は18PINと19PINをOUTPUTにする
+		if(num == 0){
+			pinMode(RB_PIN18, OUTPUT);
+			pinMode(RB_PIN19, OUTPUT);
+		}
 		RbWire[num_]->begin();
 	}
 	virtual ~I2c2() {
@@ -54,7 +60,7 @@ public:
 		RbWire[num_]->requestFrom(deviceID, 1);
 		dat = RbWire[num_]->read();
 
-		if( n>=4 ){
+		if(n >= 3){
 			RbWire[num_]->beginTransmission(deviceID);
 			RbWire[num_]->write(addrH);
 			RbWire[num_]->endTransmission();
@@ -76,7 +82,11 @@ public:
 	}
 
 	int endTransmission(){
-		return RbWire[num_]->endTransmission();
+		return RbWire[num_]->endTransmission( 1 );
+	}
+
+	int endTransmission(uint8_t sendStop){
+		return RbWire[num_]->endTransmission(sendStop);
 	}
 
 	int	requestFrom(int addr, int cnt){
@@ -89,6 +99,10 @@ public:
 
 	int available(){
 		return RbWire[num_]->available();
+	}
+
+	void frequency(int freq){
+		RbWire[num_]->setFrequency(freq);
 	}
 
 private:
@@ -125,7 +139,7 @@ mrb_int num;
 
 	mrb_get_args(mrb, "i", &num);
 
-	if (num <= 0 && num >= WIRE_MAX)
+	if (num < 0 && num >= WIRE_MAX)
 	{
 		return mrb_nil_value();			//戻り値は無しですよ。
 	}
@@ -158,7 +172,7 @@ int deviceID, addr, dat;
     return mrb_fixnum_value(i2c->write(deviceID, addr, dat));
 }
 
-//**************************************************
+////**************************************************
 // アドレスからデータを読み込み: I2c.read
 //  I2c.read( deviceID, addressL[, addressH] )
 //	deviceID: デバイスID
@@ -171,8 +185,6 @@ mrb_value mrb_i2c_read(mrb_state *mrb, mrb_value self)
 {
 int deviceID, addrL;
 int addrH = 0;
-//int dat = 0;
-//byte datH;
 
 	int n = mrb_get_args(mrb, "ii|i", &deviceID, &addrL, &addrH);
 
@@ -221,8 +233,10 @@ int dat;
 
 //**************************************************
 // デバイスに対してI2Cの送信シーケンスを発行する: I2c.end
-//	I2c.end()
+//	I2c.end([sendStop])
 //	I2Cの送信はこの関数を実行して初めて実際に行われる。
+//  stop: 0:ストップコンディション発生させない、1:ストップコンディション発生させる
+//　　　　省略したときは、1:ストップコンディション発生させる
 //
 // 戻り値は以下のとおり
 //	0: 成功
@@ -230,9 +244,17 @@ int dat;
 //**************************************************
 mrb_value mrb_i2c_endTransmission(mrb_state *mrb, mrb_value self)
 {
+int dat;
+
+	int n = mrb_get_args(mrb, "|i", &dat);
+
 	I2c2* i2c = static_cast<I2c2*>(mrb_get_datatype(mrb, self, &i2c_type));
 
-	return mrb_fixnum_value(i2c->endTransmission());
+	if(n == 0){
+		return mrb_fixnum_value(i2c->endTransmission(1));
+	}
+
+	return mrb_fixnum_value(i2c->endTransmission(dat));
 }
 
 //**************************************************
@@ -279,30 +301,31 @@ mrb_value mrb_i2c_available(mrb_state *mrb, mrb_value self)
 	return mrb_fixnum_value(i2c->available());
 }
 
-////**************************************************
-//// 周波数を変更する: I2c.freq
-////  I2c.freq( Hz )
-////  Hz: クロックの周波数をHz単位で指定する。
-////      有効な値は1～200000程度。基本的にソフトでやっているので400kHzは出ない。
-////**************************************************
-//mrb_value mrb_i2c_freq(mrb_state *mrb, mrb_value self)
-//{
-//int fq;
-//
-//	mrb_get_args(mrb, "i", &fq);
-//
-//	Wire.setFrequency( fq );
-//
-//	return mrb_nil_value();			//戻り値は無しですよ。
-//}
+//**************************************************
+// 周波数を変更する: I2c.frequency
+//  I2c.frequency( Hz )
+//  Hz: クロックの周波数をHz単位で指定する。
+//**************************************************
+mrb_value mrb_i2c_frequency(mrb_state *mrb, mrb_value self)
+{
+int freq;
+
+	mrb_get_args(mrb, "i", &freq);
+
+	I2c2* i2c = static_cast<I2c2*>(mrb_get_datatype(mrb, self, &i2c_type));
+
+	i2c->beginTransmission(freq);
+
+	return mrb_nil_value();			//戻り値は無しですよ。
+}
 
 //**************************************************
 // ライブラリを定義します
 //**************************************************
 void i2c_Init(mrb_state *mrb)
 {
-	//0:Wire1, 1:Wire3, 2:Wire2, 3:Wire6 4:Wire7
-	RbWire[0] = NULL;
+	//0:Wire, 1:Wire1, 2:Wire2, 3:Wire3 4:Wire4 5:Wire5
+	RbWire[0] = &Wire;
 	RbWire[1] = &Wire1;
 	RbWire[2] = &Wire2;
 	RbWire[3] = &Wire3;
@@ -317,8 +340,9 @@ void i2c_Init(mrb_state *mrb)
 	mrb_define_method(mrb, i2cModule, "read", mrb_i2c_read, MRB_ARGS_REQ(2)|MRB_ARGS_OPT(1));
 	mrb_define_method(mrb, i2cModule, "begin", mrb_i2c_beginTransmission, MRB_ARGS_REQ(1));
 	mrb_define_method(mrb, i2cModule, "lwrite", mrb_i2c_lwrite, MRB_ARGS_REQ(1));
-	mrb_define_method(mrb, i2cModule, "end", mrb_i2c_endTransmission, MRB_ARGS_NONE());
+	mrb_define_method(mrb, i2cModule, "end", mrb_i2c_endTransmission, MRB_ARGS_OPT(1));
 	mrb_define_method(mrb, i2cModule, "request", mrb_i2c_requestFrom, MRB_ARGS_REQ(2));
 	mrb_define_method(mrb, i2cModule, "lread", mrb_i2c_lread, MRB_ARGS_NONE());
 	mrb_define_method(mrb, i2cModule, "available", mrb_i2c_available, MRB_ARGS_NONE());
+	mrb_define_method(mrb, i2cModule, "frequency", mrb_i2c_frequency, MRB_ARGS_REQ(1));
 }

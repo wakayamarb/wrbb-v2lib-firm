@@ -77,8 +77,10 @@ void twi_rx_init(uint8_t channel, int freq){
 
         BSET(portPullupControlRegister(sdaPort), sdaBit); //SDA pull-up on
         BSET(portModeRegister(sdaPort), sdaBit); //SDA
+        BSET(portOpendrainRegister(sdaPort, sdaBit), sdaBit*2);
         BSET(portPullupControlRegister(sclPort), sclBit); //SCL pull-up on
         BSET(portModeRegister(sclPort), sclBit); //SCL
+        BSET(portOpendrainRegister(sdaPort, sclBit), sclBit*2);
 
         // Configure the SCK, TX and RX.
         assignPinFunction(t->sdaPin, 0b01010, 0, 0);

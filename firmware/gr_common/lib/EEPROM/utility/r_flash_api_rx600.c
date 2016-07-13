@@ -665,7 +665,7 @@ static void data_flash_status_clear (void)
     FCU_BYTE_PTR ptrb;
 
     /* Set pointer to Data Flash to issue a FCU command if needed */
-    ptrb = (FCU_BYTE_PTR)(100000);
+    ptrb = (FCU_BYTE_PTR)(0x100000);
 
     /* Check to see if an error has occurred with the FCU.  If set, then
        issue a status clear command to bring the FCU out of the
