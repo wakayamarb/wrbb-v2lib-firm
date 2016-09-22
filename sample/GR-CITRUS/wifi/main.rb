@@ -1,31 +1,25 @@
 #!mruby
-digitalWrite(4,1)   # HIGH:Enable, LOW:Disable
-digitalWrite(5,1)   # LOW:RESET
-digitalWrite(17,1)  # LOW + RESET ... Firmware Writing Mode
-digitalWrite(6,0)
-pinMode(4,1)
+digitalWrite(5,1)   # LOW:Disable
 pinMode(5,1)
-pinMode(17,1)
-pinMode(6,1)
 
-usb = Serial.new(0,115200)
-esp = Serial.new(3,115200)
+Usb = Serial.new(0,115200)
+Esp = Serial.new(3,115200)
 
-usb.println "GR-CITRUS & WA-MIKAN"
+Usb.println "GR-CITRUS & WA-MIKAN"
 c = 0
 while(true) do
 	delay(0)
 		
-    while(usb.available() > 0)do
-        esp.print usb.read()
+    while(Usb.available() > 0)do
+        Esp.print Usb.read()
         c += 1
         if(c > 20)then
-            esp.bps 115200
+            Esp.bps 115200
             c = 0
         end
     end
 	
-    while(esp.available() > 0)do
-        usb.print esp.read()
+    while(Esp.available() > 0)do
+        Usb.print Esp.read()
     end
 end
