@@ -19,6 +19,7 @@
 
 File Fp[2];
 bool SdBeginFlag = false;	//SD.begin()で1が返ってきたら true となる
+bool SdClassFlag = false;
 
 //**************************************************
 //ファイルが存在するかどうか調べる: SD.exists
@@ -387,6 +388,11 @@ int sdcard_Init(mrb_state *mrb)
 		return 0;
 	}
 	SdBeginFlag = true;
+
+	//SDクラスが既に設定されているか
+	if(SdClassFlag == true){
+		return 1;
+	}
 	
 	//日付と時刻を返す関数を登録
 	SdFile::dateTimeCallback( &SD_DateTime );
@@ -407,6 +413,9 @@ int sdcard_Init(mrb_state *mrb)
 	mrb_define_module_function(mrb, sdcardModule, "flush", mrb_sdcard_flush, MRB_ARGS_REQ(1));
 	mrb_define_module_function(mrb, sdcardModule, "size", mrb_sdcard_size, MRB_ARGS_REQ(1));
 	mrb_define_module_function(mrb, sdcardModule, "position", mrb_sdcard_position, MRB_ARGS_REQ(1));
+
+	//SDクラスのセットフラグをtrueにする
+	SdClassFlag = true;
 
 	return 1;
 }

@@ -1,6 +1,6 @@
 #!mruby
-digitalWrite(5,1)   # LOW:Disable
-pinMode(5,1)
+#pinMode(5,1)
+#digitalWrite(5,1)   # LOW:Disable
 
 Usb = Serial.new(0,115200)
 Esp = Serial.new(3,115200)

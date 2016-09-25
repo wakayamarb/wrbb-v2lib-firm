@@ -44,6 +44,7 @@ volatile char	ProgVer[] = {FIRMWARE_TEXT BOARDNUM WRBB_VERSION BYTECODE_TEXT CPU
 extern char RubyStartFileName[];
 extern char RubyFilename[];
 extern char ExeFilename[];
+extern bool SdClassFlag;
 
 uint8_t RubyCode[RUBY_CODE_SIZE];	//静的にRubyコード領域を確保する
 
@@ -194,6 +195,8 @@ bool notFinishFlag = true;
 	mrb_close(mrb);
 
 	DEBUG_PRINT("mruby", "END");
+
+	SdClassFlag = false;
 
 	return notFinishFlag;
 }

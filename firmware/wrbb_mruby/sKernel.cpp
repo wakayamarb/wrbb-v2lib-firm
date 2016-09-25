@@ -403,4 +403,7 @@ void kernel_Init(mrb_state *mrb)
 
 	struct RClass *El_PsyModule = mrb_define_module(mrb, "El_Psy");
 	mrb_define_module_function(mrb, El_PsyModule, "Congroo", mrb_El_Psy_congroo, MRB_ARGS_NONE());
+
+
+
 }

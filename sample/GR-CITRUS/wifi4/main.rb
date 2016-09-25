@@ -1,6 +1,11 @@
 #!mruby
-digitalWrite(5,1)   # LOW:Disable
+#GR-CITRUS Version 2.11
+
+#ESP8266を一度停止させる(リセットと同じ)
 pinMode(5,1)
+digitalWrite(5,0)   # LOW:Disable
+delay 500
+digitalWrite(5,1)   # LOW:Disable
 
 Usb = Serial.new(0,115200)
 
@@ -10,30 +15,35 @@ if( System.useWiFi() == 0)then
 end
 Usb.println "WiFi Ready"
 
+Usb.println "WiFi Get Version"
 Usb.println WiFi.version
-
-Usb.println WiFi.disconnect
-
-Usb.println WiFi.config
-Usb.println WiFi.connect("TAROSAY","37000")
-
-Usb.println WiFi.config
-
-Usb.println WiFi.at "CWMODE=1"
-Usb.println WiFi.at "CIPMUX=1"
-#cip = "CIPSTART=4," + 0x22.chr + "TCP" + 0x22.chr + "," + 0x22.chr + "www.yahoo.co.jp" + 0x22.chr + ",80"
-#Usb.println cip
-
-#Usb.println WiFi.at cip
-Usb.println WiFi.at 'CIPSTART=4,"TCP","wakayamarb.github.io",80'
-
-Usb.println WiFi.at "CIPSEND=4,57"
-Usb.println WiFi.at "GET /wa-mikan/ HTTP/1.1", 1
-Usb.println WiFi.at "Host: wakayamarb.github.io", 1
-Usb.println WiFi.at "", 1
-Usb.println WiFi.at "", 1
-
 
 Usb.println "WiFi disconnect"
 Usb.println WiFi.disconnect
 
+Usb.println "WiFi Mode Setting"
+Usb.println WiFi.setMode 3  #Station-Mode & SoftAPI-Mode
+
+Usb.println "WiFi ipconfig"
+Usb.println WiFi.ipconfig
+
+Usb.println "WiFi connecting"
+Usb.println WiFi.connect("TAROSAY","37000")
+
+Usb.println "WiFi ipconfig"
+Usb.println WiFi.ipconfig
+
+Usb.println "WiFi multiConnect Set"
+Usb.println WiFi.multiConnect 1
+
+heds=["User-Agent: curl"]
+Usb.println "HTTP GET Start"
+Usb.println WiFi.httpGetSD("wether0.htm","wttr.in/wakayama").to_s
+Usb.println WiFi.httpGetSD("wether1.htm","wttr.in/wakayama").to_s
+Usb.println WiFi.httpGetSD("wether2.htm","wttr.in/wakayama").to_s
+Usb.println WiFi.httpGetSD("wether3.htm","wttr.in/wakayama", heds).to_s
+#Usb.println WiFi.httpGetSD("yahoo4.htm","www.yahoo.co.jp").to_s
+#Usb.println WiFi.httpGetSD("google4.htm","www.google.co.jp").to_s
+
+#Usb.println "WiFi disconnect"
+#Usb.println WiFi.disconnect

@@ -18,7 +18,7 @@
 #  define DEBUG_PRINT(m,v)    // do nothing
 #endif
 
-#define RUBY_CODE_SIZE (1024 * 4)		//4kBまで実行可能とする
+#define RUBY_CODE_SIZE (1024 * 8)		//8kBまで実行可能とする
 
 //バイトコードバージョンを定義します
 #define BYTE_CODE2	2
@@ -45,7 +45,7 @@
 #define CPU_RX631F	256		//メモリ256KB
 
 //バージョンと日付
-#define WRBB_VERSION	"-2.07(2016/7/14)"
+#define WRBB_VERSION	"-2.11(2016/9/25)"
 
 //バイトコードフォーマットの設定
 //#define BYTECODE	BYTE_CODE2

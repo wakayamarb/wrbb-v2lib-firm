@@ -1,8 +1,6 @@
 #!mruby
-digitalWrite(5,1)   # LOW:Disable
 pinMode(5,1)
-
-#System.useWiFi()
+digitalWrite(5,1)   # LOW:Disable
 
 Usb = Serial.new(0,115200)
 
