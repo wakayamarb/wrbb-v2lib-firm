@@ -166,7 +166,7 @@ int num = -1;
 //**************************************************
 // ATコマンドの送信: WiFi.at
 //  WiFi.at( command[, mode] )
-//	commnad: ATコマンド内容
+//	commnad: ATコマンド文字列
 //  mode: 0:'AT+'を自動追加する、1:'AT+'を自動追加しない
 //**************************************************
 mrb_value mrb_wifi_at(mrb_state *mrb, mrb_value self)
@@ -781,6 +781,26 @@ int sla, koron;
 }
 
 //**************************************************
+// TCP/UDP接続を閉じる: WiFi.cClose
+//  WiFi.cClose(number)
+//  number: 接続番号(1～4)
+//**************************************************
+mrb_value mrb_wifi_cClose(mrb_state *mrb, mrb_value self)
+{
+int	num;
+
+	mrb_get_args(mrb, "i", &num);
+
+	RbSerial[WIFI_SERIAL]->print("AT+CIPCLOSE=");
+	RbSerial[WIFI_SERIAL]->println(num);
+
+	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読か、指定されたシリアルポートに出力します
+	getData(WIFI_WAIT_MSEC);
+
+	return mrb_str_new_cstr(mrb, (const char*)WiFiData);
+}
+
+//**************************************************
 // ライブラリを定義します
 //**************************************************
 int esp8266_Init(mrb_state *mrb)
@@ -832,6 +852,7 @@ int esp8266_Init(mrb_state *mrb)
 
 	mrb_define_module_function(mrb, wifiModule, "httpGetSD", mrb_wifi_getSD, MRB_ARGS_REQ(2)|MRB_ARGS_OPT(1));
 
+	mrb_define_module_function(mrb, wifiModule, "cClose", mrb_wifi_cClose, MRB_ARGS_REQ(1));
 
 	mrb_define_module_function(mrb, wifiModule, "version", mrb_wifi_Version, MRB_ARGS_NONE());
 	mrb_define_module_function(mrb, wifiModule, "disconnect", mrb_wifi_Disconnect, MRB_ARGS_NONE());
