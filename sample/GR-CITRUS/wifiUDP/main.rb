@@ -22,9 +22,7 @@ Usb.println "WiFi disconnect"
 Usb.println WiFi.disconnect
 
 Usb.println "WiFi connecting"
-#Usb.println WiFi.connect("TAROSAY","37000") 
-Usb.println WiFi.connect("000740DE0D79","hama1297noiti")
-
+Usb.println WiFi.connect("TAROSAY","37000")
 
 Usb.println "WiFi ipconfig"
 Usb.println WiFi.ipconfig
