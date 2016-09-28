@@ -38,12 +38,12 @@ Usb.println WiFi.multiConnect 1
 
 heds=["User-Agent: curl"]
 Usb.println "HTTP GET Start"
-#Usb.println WiFi.httpGetSD("wether4.htm","wttr.in/wakayama").to_s
-#Usb.println WiFi.httpGetSD("wether1.htm","wttr.in/wakayama").to_s
-#Usb.println WiFi.httpGetSD("wether2.htm","wttr.in/wakayama").to_s
-#Usb.println WiFi.httpGetSD("wether1.htm","wttr.in/wakayama", heds).to_s
-#Usb.println WiFi.httpGetSD("yahoo.htm","www.yahoo.co.jp").to_s
-Usb.println WiFi.httpGetSD("google1.htm","www.google.co.jp").to_s
+Usb.println WiFi.httpGetSD("wether0.htm","wttr.in/wakayama").to_s
+Usb.println WiFi.httpGetSD("wether1.htm","wttr.in/wakayama").to_s
+Usb.println WiFi.httpGetSD("wether2.htm","wttr.in/wakayama").to_s
+Usb.println WiFi.httpGetSD("wether3.htm","wttr.in/wakayama", heds).to_s
+#Usb.println WiFi.httpGetSD("yahoo4.htm","www.yahoo.co.jp").to_s
+#Usb.println WiFi.httpGetSD("google4.htm","www.google.co.jp").to_s
 
 #Usb.println "WiFi disconnect"
 #Usb.println WiFi.disconnect
