@@ -33,23 +33,28 @@ extern HardwareSerial *RbSerial[];		//0:Serial(USB), 1:Serial1, 2:Serial3, 3:Ser
 unsigned char WiFiData[256];
 int WiFiRecvOutlNum = -1;	//ESP8266からの受信を出力するシリアル番号: -1の場合は出力しない。
 
+#define	DEBUG		// Define if you want to debug
+#ifdef DEBUG
+#  define DEBUG_PRINT(m,v)    { Serial.print("** "); Serial.print((m)); Serial.print(":"); Serial.println((v)); }
+#else
+#  define DEBUG_PRINT(m,v)    // do nothing
+#endif
+
+
 //**************************************************
 // OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読むか、
 // 指定されたシリアルポートに出力します
 //
-// 1:受信した, 0:受信できなかった
+// 1:受信した, 0:受信できなかった 2:受信がオーバーフローした
 //**************************************************
 int getData(unsigned int wait_msec)
 {
-//char f[16];
 unsigned long times;
 int c;
 int okt = 0;
 int ert = 0;
 int len = 0;
 int n = 0;
-
-	//DEBUG_PRINT("getData", a);
 
 	WiFiData[0] = 0;
 	times = millis();
@@ -65,6 +70,9 @@ int n = 0;
 
 		while(len = RbSerial[WIFI_SERIAL]->available())
 		{
+			//DEBUG_PRINT("len=",len);
+			//DEBUG_PRINT("n=",n);
+
 			for(int i=0; i<len; i++){
 				c = RbSerial[WIFI_SERIAL]->read();
 
@@ -72,10 +80,10 @@ int n = 0;
 				if(WiFiRecvOutlNum >= 0){
 					RbSerial[WiFiRecvOutlNum]->write((unsigned char)c);
 				}
+				//DEBUG_PRINT("c=",c);
 
 				WiFiData[n] = c;
 				n++;
-				//DEBUG_PRINT("c",c);
 
 				if(c == 'O'){
 					okt++;
@@ -92,9 +100,11 @@ int n = 0;
 					ert++;
 					okt++;
 					if(okt == 4 || ert == 7){
+
+						// OK 0d0a || ERROR 0d0a
 						WiFiData[n] = 0;
-						n = 256;
-						break;
+						return 1;
+						//n = 256;
 					}
 					else{
 						ert = 0;
@@ -113,7 +123,9 @@ int n = 0;
 		}
 	}
 	//digitalWrite(wrb2sakura(WIFI_CTS), 0);	//送信許可
-	return 1;
+
+	//whileを抜けてくるということは、オーバーフローしている
+	return 2;
 }
 
 //**************************************************
@@ -816,23 +828,43 @@ int esp8266_Init(mrb_state *mrb)
 	//シリアル通信の初期化をします
 	RbSerial[WIFI_SERIAL]->begin(WIFI_BAUDRATE);
 	int len;
+	int ret;
+	int cnt = 0;
 
-	//受信バッファを空にします
-	while((len = RbSerial[WIFI_SERIAL]->available()) > 0){
-		//RbSerial[0]->print(len);
-		for(int i=0; i<len; i++){
-			RbSerial[WIFI_SERIAL]->read();
+	while(true){
+		//受信バッファを空にします
+		while((len = RbSerial[WIFI_SERIAL]->available()) > 0){
+			//RbSerial[0]->print(len);
+			for(int i=0; i<len; i++){
+				RbSerial[WIFI_SERIAL]->read();
+			}
+		}
+
+		//ECHOオフコマンドを送信する
+		RbSerial[WIFI_SERIAL]->println("ATE0");
+
+		//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読む
+		ret = getData(500);
+		if(ret == 1){
+			//1の時は、WiFiが使用可能
+			break;
+		}
+		else if(ret == 0){
+			//タイムアウトした場合は WiFiが使えないとする
+			return 0;
+		}
+
+		//0,1で無いときは256バイト以上が返ってきている
+		cnt++;
+		if( cnt >= 3){
+			//3回ATE0を試みてダメだったら、あきらめる。
+			return 0;
 		}
 	}
 
-	//ECHOオフコマンドを送信する
-	RbSerial[WIFI_SERIAL]->println("ATE0");
 
-	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読む
-	if(getData(500) == 0){
-		return 0;
-	}
-		
+
+
 	struct RClass *wifiModule = mrb_define_module(mrb, "WiFi");
 
 	mrb_define_module_function(mrb, wifiModule, "at", mrb_wifi_at, MRB_ARGS_REQ(1)|MRB_ARGS_OPT(1));
