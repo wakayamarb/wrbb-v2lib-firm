@@ -33,7 +33,7 @@ extern HardwareSerial *RbSerial[];		//0:Serial(USB), 1:Serial1, 2:Serial3, 3:Ser
 unsigned char WiFiData[256];
 int WiFiRecvOutlNum = -1;	//ESP8266からの受信を出力するシリアル番号: -1の場合は出力しない。
 
-#define	DEBUG		// Define if you want to debug
+//#define	DEBUG		// Define if you want to debug
 #ifdef DEBUG
 #  define DEBUG_PRINT(m,v)    { Serial.print("** "); Serial.print((m)); Serial.print(":"); Serial.println((v)); }
 #else
@@ -813,6 +813,92 @@ int	num;
 }
 
 //**************************************************
+// UDP接続を開始します: WiFi.udpOpen
+//  WiFi.udpOpen( number, IP_Address, SendPort, ReceivePort )
+//　number: 接続番号(1～4) 
+//	IP_Address: 通信相手アドレス
+//	SendPort: 送信ポート番号
+//	ReceivePort: 受信ポート番号
+//**************************************************
+mrb_value mrb_wifi_udpOpen(mrb_state *mrb, mrb_value self)
+{
+mrb_value vIpAdd;
+char	*strIpAdd;
+int	num, sport, rport;
+
+	mrb_get_args(mrb, "iSii", &num, &vIpAdd, &sport, &rport);
+	strIpAdd = RSTRING_PTR(vIpAdd);
+
+	//****** AT+CIPSTARTコマンド ******
+	RbSerial[WIFI_SERIAL]->print("AT+CIPSTART=");
+	RbSerial[WIFI_SERIAL]->print(num);
+	RbSerial[WIFI_SERIAL]->print(",\"UDP\",\"");
+	RbSerial[WIFI_SERIAL]->print((const char*)strIpAdd);
+	RbSerial[WIFI_SERIAL]->print("\",");
+	RbSerial[WIFI_SERIAL]->print(sport);
+	RbSerial[WIFI_SERIAL]->print(",");
+	RbSerial[WIFI_SERIAL]->println(rport);
+
+	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読か、指定されたシリアルポートに出力します
+	getData(WIFI_WAIT_MSEC);
+
+	return mrb_str_new_cstr(mrb, (const char*)WiFiData);
+}
+//**************************************************
+// UDP接続を開始します: WiFi.send
+//  WiFi.send( number, Data[, length] )
+//　number: 接続番号(1～4) 
+//	Data: 送信するデータ
+//　length: 送信データサイズ
+//
+//  戻り値は
+//	  送信データサイズ
+//**************************************************
+mrb_value mrb_wifi_send(mrb_state *mrb, mrb_value self)
+{
+mrb_value vdata;
+char	*strdata;
+int	num, len;
+
+	int n = mrb_get_args(mrb, "iS|i", &num, &vdata, &len);
+	strdata = RSTRING_PTR(vdata);
+
+	//送信データサイズが指定されていないとき
+	if(n < 3){
+		len = RSTRING_LEN(vdata);
+	}
+
+	//****** AT+CIPSTARTコマンド ******
+	RbSerial[WIFI_SERIAL]->print("AT+CIPSEND=");
+	RbSerial[WIFI_SERIAL]->print(num);
+	RbSerial[WIFI_SERIAL]->print(",");
+	RbSerial[WIFI_SERIAL]->println(len);
+
+	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読か、指定されたシリアルポートに出力します
+	getData(WIFI_WAIT_MSEC);
+
+	if( !(WiFiData[strlen((const char*)WiFiData)-2] == 'K' || WiFiData[strlen((const char*)WiFiData)-3] == 'K')){
+		return mrb_fixnum_value( 0 );
+	}
+
+	RbSerial[WIFI_SERIAL]->print((const char*)strdata);
+
+	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読か、指定されたシリアルポートに出力します
+	getData(WIFI_WAIT_MSEC);
+
+	if( !(WiFiData[strlen((const char*)WiFiData)-2] == 'K' || WiFiData[strlen((const char*)WiFiData)-3] == 'K')){
+
+		//タイムアウトと思われるので、強制的にデータサイズの不足分の0x0Dを送信する
+		for(int i=0; i<len-strlen(strdata); i++){
+			RbSerial[WIFI_SERIAL]->print("\r");
+		}
+		return mrb_fixnum_value( 0 );
+	}
+
+	return mrb_fixnum_value( len );
+}
+
+//**************************************************
 // ライブラリを定義します
 //**************************************************
 int esp8266_Init(mrb_state *mrb)
@@ -862,9 +948,6 @@ int esp8266_Init(mrb_state *mrb)
 		}
 	}
 
-
-
-
 	struct RClass *wifiModule = mrb_define_module(mrb, "WiFi");
 
 	mrb_define_module_function(mrb, wifiModule, "at", mrb_wifi_at, MRB_ARGS_REQ(1)|MRB_ARGS_OPT(1));
@@ -884,6 +967,10 @@ int esp8266_Init(mrb_state *mrb)
 
 	mrb_define_module_function(mrb, wifiModule, "httpGetSD", mrb_wifi_getSD, MRB_ARGS_REQ(2)|MRB_ARGS_OPT(1));
 
+	mrb_define_module_function(mrb, wifiModule, "udpOpen", mrb_wifi_udpOpen, MRB_ARGS_REQ(4));
+
+	mrb_define_module_function(mrb, wifiModule, "send", mrb_wifi_send, MRB_ARGS_REQ(2)|MRB_ARGS_OPT(1));
+
 	mrb_define_module_function(mrb, wifiModule, "cClose", mrb_wifi_cClose, MRB_ARGS_REQ(1));
 
 	mrb_define_module_function(mrb, wifiModule, "version", mrb_wifi_Version, MRB_ARGS_NONE());
@@ -892,28 +979,4 @@ int esp8266_Init(mrb_state *mrb)
 	mrb_define_module_function(mrb, wifiModule, "bypass", mrb_wifi_bypass, MRB_ARGS_NONE());
 
 	return 1;
-
-	//mrb_define_module_function(mrb, pancakeModule, "clear", mrb_pancake_Clear, MRB_ARGS_REQ(1));
-	//mrb_define_module_function(mrb, pancakeModule, "line", mrb_pancake_Line, MRB_ARGS_REQ(5));
-	//mrb_define_module_function(mrb, pancakeModule, "circle", mrb_pancake_Circle, MRB_ARGS_REQ(4));
-	//mrb_define_module_function(mrb, pancakeModule, "stamp", mrb_pancake_Stamp, MRB_ARGS_REQ(4));
-	//mrb_define_module_function(mrb, pancakeModule, "stamp1", mrb_pancake_Stamp1, MRB_ARGS_REQ(4));
-	//mrb_define_module_function(mrb, pancakeModule, "image", mrb_pancake_Image, MRB_ARGS_REQ(1));
-	//mrb_define_module_function(mrb, pancakeModule, "video", mrb_pancake_Video, MRB_ARGS_REQ(1));
-	//mrb_define_module_function(mrb, pancakeModule, "sound", mrb_pancake_Sound, MRB_ARGS_REQ(8));
-	//mrb_define_module_function(mrb, pancakeModule, "sound1", mrb_pancake_Sound1, MRB_ARGS_REQ(3));
-	//mrb_define_module_function(mrb, pancakeModule, "reset", mrb_pancake_Reset, MRB_ARGS_NONE());
-	//mrb_define_module_function(mrb, pancakeModule, "out", mrb_pancake_Out, MRB_ARGS_REQ(1));
-
-	//struct RClass *spriteModule = mrb_define_module(mrb, "Sprite");
-	//mrb_define_module_function(mrb, spriteModule, "start", mrb_pancake_Start, MRB_ARGS_REQ(1));
-	//mrb_define_module_function(mrb, spriteModule, "create", mrb_pancake_Create, MRB_ARGS_REQ(2));
-	//mrb_define_module_function(mrb, spriteModule, "move", mrb_pancake_Move, MRB_ARGS_REQ(3));
-	//mrb_define_module_function(mrb, spriteModule, "flip", mrb_pancake_Flip, MRB_ARGS_REQ(2));
-	//mrb_define_module_function(mrb, spriteModule, "rotate", mrb_pancake_Rotate, MRB_ARGS_REQ(2));
-	//mrb_define_module_function(mrb, spriteModule, "user", mrb_pancake_User, MRB_ARGS_REQ(3));
-
-	//struct RClass *musicModule = mrb_define_module(mrb, "Music");
-	//mrb_define_module_function(mrb, musicModule, "score", mrb_pancake_Score, MRB_ARGS_REQ(4));
-	//mrb_define_module_function(mrb, musicModule, "play", mrb_pancake_Play, MRB_ARGS_REQ(1));*/
 }

@@ -45,7 +45,7 @@
 #define CPU_RX631F	256		//メモリ256KB
 
 //バージョンと日付
-#define WRBB_VERSION	"-2.13(2016/10/1)"
+#define WRBB_VERSION	"-2.14(2016/10/11)"
 
 //バイトコードフォーマットの設定
 //#define BYTECODE	BYTE_CODE2

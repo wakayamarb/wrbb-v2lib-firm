@@ -1,5 +1,5 @@
 #!mruby
-#GR-CITRUS Version 2.12
+#GR-CITRUS Version 2.14
 
 #ESP8266を一度停止させる(リセットと同じ)
 pinMode(5,1)
@@ -22,7 +22,7 @@ Usb.println "WiFi disconnect"
 Usb.println WiFi.disconnect
 
 Usb.println "WiFi connecting"
-Usb.println WiFi.connect("TAROSAY","37000") 
+Usb.println WiFi.connect("TAROSAY","37000")
 #Usb.println WiFi.connect("000740DE0D79","")
 
 
@@ -39,22 +39,24 @@ Usb.println "..."
 
 Usb.println "Create a UDP transmission, for example, id is 4"
 #UDP通信,WAMIKAN受信:5555, 送信: 5556
-Usb.println WiFi.at('CIPSTART=4,"UDP","192.168.1.44",5555,5556,0')
+#Usb.println WiFi.at('CIPSTART=4,"UDP","192.168.1.44",5555,5556,0')
+Usb.println WiFi.udpOpen(4,"192.168.1.44",5555,5556)
 Usb.println "Send 5 bytes to transmission NO.4"
 
 100.times do
-  WiFi.at('CIPSEND=4,17')
-  WiFi.at("hoho01111122222\r\n",1)
+#  WiFi.at('CIPSEND=4,17')
+#  WiFi.at("hoho01111122222\r\n",1)
+  WiFi.send 4,"hoho01111122222\r\n"
   delay 25
 end
 
-WiFi.at('CIPSEND=4,16')
-WiFi.at(0x02.chr + "bcdefghijklmn\r\n",1)
+#WiFi.at('CIPSEND=4,16')
+Usb.println WiFi.send(4, 0x02.chr + "bcdefghijklmn" + 0x03.chr + "ddd\r\n").to_s
 
 Usb.println WiFi.ipconfig
 Usb.println "Delete transmission NO.4"
 Usb.println WiFi.cClose 4
-Usb.println "CWQAP"
+
 Usb.println WiFi.disconnect
 
 Usb.println "end"

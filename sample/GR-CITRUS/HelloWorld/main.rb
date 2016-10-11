@@ -1,7 +1,7 @@
 #!mruby
 Usb = Serial.new(0)
 k = 1
-10.times do |n|
+8.times do |n|
     led k
     k = 1 - k
     Usb.println "#{k.to_s}:Hello World! at #{System.getMrbPath}"
