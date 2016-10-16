@@ -1,5 +1,5 @@
 #!mruby
-#GR-CITRUS Version 2.13
+#GR-CITRUS Version 2.15
 
 #ESP8266を一度停止させる(リセットと同じ)
 pinMode(5,1)
