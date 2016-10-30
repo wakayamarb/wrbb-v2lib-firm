@@ -1,4 +1,4 @@
-﻿/*
+/*
  * wrbb.h
  *
  * Copyright (c) 2016 Wakayama.rb Ruby Board developers
@@ -45,7 +45,7 @@
 #define CPU_RX631F	256		//メモリ256KB
 
 //バージョンと日付
-#define WRBB_VERSION	"-2.15(2016/10/16)"
+#define WRBB_VERSION	"-2.16(2016/10/31)"
 
 //バイトコードフォーマットの設定
 //#define BYTECODE	BYTE_CODE2
