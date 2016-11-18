@@ -836,6 +836,10 @@ char sData[1024];
 		}
 	}
 
+	if(koron == 0){
+		koron = sla;
+	}
+
 	//****** AT+CIPSTARTコマンド ******
 	//WiFiData[]に、ドメインとポート番号を取得
 	for(int i=0; i<sla; i++){
@@ -883,10 +887,6 @@ char sData[1024];
 	{
 		strcat(sData, "Host: ");
 	
-		if(koron == 0){
-			koron = sla;
-		}
-
 		cnt = strlen(sData);
 		for(int i=0; i<koron; i++){
 			sData[cnt] = strURL[i];
@@ -1481,6 +1481,10 @@ int len;
 		}
 	}
 
+	if(koron == 0){
+		koron = sla;
+	}
+
 	//****** AT+CIPSTARTコマンド ******
 	//WiFiData[]に、ドメインとポート番号を取得
 	for(int i=0; i<sla; i++){
@@ -1528,10 +1532,6 @@ int len;
 	{
 		strcat(sData, "Host: ");
 	
-		if(koron == 0){
-			koron = sla;
-		}
-
 		cnt = strlen(sData);
 		for(int i=0; i<koron; i++){
 			sData[cnt] = strURL[i];
