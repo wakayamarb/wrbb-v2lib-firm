@@ -123,9 +123,13 @@ MRuby::Build.new('test') do |conf|
 end
 
 MRuby::Build.new('bench') do |conf|
-  toolchain :gcc
-
-  conf.cc.flags << '-O3'
+  # Gets set by the VS command prompts.
+  if ENV['VisualStudioVersion'] || ENV['VSINSTALLDIR']
+    toolchain :visualcpp
+  else
+    toolchain :gcc
+    conf.cc.flags << '-O3'
+  end
 
   conf.gembox 'default'
 end
@@ -155,12 +159,13 @@ MRuby::CrossBuild.new('rx630') do |conf|
 #   conf.build_mrbtest_lib_only
 #
    #conf.gem "#{root}/mrbgems/mruby-array-ext"
-   ##conf.gem "#{root}/mrbgems/mruby-bin-debugger
+   ##conf.gem "#{root}/mrbgems/mruby-bin-debugger"
    ##conf.gem "#{root}/mrbgems/mruby-bin-mirb"
    ##conf.gem "#{root}/mrbgems/mruby-bin-mrbc"
    ##conf.gem "#{root}/mrbgems/mruby-bin-mruby"
    ##conf.gem "#{root}/mrbgems/mruby-bin-mruby-config"
    #conf.gem "#{root}/mrbgems/mruby-bin-strip"
+   #conf.gem "#{root}/mrbgems/mruby-class-ext"
    #conf.gem "#{root}/mrbgems/mruby-compiler"
    #conf.gem "#{root}/mrbgems/mruby-enumerator"
    #conf.gem "#{root}/mrbgems/mruby-enum-ext"
@@ -170,10 +175,11 @@ MRuby::CrossBuild.new('rx630') do |conf|
    #conf.gem "#{root}/mrbgems/mruby-exit"
    #conf.gem "#{root}/mrbgems/mruby-fiber"
    #conf.gem "#{root}/mrbgems/mruby-hash-ext"
+   #conf.gem "#{root}/mrbgems/mruby-inline-struct"
    #conf.gem "#{root}/mrbgems/mruby-kernel-ext"
-   #conf.gem "#{root}/mrbgems/mruby-math"
+   conf.gem "#{root}/mrbgems/mruby-math"
    conf.gem "#{root}/mrbgems/mruby-numeric-ext"  #10.chr
-   #conf.gem "#{root}/mrbgems/mruby-object-ext"		
+   #conf.gem "#{root}/mrbgems/mruby-object-ext"
    #conf.gem "#{root}/mrbgems/mruby-objectspace"
    #conf.gem "#{root}/mrbgems/mruby-print"
    #conf.gem "#{root}/mrbgems/mruby-proc-ext"

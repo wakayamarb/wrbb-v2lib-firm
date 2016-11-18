@@ -39,7 +39,7 @@ for value in 1..50
   sw = digitalRead(9)
   led sw
   Usb.println WiFi.httpGet("192.168.1.58:3000/?value1=" + value.to_s + "&value2=" + (value*value).to_s + "&SW=" + sw.to_s).to_s
-  delay 100
+  
 end
  
 #Usb.println "WiFi disconnect"

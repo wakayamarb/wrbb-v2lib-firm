@@ -1,7 +1,7 @@
 MRuby::Toolchain.new(:rx630) do |conf, _params|
   toolchain :gcc
 
-  TOOL_PATH = "/cygdrive/c/Renesas/GNURXv14.03-ELF/rx-elf/rx-elf/bin"
+  TOOL_PATH = "/cygdrive/d/Renesas/GNURXv14.03-ELF/rx-elf/rx-elf/bin"
 	
   conf.cc do |cc|
     cc.command="#{TOOL_PATH}/rx-elf-gcc"
