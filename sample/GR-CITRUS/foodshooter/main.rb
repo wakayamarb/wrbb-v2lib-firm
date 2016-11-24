@@ -118,4 +118,5 @@ end
 
 WiFi.httpServer(-1)
 WiFi.disconnect
+digitalWrite(5,0)   # LOW:Disable
 

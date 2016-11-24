@@ -23,6 +23,7 @@
 #if BOARD == BOARD_GR || FIRMWARE == SDBT || FIRMWARE == SDWF || BOARD == BOARD_P05 || BOARD == BOARD_P06
 	#include "sSdCard.h"
 	#include "sWiFi.h"
+	#include "sMp3.h"
 #endif
 
 #define EEPROMADDRESS	0xFF
@@ -221,6 +222,26 @@ mrb_value mrb_system_getmrbpath(mrb_state *mrb, mrb_value self)
 }
 
 //**************************************************
+// MP3再生を行えるようにします: System.useMP3
+// System.useMP3(PausePin, StopPin)
+//  PausePin: 再生中の一時停止に使用するピン番号です。LOWになると一時停止/再開を繰り返します
+//  StopPin:  再生を止めるときに使用するピン番号です。LOWになると停止します
+//
+//戻り値
+// 0:使用不可, 1:使用可能
+//**************************************************
+mrb_value mrb_system_useMp3(mrb_state *mrb, mrb_value self)
+{
+int ret = 0;
+
+#if BOARD == BOARD_GR || FIRMWARE == SDBT || FIRMWARE == SDWF || BOARD == BOARD_P05 || BOARD == BOARD_P06
+	ret = mp3_Init(mrb);		//MP3関連メソッドの設定
+#endif
+
+	return mrb_fixnum_value( ret );
+}
+
+//**************************************************
 // ライブラリを定義します
 //**************************************************
 void sys_Init(mrb_state *mrb)
@@ -239,6 +260,7 @@ void sys_Init(mrb_state *mrb)
 
 	mrb_define_module_function(mrb, systemModule, "useSD", mrb_system_useSD, MRB_ARGS_NONE());
 	mrb_define_module_function(mrb, systemModule, "useWiFi", mrb_system_useWiFi, MRB_ARGS_NONE());
+	mrb_define_module_function(mrb, systemModule, "useMP3", mrb_system_useMp3, MRB_ARGS_OPT(2));
 
 	mrb_define_module_function(mrb, systemModule, "getMrbPath", mrb_system_getmrbpath, MRB_ARGS_NONE());
 }

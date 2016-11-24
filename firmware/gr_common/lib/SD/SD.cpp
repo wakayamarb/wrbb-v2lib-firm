@@ -429,6 +429,7 @@ File SDClass::open(const char *filepath, uint8_t mode) {
    */
 
   int pathidx;
+  File dir;
 
   // do the interative search
   SdFile parentdir = getParentDir(filepath, &pathidx);
@@ -438,7 +439,9 @@ File SDClass::open(const char *filepath, uint8_t mode) {
 
   if (! filepath[0]) {
     // it was the directory itself!
-    return File(parentdir, "/");
+    dir = File(parentdir, "/");
+    dir.rewindDirectory();
+    return dir;
   }
 
   // Open the file itself
@@ -465,7 +468,9 @@ File SDClass::open(const char *filepath, uint8_t mode) {
 
   if (mode & (O_APPEND | O_WRITE)) 
     file.seekSet(file.fileSize());
-  return File(file, filepath);
+  dir = File(file, filepath);
+  dir.rewindDirectory();
+  return dir;
 }
 
 

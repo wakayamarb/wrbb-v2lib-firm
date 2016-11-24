@@ -28,11 +28,49 @@
 #ifndef MRUBY_H
 #define MRUBY_H
 
+#ifdef __cplusplus
+#define __STDC_LIMIT_MACROS
+#define __STDC_CONSTANT_MACROS
+#define __STDC_FORMAT_MACROS
+#endif
+
 #include <stdint.h>
 #include <stddef.h>
 #include <limits.h>
 
+#ifdef __cplusplus
+#ifndef SIZE_MAX
+#ifdef __SIZE_MAX__
+#define SIZE_MAX __SIZE_MAX__
+#else
+#define SIZE_MAX std::numeric_limits<size_t>::max()
+#endif
+#endif
+#endif
+
+#ifdef MRB_DEBUG
+#include <assert.h>
+#define mrb_assert(p) assert(p)
+#define mrb_assert_int_fit(t1,n,t2,max) assert((n)>=0 && ((sizeof(n)<=sizeof(t2))||(n<=(t1)(max))))
+#else
+#define mrb_assert(p) ((void)0)
+#define mrb_assert_int_fit(t1,n,t2,max) ((void)0)
+#endif
+
+#if __STDC_VERSION__ >= 201112L
+#define mrb_static_assert(exp, str) _Static_assert(exp, str)
+#else
+#define mrb_static_assert(exp, str) mrb_assert(exp)
+#endif
+
 #include "mrbconf.h"
+
+#ifdef MRB_USE_FLOAT
+#define MRB_FLOAT_EPSILON FLT_EPSILON
+#else
+#define MRB_FLOAT_EPSILON DBL_EPSILON
+#endif
+
 #include "mruby/common.h"
 #include <mruby/value.h>
 #include <mruby/gc.h>
@@ -1134,21 +1172,6 @@ MRB_API void mrb_state_atexit(mrb_state *mrb, mrb_atexit_func func);
 
 MRB_API void mrb_show_version(mrb_state *mrb);
 MRB_API void mrb_show_copyright(mrb_state *mrb);
-
-#ifdef MRB_DEBUG
-#include <assert.h>
-#define mrb_assert(p) assert(p)
-#define mrb_assert_int_fit(t1,n,t2,max) assert((n)>=0 && ((sizeof(n)<=sizeof(t2))||(n<=(t1)(max))))
-#else
-#define mrb_assert(p) ((void)0)
-#define mrb_assert_int_fit(t1,n,t2,max) ((void)0)
-#endif
-
-#if __STDC_VERSION__ >= 201112L
-#define mrb_static_assert(exp, str) _Static_assert(exp, str)
-#else
-#define mrb_static_assert(exp, str) mrb_assert(exp)
-#endif
 
 MRB_API mrb_value mrb_format(mrb_state *mrb, const char *format, ...);
 
