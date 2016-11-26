@@ -1,8 +1,11 @@
 Wakayama.rb Ruby Board V2 library Firmware
 ------
 (注意)
+
 MacOSを使用している場合は、firmware_MACフォルダにあるcitrus_sketch.bin(Ver2.19)を使用してください。MP3クラスは未対応となっています。
+
 (Caution)
+
 If you are using MacOS, please use citrus_sketch.bin (Ver 2.19) in firmware_MAC folder. MP3 class is not supported yet.
 
 　Wakayama.rb のV2ライブラリを使ったRubyボードのソースです。
