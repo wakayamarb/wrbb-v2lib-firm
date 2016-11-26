@@ -1,0 +1,135 @@
+MEMORY
+{
+	RAM : ORIGIN = 0x0, LENGTH = 131072
+	ROM : ORIGIN = 0xFFF00000, LENGTH = 1048576
+}
+
+SECTIONS
+{
+	.text 0xFFF00000 : AT (0xFFF00000)
+	{
+		*(.text)
+		*(.text.*)
+		*(P)
+		etext = .;
+	} > ROM
+	.rvectors : 
+	{
+		_rvectors_start = .;
+		*(.rvectors)
+		_rvectors_end = .;
+	} > ROM
+	.init : 
+	{
+		*(.init)
+		__preinit_array_start = .;
+		*(.preinit_array)
+		__preinit_array_end = .;
+		__init_array_start = (. + 3) & ~ 3;
+		*(.init_array)
+		*(SORT(.init_array.*))
+		__init_array_end = .;
+		__fini_array_start = .;
+		*(.fini_array)
+		*(SORT(.fini_array.*))
+		__fini_array_end = .;
+	} > ROM
+	.fini : 
+	{
+		*(.fini)
+	} > ROM
+	.got : 
+	{
+		*(.got)
+		*(.got.plt)
+	} > ROM
+	.rodata : 
+	{
+		*(.rodata)
+		*(.rodata.*)
+		*(C_1)
+		*(C_2)
+		*(C)
+		_erodata = .;
+	} > ROM
+	.fvectors : 
+	{
+		KEEP(*(.fvectors))
+	} > ROM
+	.eh_frame_hdr : 
+	{
+		*(.eh_frame_hdr)
+	} > ROM
+	.eh_frame : 
+	{
+		*(.eh_frame)
+	} > ROM
+	.jcr : 
+	{
+		*(.jcr)
+	} > ROM
+	.tors : 
+	{
+		__CTOR_LIST__ = .;
+		. = ALIGN(2);
+		___ctors = .;
+		*(.ctors)
+		___ctors_end = .;
+		__CTOR_END__ = .;
+		__DTOR_LIST__ = .;
+		___dtors = .;
+		*(.dtors)
+		___dtors_end = .;
+		__DTOR_END__ = .;
+		. = ALIGN(2);
+		_mdata = .;
+	} > ROM
+	.istack 0x20000 : AT (0x20000)
+	{
+		_istack = .;
+	}
+	.ustack 0x1FF00 : AT (0x1FF00)
+	{
+		_ustack = .;
+	} > RAM
+	.data 0x1000 : AT (_mdata)
+	{
+		_data = .;
+		*(.data)
+		*(.data.*)
+		*(D)
+		*(D_1)
+		*(D_2)
+		_edata = .;
+	} > RAM
+	._RX_DESC : 
+	{
+		. = ALIGN(32);
+		*(._RX_DESC)
+	} > RAM
+	._TX_DESC : 
+	{
+		. = ALIGN(32);
+		*(._TX_DESC)
+	} > RAM
+	._ETHERNET_BUFFERS : 
+	{
+		*(._ETHERNET_BUFFERS)
+	} > RAM
+	.bss : 
+	{
+		_bss = .;
+		*(.bss)
+		*(.bss.**)
+		*(COMMON)
+		*(B)
+		*(B_1)
+		*(B_2)
+		_ebss = .;
+		_end = .;
+	} > RAM
+	.gcc_exc : 
+	{
+		*(.gcc_exc)
+	} > RAM
+}
