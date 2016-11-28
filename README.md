@@ -1,17 +1,26 @@
 Wakayama.rb Ruby Board V2 library Firmware
 ------
-(注意)
+firmware_release フォルダ内にあるものがリリース版です。
+firmware_develop フォルダ内にあるものは開発版です。主にWindows環境で動作確認されています。
 
-MacOSを使用している場合は、firmware_MACフォルダにあるcitrus_sketch.bin(Ver2.19)を使用してください。MP3クラスは未対応となっています。
+実装しているrubyメソッドなどの使い方は、各フォルダ内のdescriptionフォルダ内にあるRuby Firmware on GR-CITRUS.pdfを参照してください。
+また、mrubyフォルダ内にあるファイルは、mrubyのソース(https://github.com/mruby/mruby)に対して修正した差分です。
+mrbconf.h
+build_config.rb
+rx630.rake
+などがありますので、mrubyをmakeするときの参考にしてください。
+
+ 
+(注意)
+MacOSの場合は、firmware_release フォルダにある citrus_sketch.binを使用してください。firmware_develop を使用した場合、うまく動作しない恐れがあります。
 
 (Caution)
+For MacOS, please use citrus_sketch.bin in the firmware_release folder. Using firmware_develop may not work properly.
 
-If you are using MacOS, please use citrus_sketch.bin (Ver 2.19) in firmware_MAC folder. MP3 class is not supported yet.
+　V2ライブラリを使ったWakayama.rb のRubyボードGR-CITRUS用のソースと実行バイナリです。
+　V2ライブラリとは、ルネサスさんが提供しているRX631のV2ライブラリを示します。
 
-　Wakayama.rb のV2ライブラリを使ったRubyボードのソースです。
-　V2ライブラリとは、ルネサスさんが提供しているRX63NのV2ライブラリを示します。
-
-  バージョンのARIDAやUmeJamの後の数字は動作する基板種類を表します。GR-CITRUSはARIDA5に相当します。
+  バージョンのARIDAやUmeJamの後の数字は動作する基板種類を表します。
   バージョン最後のf2やf3はバイトコードフォーマットの番号です。mruby1.0.0ベースの場合はf2となります。
 
   mruby ver1.0.0 -> ByteCode Format Ver.0002  
