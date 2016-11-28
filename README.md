@@ -2,9 +2,10 @@ Wakayama.rb Ruby Board V2 library Firmware
 ------
 firmware_release フォルダ内にあるものがリリース版です。
 firmware_develop フォルダ内にあるものは開発版です。主にWindows環境で動作確認されています。
+sample フォルダ内にあるサンプルに関しては、develop版で動作するサンプルも含まれています。行頭にファームウェアのバージョンが入っているのでバージョンを確認してください。
 
 実装しているrubyメソッドなどの使い方は、各フォルダ内のdescriptionフォルダ内にあるRuby Firmware on GR-CITRUS.pdfを参照してください。
-また、mrubyフォルダ内にあるファイルは、mrubyのソース(https://github.com/mruby/mruby)に対して修正した差分です。
+また、mrubyフォルダ内にあるファイルは、mrubyのソース( https://github.com/mruby/mruby )に対して修正した差分です。
 mrbconf.h
 build_config.rb
 rx630.rake
@@ -43,7 +44,7 @@ For MacOS, please use citrus_sketch.bin in the firmware_release folder. Using fi
 
 How to use Wakayama.rb board
 ------
-https://github.com/wakayamarb/wrbb-v2lib-firm/blob/master/description/Ruby%20Firmware%20on%20GR-CITRUS.pdf
+https://github.com/wakayamarb/wrbb-v2lib-firm/tree/master/firmware_release/description/Ruby%20Firmware%20on%20GR-CITRUS.pdf
 http://www.slideshare.net/MinaoYamamoto/grcitrusruby
 
 Link
