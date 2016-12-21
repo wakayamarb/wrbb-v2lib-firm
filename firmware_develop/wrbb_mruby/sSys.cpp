@@ -8,7 +8,7 @@
  *
  */
 #include <Arduino.h>
-#include <eeprom.h>
+#include <EEPROM.h>
 #include <reboot.h>
 
 #include <mruby.h>
@@ -143,7 +143,7 @@ int		len;
 		str[i] = EEPROM.read( (unsigned long)address );
 		address++;
 	}
-	
+
 	return mrb_str_new(mrb, (const char *)str, len);
 }
 
@@ -159,7 +159,7 @@ mrb_value mrb_system_fileload(mrb_state *mrb, mrb_value self)
 		//強制終了
 		mrb_raise(mrb, mrb_class_get(mrb, "Sys#exit Called"), "Normal Completion");
 	}
-	
+
 	mrb_full_gc(mrb);	//強制GCを入れる
 
 	return mrb_nil_value();	//戻り値は無しですよ。

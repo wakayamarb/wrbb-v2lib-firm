@@ -8,7 +8,7 @@
  *
  */
 #include <Arduino.h>
-#include <wire.h>
+#include <Wire.h>
 
 #include <mruby.h>
 #include <mruby/data.h>
