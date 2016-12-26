@@ -28,6 +28,7 @@
 #include "sMem.h"
 #include "sI2c.h"
 #include "sServo.h"
+#include "sGlobal.h"
 
 #if REALTIMECLOCK
 	#include "sRtc.h"
@@ -64,6 +65,7 @@ bool notFinishFlag = true;
 		return false;
 	}
 
+	global_Init(mrb);	//グローバル変数の設定
 	kernel_Init(mrb);	//カーネル関連メソッドの設定
 	sys_Init(mrb);		//システム関連メソッドの設定
 	serial_Init(mrb);	//シリアル通信関連メソッドの設定

@@ -19,6 +19,8 @@
 #include "sKernel.h"
 #include "sSerial.h"
 
+#include "sWiFi.h"
+
 #if BOARD == BOARD_GR || FIRMWARE == SDBT || FIRMWARE == SDWF || BOARD == BOARD_P05 || BOARD == BOARD_P06
 	#include "sSdCard.h"
 #endif
@@ -1827,7 +1829,7 @@ int esp8266_Init(mrb_state *mrb)
 		}
 	}
 
-	struct RClass *wifiModule = mrb_define_module(mrb, "WiFi");
+	struct RClass *wifiModule = mrb_define_module(mrb, WIFI_CLASS);
 
 	mrb_define_module_function(mrb, wifiModule, "at", mrb_wifi_at, MRB_ARGS_REQ(1)|MRB_ARGS_OPT(1));
 

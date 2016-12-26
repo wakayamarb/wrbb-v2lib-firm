@@ -16,6 +16,8 @@
 
 #include "../wrbb.h"
 
+#include "sMp3.h"
+
 #if BOARD == BOARD_GR || FIRMWARE == SDBT || FIRMWARE == SDWF || BOARD == BOARD_P05 || BOARD == BOARD_P06
 	#include "sSdCard.h"
 #endif
@@ -177,12 +179,10 @@ int led = 0;
 //**************************************************
 // ライブラリを定義します
 //**************************************************
-int mp3_Init(mrb_state *mrb)
+int mp3_Init(mrb_state *mrb,int pausePin, int stopPin)
 {
-int ret = 1;
-
-	//ポーズ割り込みピン番号とスキップ割り込みピン番号を取得します
-	mrb_get_args(mrb, "ii", &PausePin, &StopPin);
+	PausePin = pausePin;
+	StopPin = stopPin;
 
 	//使用できるピンかどうかチェック
 	if(PausePin == StopPin){
@@ -207,10 +207,22 @@ int ret = 1;
 
 	MsTimer2::set(100, cyclic_handler);
 
-	struct RClass *mp3Module = mrb_define_module(mrb, "MP3");
+	struct RClass *mp3Module = mrb_define_module(mrb, MP3_CLASS);
 
 	mrb_define_module_function(mrb, mp3Module, "play", mrb_mp3_play, MRB_ARGS_REQ(1));
 	mrb_define_module_function(mrb, mp3Module, "led", mrb_mp3_led, MRB_ARGS_REQ(1));
 
 	return 1;
+}
+//**************************************************
+// ライブラリを定義します
+//**************************************************
+int mp3_Init(mrb_state *mrb)
+{
+int pausePin, stopPin;
+
+	//ポーズ割り込みピン番号とスキップ割り込みピン番号を取得します
+	mrb_get_args(mrb, "ii", &pausePin, &stopPin);
+
+	return mp3_Init(mrb, pausePin, stopPin);
 }

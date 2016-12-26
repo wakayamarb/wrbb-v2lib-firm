@@ -13,8 +13,10 @@
 
 #include <mruby.h>
 #include <mruby/string.h>
+#include <mruby/array.h>
 #include <mruby/variable.h>
 #include <mruby/version.h>
+
 #include <eeploader.h>
 
 #include "../wrbb.h"
@@ -177,12 +179,20 @@ mrb_value mrb_system_reset(mrb_state *mrb, mrb_value self)
 }
 
 //**************************************************
-// SDカードを使えるようにします: System.useSD
-// System.useSD()
+// 実行しているmrbファイルパスを取得します: System.getMrbPath
+// System.getMrbPath()
 //戻り値
-// 0:使用不可, 1:使用可能
+// 実行しているmrbファイルパス
 //**************************************************
-mrb_value mrb_system_useSD(mrb_state *mrb, mrb_value self)
+mrb_value mrb_system_getmrbpath(mrb_state *mrb, mrb_value self)
+{
+	return mrb_str_new_cstr(mrb, (const char*)ExeFilename);
+}
+
+//**************************************************
+// SDカードを使えるようにします
+//**************************************************
+mrb_value Is_useSD(mrb_state *mrb, mrb_value self, int mode)
 {
 int ret = 0;
 
@@ -190,7 +200,43 @@ int ret = 0;
 	ret = sdcard_Init(mrb);		//SDカード関連メソッドの設定
 #endif
 
-	return mrb_fixnum_value( ret );
+	return (mode == 0?mrb_fixnum_value(ret):mrb_bool_value(ret == 1));
+}
+
+//**************************************************
+// SDカードを使えるようにします: System.useSD
+// System.useSD()
+//戻り値
+// 0:使用不可, 1:使用可能
+//**************************************************
+mrb_value mrb_system_useSD(mrb_state *mrb, mrb_value self)
+{
+	return Is_useSD(mrb, self, 0);
+}
+
+////**************************************************
+//// SDカードを使えるようにします: System.useSD?
+//// System.useSD?()
+////戻り値
+//// false:使用不可, true:使用可能
+////**************************************************
+//mrb_value mrb_system_useSD_p(mrb_state *mrb, mrb_value self)
+//{
+//	return Is_useSD(mrb, self, 1);
+//}
+
+//**************************************************
+// WiFiモジュールESP8266ボードを使えるようにします
+//**************************************************
+mrb_value Is_useWiFi(mrb_state *mrb, mrb_value self, int mode)
+{
+int ret = 0;
+
+#if FIRMWARE == SDWF || BOARD == BOARD_P05 || BOARD == BOARD_P06
+	ret = esp8266_Init(mrb);		//ESP8266ボード関連メソッドの設定
+#endif
+
+	return (mode == 0?mrb_fixnum_value(ret):mrb_bool_value(ret == 1));
 }
 
 //**************************************************
@@ -201,24 +247,31 @@ int ret = 0;
 //**************************************************
 mrb_value mrb_system_useWiFi(mrb_state *mrb, mrb_value self)
 {
+	return Is_useWiFi(mrb, self, 0);
+}
+////**************************************************
+//// WiFiモジュールESP8266ボードを使えるようにします: System.useWiFi?
+//// System.useWiFi?()
+////戻り値
+//// false:使用不可, true:使用可能
+////**************************************************
+//mrb_value mrb_system_useWiFi_p(mrb_state *mrb, mrb_value self)
+//{
+//	return Is_useWiFi(mrb, self, 1);
+//}
+
+//**************************************************
+// MP3再生を行えるようにします
+//**************************************************
+mrb_value Is_useMp3(mrb_state *mrb, mrb_value self, int mode)
+{
 int ret = 0;
 
-#if FIRMWARE == SDWF || BOARD == BOARD_P05 || BOARD == BOARD_P06
-	ret = esp8266_Init(mrb);		//ESP8266ボード関連メソッドの設定
+#if BOARD == BOARD_GR || FIRMWARE == SDBT || FIRMWARE == SDWF || BOARD == BOARD_P05 || BOARD == BOARD_P06
+	ret = mp3_Init(mrb);		//MP3関連メソッドの設定
 #endif
 
-	return mrb_fixnum_value( ret );
-}
-
-//**************************************************
-// 実行しているmrbファイルパスを取得します: System.getMrbPath
-// System.getMrbPath()
-//戻り値
-// 実行しているmrbファイルパス
-//**************************************************
-mrb_value mrb_system_getmrbpath(mrb_state *mrb, mrb_value self)
-{
-	return mrb_str_new_cstr(mrb, (const char*)ExeFilename);
+	return (mode == 0?mrb_fixnum_value(ret):mrb_bool_value(ret == 1));
 }
 
 //**************************************************
@@ -232,13 +285,88 @@ mrb_value mrb_system_getmrbpath(mrb_state *mrb, mrb_value self)
 //**************************************************
 mrb_value mrb_system_useMp3(mrb_state *mrb, mrb_value self)
 {
+	return Is_useMp3(mrb, self, 0);
+}
+
+//**************************************************
+// useで指定したクラスを使用できるようにします
+//**************************************************
+mrb_value Is_use(mrb_state *mrb, mrb_value self, int mode)
+{
+mrb_value vName, vOptions;
+char	*strName;
 int ret = 0;
 
-#if BOARD == BOARD_GR || FIRMWARE == SDBT || FIRMWARE == SDWF || BOARD == BOARD_P05 || BOARD == BOARD_P06
-	ret = mp3_Init(mrb);		//MP3関連メソッドの設定
-#endif
+	int n = mrb_get_args(mrb, "S|A", &vName, &vOptions);
 
-	return mrb_fixnum_value( ret );
+	strName = RSTRING_PTR(vName);
+
+	if(strcmp(strName, SD_CLASS) == 0){
+		if(mode == 0){
+			return Is_useSD(mrb, self, 0);
+		}
+		else{
+			return Is_useSD(mrb, self, 1);
+		}
+	}
+	else if(strcmp(strName, WIFI_CLASS) == 0){
+		if(mode == 0){
+			return Is_useWiFi(mrb, self, 0);
+		}
+		else{
+			return Is_useWiFi(mrb, self, 0);
+		}
+	}
+	else if(strcmp(strName, MP3_CLASS) == 0){
+		if(n == 1){
+			return (mode == 0?mrb_fixnum_value(ret):mrb_bool_value(ret == 1));
+		}
+
+		n = RARRAY_LEN( vOptions );
+		int pp, sp;
+		if(n >= 2){
+			pp = mrb_fixnum(mrb_ary_ref(mrb, vOptions, 0));
+			sp = mrb_fixnum(mrb_ary_ref(mrb, vOptions, 1));
+#if BOARD == BOARD_GR || FIRMWARE == SDBT || FIRMWARE == SDWF || BOARD == BOARD_P05 || BOARD == BOARD_P06
+			ret = mp3_Init(mrb, pp, sp);		//MP3関連メソッドの設定
+#endif
+		}
+	}
+	return (mode == 0?mrb_fixnum_value(ret):mrb_bool_value(ret == 1));
+}
+
+//**************************************************
+// 追加クラスを使用できるようにします: System.use?
+// System.use?(ClassName[,Options])
+//  ClassName: クラス名です。'SD'、'WiFi、'MP3'のいずれかです
+//  Options: オプションの配列です。
+//           SDはオプション無し。
+//           WiFiはオプション無し。
+//           MP3は再生中の一時停止に使用するピン番号と再生を止めるときに使用するピン番号の配列を指定します。例) [3,4]
+//
+//戻り値
+// false:使用不可, true:使用可能
+//**************************************************
+mrb_value mrb_system_use_p(mrb_state *mrb, mrb_value self)
+{
+	return Is_use(mrb, self, 1);
+}
+
+//**************************************************
+// 追加クラスを使用できるようにします: System.use
+// System.use(ClassName[,Options])
+//  ClassName: クラス名です。'SD'、'WiFi、'MP3'のいずれかです
+//  Options: オプションの配列です。
+//           SDはオプション無し。
+//           WiFiはオプション無し。
+//           MP3は再生中の一時停止に使用するピン番号と再生を止めるときに使用するピン番号の配列を指定します。例) [3,4]
+//
+//戻り値
+// 0:使用不可, 1:使用可能
+//**************************************************
+mrb_value mrb_system_use(mrb_state *mrb, mrb_value self)
+{
+	return Is_use(mrb, self, 0);
 }
 
 //**************************************************
@@ -261,6 +389,13 @@ void sys_Init(mrb_state *mrb)
 	mrb_define_module_function(mrb, systemModule, "useSD", mrb_system_useSD, MRB_ARGS_NONE());
 	mrb_define_module_function(mrb, systemModule, "useWiFi", mrb_system_useWiFi, MRB_ARGS_NONE());
 	mrb_define_module_function(mrb, systemModule, "useMP3", mrb_system_useMp3, MRB_ARGS_OPT(2));
+
+	mrb_define_module_function(mrb, systemModule, "use", mrb_system_use,  MRB_ARGS_REQ(1)|MRB_ARGS_OPT(1));
+	mrb_define_module_function(mrb, systemModule, "use?", mrb_system_use_p,  MRB_ARGS_REQ(1)|MRB_ARGS_OPT(1));
+
+	//mrb_define_module_function(mrb, systemModule, "useSD?", mrb_system_useSD_p, MRB_ARGS_NONE());
+	//mrb_define_module_function(mrb, systemModule, "useWiFi?", mrb_system_useWiFi_p, MRB_ARGS_NONE());
+	//mrb_define_module_function(mrb, systemModule, "useMP3?", mrb_system_useMp3_p, MRB_ARGS_OPT(2));
 
 	mrb_define_module_function(mrb, systemModule, "getMrbPath", mrb_system_getmrbpath, MRB_ARGS_NONE());
 }
