@@ -8,7 +8,7 @@
  *
  */
 #include <Arduino.h>
-#include <servo.h> 
+#include <Servo.h>
 
 #include <mruby.h>
 //#include <mruby/string.h>

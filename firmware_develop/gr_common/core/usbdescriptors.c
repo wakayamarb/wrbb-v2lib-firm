@@ -46,7 +46,7 @@ User Includes
 ***********************************************************************************/
 #include "usb_hal.h"
 #include "usb_core.h"
-#include "USBDescriptors.h"
+#include "usbdescriptors.h"
 
 /***********************************************************************************
 Defines

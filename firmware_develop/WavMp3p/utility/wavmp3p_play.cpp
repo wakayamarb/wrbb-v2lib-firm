@@ -18,7 +18,7 @@
  */
 
 #include "wavmp3p_play.h"
-#include "sd.h"
+#include "SD.h"
 
 File file;
 
