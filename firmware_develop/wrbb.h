@@ -118,7 +118,7 @@
 #define LICENSE_MRUBY		"mruby is released under the MIT License."
 #define LICENSE_MRUBYURL	"https://github.com/mruby/mruby/blob/master/MITL"
 
-#ifndef BOARD == BOARD_P06
+#if BOARD != BOARD_P06
 	#define LICENSE_WRBB		"Wakayama-mruby-board is released under the MIT License."
 	#define LICENSE_WRBBURL		"https://github.com/wakayamarb/wrbb-v2lib-firm/blob/master/MITL"
 #else
@@ -311,4 +311,3 @@
 
 
 #endif // _WRBB_H_
-
