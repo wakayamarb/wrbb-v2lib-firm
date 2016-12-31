@@ -5,13 +5,8 @@ firmware_develop フォルダ内にあるものは開発版です。主にWindow
 sample フォルダ内にあるサンプルに関しては、develop版で動作するサンプルも含まれています。行頭にファームウェアのバージョンが入っているのでバージョンを確認してください。
 
 実装しているrubyメソッドなどの使い方は、各フォルダ内のdescriptionフォルダ内にあるRuby Firmware on GR-CITRUS.pdfを参照してください。
-また、mrubyフォルダ内にあるファイルは、mrubyのソース( https://github.com/mruby/mruby )に対して修正した差分です。
-mrbconf.h
-build_config.rb
-rx630.rake
-などがありますので、mrubyをmakeするときの参考にしてください。
+また、mrubyフォルダ内にあるbuild_config.rbが、[mruby](https://github.com/mruby/mruby)(libmruby.a)をmakeする際に使用したbuild_config.rbです。
 
- 
 (注意)
 MacOSの場合は、firmware_release フォルダにある citrus_sketch.binを使用してください。firmware_develop を使用した場合、うまく動作しない恐れがあります。
 
