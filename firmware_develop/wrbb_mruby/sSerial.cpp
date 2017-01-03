@@ -159,7 +159,7 @@ mrb_value text;
 	int n = mrb_get_args(mrb, "|S", &text);
 
 	if(n > 0){
-		serialc->print(RSTRING_PTR(text));
+		serialc->write((const unsigned char *)RSTRING_PTR(text), RSTRING_LEN(text));
 	}
 	return mrb_nil_value();			//戻り値は無しですよ。
 }
@@ -179,11 +179,10 @@ mrb_value text;
 	int n = mrb_get_args(mrb, "|S", &text);
 
 	if(n > 0){
-		serialc->println(RSTRING_PTR(text));
+		serialc->write((const unsigned char *)RSTRING_PTR(text), RSTRING_LEN(text));
 	}
-	else{
-		serialc->println();
-	}
+	serialc->println();
+
 	return mrb_nil_value();			//戻り値は無しですよ。
 }
 

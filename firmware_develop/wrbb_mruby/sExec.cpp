@@ -208,7 +208,8 @@ bool notFinishFlag = true;
 //**************************************************
 void Serial_print_error(mrb_state *mrb, mrb_value obj)
 {
-	Serial.println(RSTRING_PTR(obj));
+	Serial.write((const unsigned char *)RSTRING_PTR(obj), RSTRING_LEN(obj));
+	Serial.println();
 
 	//mrb_value exc = mrb_obj_value(mrb->exc);
 	mrb_value backtrace = mrb_get_backtrace(mrb);
@@ -216,7 +217,8 @@ void Serial_print_error(mrb_state *mrb, mrb_value obj)
 	int j = 0;
 	for (mrb_int n = mrb_ary_len(mrb, backtrace); j < n; ++j) {
 		mrb_value v = mrb_ary_ref(mrb, backtrace, j);
-		Serial.println(RSTRING_PTR(v));
+		Serial.write((const unsigned char *)RSTRING_PTR(v), RSTRING_LEN(v));
+		Serial.println();
 	}
 }
 
