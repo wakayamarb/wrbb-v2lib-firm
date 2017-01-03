@@ -7,10 +7,13 @@
 #ifndef MRUBYCONF_H
 #define MRUBYCONF_H
 
+#include <limits.h>
+#include <stdint.h>
+
 /* architecture selection: */
 /* specify -DMRB_32BIT or -DMRB_64BIT to override */
 #if !defined(MRB_32BIT) && !defined(MRB_64BIT)
-#if defined(__amd64__) || defined(__amd64) || defined(__x86_64__) || defined(__x86_64) || defined(_M_X64) || defined(_M_AMD64) || defined(__aarch64__)
+#if UINT64_MAX == SIZE_MAX
 #define MRB_64BIT
 #else
 #define MRB_32BIT
@@ -23,7 +26,7 @@
 
 /* configuration options: */
 /* add -DMRB_USE_FLOAT to use float instead of double for floating point numbers */
-#define MRB_USE_FLOAT
+//#define MRB_USE_FLOAT
 
 /* add -DMRB_INT16 to use 16bit integer for mrb_int; conflict with MRB_INT64 */
 //#define MRB_INT16
@@ -44,16 +47,16 @@
 //#define MRB_UTF8_STRING
 
 /* argv max size in mrb_funcall */
-#define MRB_FUNCALL_ARGC_MAX 6
+//#define MRB_FUNCALL_ARGC_MAX 16
 
 /* number of object per heap page */
-#define MRB_HEAP_PAGE_SIZE 24
+//#define MRB_HEAP_PAGE_SIZE 1024
 
 /* use segmented list for IV table */
-#define MRB_USE_IV_SEGLIST
+//#define MRB_USE_IV_SEGLIST
 
 /* initial size for IV khash; ignored when MRB_USE_IV_SEGLIST is set */
-#define MRB_IVHASH_INIT_SIZE 3
+//#define MRB_IVHASH_INIT_SIZE 8
 
 /* if _etext and _edata available, mruby can reduce memory used by symbols */
 //#define MRB_USE_ETEXT_EDATA
@@ -66,13 +69,13 @@
 //#define MRB_GC_TURN_OFF_GENERATIONAL
 
 /* default size of khash table bucket */
-#define KHASH_DEFAULT_SIZE 2
+//#define KHASH_DEFAULT_SIZE 32
 
 /* allocated memory address alignment */
 //#define POOL_ALIGNMENT 4
 
 /* page size of memory pool */
-#define POOL_PAGE_SIZE 256
+//#define POOL_PAGE_SIZE 16000
 
 /* initial minimum size for string buffer */
 //#define MRB_STR_BUF_MIN_SIZE 128
