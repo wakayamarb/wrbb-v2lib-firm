@@ -25,6 +25,8 @@ MRuby::CrossBuild.new("RX630") do |conf|
   BIN_PATH = "/cygdrive/d/Renesas/GNURXv14.03-ELF/rx-elf/rx-elf/bin"
   # Linux
   # BIN_PATH = "/usr/share/gnurx_v14.03_elf-1/bin"
+  # macOS
+  # BIN_PATH = "/Applications/IDE4GR.app/Contents/Java/hardware/tools/gcc-rx/rx-elf/rx-elf/bin/"
 
   conf.cc do |cc|
     cc.command = "#{BIN_PATH}/rx-elf-gcc"
