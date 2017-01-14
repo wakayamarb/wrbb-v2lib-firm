@@ -108,4 +108,14 @@ MRuby::CrossBuild.new("RX630") do |conf|
   #light-weight regular expression
   #conf.gem :github => "masamitsu-murase/mruby-hs-regexp", :branch => "master"
 
+  # # additional configrations for Arduino API
+  # GR_COMMON_PATH = "/xxxx/wrbb-v2lib-firm/firmware_develop/gr_common"
+  # conf.cc.flags << " -DGRSAKURA -DARDUINO=100 "
+  # conf.cc.include_paths << ["#{GR_COMMON_PATH}/lib/", "#{GR_COMMON_PATH}", "#{GR_COMMON_PATH}/core", "#{GR_COMMON_PATH}/lib/SPI", "#{GR_COMMON_PATH}/lib/Wire", "#{GR_COMMON_PATH}/lib/Servo" ]
+  # conf.cxx.flags = conf.cc.flags.dup
+  # conf.cxx.include_paths = conf.cc.include_paths.dup
+
+  # # NeoPixel library for mruby-arduino environment
+  # conf.gem :github => "takjn/mruby-arduino-neopixel", :branch => "master"
+
 end
