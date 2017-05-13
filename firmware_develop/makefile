@@ -54,6 +54,8 @@ TARGET = citrus_sketch
 LFLAGS = -Map ./gr_build/$(TARGET).map -e_PowerON_Reset -T"./gr_common/linker_arduino_FDDFP.gsi" -no-keep-memory -S -L"$(GNU_PATH)rx-elf/lib/64-bit-double" -L"$(GNU_PATH)lib/gcc/rx-elf/$(GCC_VERSION)/64-bit-double" -L"$(GNU_PATH)rx-elf/lib/64-bit-double" -L"$(GNU_PATH)lib/gcc/rx-elf/$(GCC_VERSION)/64-bit-double" --no-flag-mismatch-warnings --start-group -lstdc++ -lnosys -lsim -lm -lc -lgcc --end-group
 #TARGET = sakura2_sketch_256K
 #LFLAGS = -Map ./gr_build/$(TARGET).map -e_PowerON_Reset -T"./gr_common/linker_arduino_YDDFP.gsi" -no-keep-memory -S -L"$(GNU_PATH)rx-elf/lib/64-bit-double" -L"$(GNU_PATH)lib/gcc/rx-elf/$(GCC_VERSION)/64-bit-double" -L"$(GNU_PATH)rx-elf/lib/64-bit-double" -L"$(GNU_PATH)lib/gcc/rx-elf/$(GCC_VERSION)/64-bit-double" --no-flag-mismatch-warnings --start-group -lstdc++ -lnosys -lsim -lm -lc -lgcc --end-group
+#TARGET = wrbb_sketch_128K
+#LFLAGS = -Map ./gr_build/$(TARGET).map -e_PowerON_Reset -T"./gr_common/linker_arduino_BDDFP.gsi" -no-keep-memory -S -L"$(GNU_PATH)rx-elf/lib/64-bit-double" -L"$(GNU_PATH)lib/gcc/rx-elf/$(GCC_VERSION)/64-bit-double" -L"$(GNU_PATH)rx-elf/lib/64-bit-double" -L"$(GNU_PATH)lib/gcc/rx-elf/$(GCC_VERSION)/64-bit-double" --no-flag-mismatch-warnings --start-group -lstdc++ -lnosys -lsim -lm -lc -lgcc --end-group
 MAKEFILE = makefile
 
 make = make --no-print-directory

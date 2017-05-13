@@ -30,6 +30,8 @@
 #define SDBT		1002
 #define SDWF		1003
 #define CITRUS		1004
+//WRBB4は、Wakayama.rbボードのARIAD4基板でV2ファーム(MP3抜き)を設定するものです。ボード配線BOARD_P06となります。
+#define WRBB4		1005
 
 //基板の設計バージョンを定義します
 #define BOARD_GR	0
@@ -41,7 +43,7 @@
 #define BOARD_P06	6
 
 //RX600シリーズの型番を定義します
-#define CPU_RX63NB	128		//メモリ128KB
+#define CPU_RX63NB	128		//メモリ128KB 128KBを選択した場合は、HardwareSerial.h の /*GRSAKURA*/ #define SERIAL_BUFFER_SIZE 128 にしてください。
 #define CPU_RX631F	256		//メモリ256KB
 
 //バージョンと日付
@@ -84,6 +86,7 @@
 //#define FIRMWARE	SDBT
 //#define FIRMWARE	SDWF
 #define FIRMWARE	CITRUS
+//#define FIRMWARE	WRBB4
 
 #if BOARD == BOARD_GR
 #	if FIRMWARE == MASTER
@@ -102,6 +105,8 @@
 #		define FIRMWARE_TEXT	"SDWF"
 #	elif FIRMWARE == CITRUS
 #		define FIRMWARE_TEXT	"CITRUS"
+#	elif FIRMWARE == WRBB4
+#		define FIRMWARE_TEXT	"WRBB4"
 #	endif
 #endif
 
@@ -122,8 +127,13 @@
 	#define LICENSE_WRBB		"Wakayama-mruby-board is released under the MIT License."
 	#define LICENSE_WRBBURL		"https://github.com/wakayamarb/wrbb-v2lib-firm/blob/master/MITL"
 #else
-	#define LICENSE_WRBB		"Circuit and firmware of GR-CITRUS is released under the MIT License."
-	#define LICENSE_WRBBURL		"https://github.com/wakayamarb/wrbb-v2lib-firm/blob/master/MITL"
+	#if FIRMWARE == CITRUS
+		#define LICENSE_WRBB		"Circuit and firmware of GR-CITRUS is released under the MIT License."
+		#define LICENSE_WRBBURL		"https://github.com/wakayamarb/wrbb-v2lib-firm/blob/master/MITL"
+	#else
+		#define LICENSE_WRBB		"Wakayama-mruby-board is released under the MIT License."
+		#define LICENSE_WRBBURL		"https://github.com/wakayamarb/wrbb-v2lib-firm/blob/master/MITL"
+	#endif
 #endif
 
 //#define PIN_LED		61				//LEDのピン番号 GR-SAKURAのV2ファームの場合

@@ -25,6 +25,9 @@
 #if BOARD == BOARD_GR || FIRMWARE == SDBT || FIRMWARE == SDWF || BOARD == BOARD_P05 || BOARD == BOARD_P06
 	#include "sSdCard.h"
 	#include "sWiFi.h"
+#endif
+
+#if BOARD == BOARD_GR || FIRMWARE == SDBT || FIRMWARE == SDWF || BOARD == BOARD_P05 || (BOARD == BOARD_P06 && FIRMWARE == CITRUS)
 	#include "sMp3.h"
 #endif
 
@@ -267,7 +270,7 @@ mrb_value Is_useMp3(mrb_state *mrb, mrb_value self, int mode)
 {
 int ret = 0;
 
-#if BOARD == BOARD_GR || FIRMWARE == SDBT || FIRMWARE == SDWF || BOARD == BOARD_P05 || BOARD == BOARD_P06
+#if BOARD == BOARD_GR || FIRMWARE == SDBT || FIRMWARE == SDWF || BOARD == BOARD_P05 || (BOARD == BOARD_P06 && FIRMWARE == CITRUS)
 	ret = mp3_Init(mrb);		//MP3関連メソッドの設定
 #endif
 
@@ -317,6 +320,7 @@ int ret = 0;
 			return Is_useWiFi(mrb, self, 0);
 		}
 	}
+#if BOARD == BOARD_GR || FIRMWARE == SDBT || FIRMWARE == SDWF || BOARD == BOARD_P05 || (BOARD == BOARD_P06 && FIRMWARE == CITRUS)
 	else if(strcmp(strName, MP3_CLASS) == 0){
 		if(n == 1){
 			return (mode == 0?mrb_fixnum_value(ret):mrb_bool_value(ret == 1));
@@ -327,11 +331,10 @@ int ret = 0;
 		if(n >= 2){
 			pp = mrb_fixnum(mrb_ary_ref(mrb, vOptions, 0));
 			sp = mrb_fixnum(mrb_ary_ref(mrb, vOptions, 1));
-#if BOARD == BOARD_GR || FIRMWARE == SDBT || FIRMWARE == SDWF || BOARD == BOARD_P05 || BOARD == BOARD_P06
 			ret = mp3_Init(mrb, pp, sp);		//MP3関連メソッドの設定
-#endif
 		}
 	}
+#endif
 	return (mode == 0?mrb_fixnum_value(ret):mrb_bool_value(ret == 1));
 }
 
