@@ -43,11 +43,11 @@
 #define BOARD_P06	6
 
 //RX600シリーズの型番を定義します
-#define CPU_RX63NB	128		//メモリ128KB 128KBを選択した場合は、HardwareSerial.h の /*GRSAKURA*/ #define SERIAL_BUFFER_SIZE 128 にしてください。
+#define CPU_RX63NB	128		//メモリ128KB 128KBを選択した場合は、HardwareSerial.h の /*GRSAKURA*/ #define SERIAL_BUFFER_SIZE 256 にしてください。
 #define CPU_RX631F	256		//メモリ256KB
 
 //バージョンと日付
-#define WRBB_VERSION	"-2.28(2017/1/4)"
+#define WRBB_VERSION	"-2.29(2017/5/20)"
 
 //バイトコードフォーマットの設定
 //#define BYTECODE	BYTE_CODE2
