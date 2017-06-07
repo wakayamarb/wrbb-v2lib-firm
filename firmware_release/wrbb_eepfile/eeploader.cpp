@@ -521,9 +521,12 @@ int fileloader(const char* str0, const char* str1)
 			}
 		}
 		else if(CommandData[0] == 'E'){
-			//ファームウェア書き込み待ちにする
 			system_reboot( REBOOT_USERAPP );	//リセット後にユーザアプリを起動する
 			//system_reboot( REBOOT_FIRMWARE );	//リセット後にファームウェアを起動する
+		}
+		else if (CommandData[0] == 'M'){
+			//ファームウェア書き込み待ちにする
+			system_reboot( REBOOT_FIRMWARE );	//リセット後にファームウェアを起動する
 		}
 		else if (CommandData[0] == 'L'){
 			USB_Serial->println();
@@ -571,7 +574,7 @@ int fileloader(const char* str0, const char* str1)
 		}
 		else{
 			USB_Serial->println();
-			USB_Serial->println("EEPROM FileWriter Ver. 1.75.v2");
+			USB_Serial->println("EEPROM FileWriter Ver. 1.76.v2");
 			USB_Serial->println(" Command List");
 			USB_Serial->println(" L:List Filename..........>L [ENTER]");
 			USB_Serial->println(" W:Write File.............>W Filename Size [ENTER]");
@@ -586,6 +589,7 @@ int fileloader(const char* str0, const char* str1)
 			USB_Serial->println(" .:Repeat.................>. [ENTER]");
 			USB_Serial->println(" Q:Quit...................>Q [ENTER]");
 			USB_Serial->println(" E:System Reset...........>E [ENTER]");
+			USB_Serial->println(" M:Drive Mount............>M [ENTER]");
 			USB_Serial->println(" U:Write File B2A.........>U Filename Size [ENTER]");
 			USB_Serial->println(" T:'>'Auto Print Switch...>T [ENTER]");
 			//USB_Serial->println(" V:Execute File B2A.......>V Filename Size [ENTER]");

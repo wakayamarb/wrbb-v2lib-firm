@@ -28,6 +28,12 @@
 #include "sMem.h"
 #include "sI2c.h"
 #include "sServo.h"
+#include "sGlobal.h"
+
+#if BOARD == BOARD_GR || FIRMWARE == SDBT || FIRMWARE == SDWF || BOARD == BOARD_P05 || BOARD == BOARD_P06
+	#include "sSdCard.h"
+	#include "sWiFi.h"
+#endif
 
 #if REALTIMECLOCK
 	#include "sRtc.h"
@@ -64,6 +70,7 @@ bool notFinishFlag = true;
 		return false;
 	}
 
+	global_Init(mrb);	//グローバル変数の設定
 	kernel_Init(mrb);	//カーネル関連メソッドの設定
 	sys_Init(mrb);		//システム関連メソッドの設定
 	serial_Init(mrb);	//シリアル通信関連メソッドの設定
@@ -101,9 +108,28 @@ bool notFinishFlag = true;
 	if(EEP.fopen(fp, ExeFilename, EEP_READ) == -1){
 		char az[50];
 		sprintf( az,  "%s is not Open!!", ExeFilename );
-		Serial.println( az );
-		mrb_close(mrb);
-		return false;
+
+		//SD用ボードがマウントしていればSDカードにmrbファイルが無いかチェックします
+		if(SD_init(ExeFilename) == 1){
+			//見つけたので、SDカードからフラッシュメモリにコピーします
+			if(SD2EEPROM(ExeFilename, ExeFilename) == 0){
+				Serial.println( az );
+				mrb_close(mrb);
+				return false;
+			}
+
+			//コピーしたので、再度オープンします
+			if(EEP.fopen(fp, ExeFilename, EEP_READ) == -1){
+				Serial.println( az );
+				mrb_close(mrb);
+				return false;
+			}
+		}
+		else{
+			Serial.println( az );
+			mrb_close(mrb);
+			return false;
+		}
 	}
 
 	//mrbファイルチェックを行う
@@ -206,7 +232,8 @@ bool notFinishFlag = true;
 //**************************************************
 void Serial_print_error(mrb_state *mrb, mrb_value obj)
 {
-	Serial.println(RSTRING_PTR(obj));
+	Serial.write((const unsigned char *)RSTRING_PTR(obj), RSTRING_LEN(obj));
+	Serial.println();
 
 	//mrb_value exc = mrb_obj_value(mrb->exc);
 	mrb_value backtrace = mrb_get_backtrace(mrb);
@@ -214,7 +241,8 @@ void Serial_print_error(mrb_state *mrb, mrb_value obj)
 	int j = 0;
 	for (mrb_int n = mrb_ary_len(mrb, backtrace); j < n; ++j) {
 		mrb_value v = mrb_ary_ref(mrb, backtrace, j);
-		Serial.println(RSTRING_PTR(v));
+		Serial.write((const unsigned char *)RSTRING_PTR(v), RSTRING_LEN(v));
+		Serial.println();
 	}
 }
 

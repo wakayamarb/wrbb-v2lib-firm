@@ -8,7 +8,7 @@
  *
  */
 #include <Arduino.h>
-#include <servo.h> 
+#include <Servo.h>
 
 #include <mruby.h>
 //#include <mruby/string.h>
@@ -156,6 +156,29 @@ mrb_value mrb_servo_read(mrb_state *mrb, mrb_value self)
 	return mrb_fixnum_value(ret);
 }
 
+mrb_value Is_attached(mrb_state *mrb, mrb_value self, int mode)
+{
+	int ch;
+	int ret = 0;
+
+	mrb_get_args(mrb, "i", &ch);
+
+	if (ch < 0 || ch >= ATTACH_MAX){
+		return (mode == 0?mrb_fixnum_value(0):mrb_bool_value(FALSE));
+	}
+
+	if ((int)servo[ch] == 0){
+		return (mode == 0?mrb_fixnum_value(0):mrb_bool_value(FALSE));
+	}
+
+	if (servo[ch]->attached()){
+		ret = 1;
+		return (mode == 0?mrb_fixnum_value(1):mrb_bool_value(TRUE));
+	}
+
+	return (mode == 0?mrb_fixnum_value(ret):mrb_bool_value(ret == 1));
+}
+
 //**************************************************
 // ピンにサーボが割り当てられているかを確認する: Servo.attached
 // Servo.attached(ch)
@@ -166,24 +189,19 @@ mrb_value mrb_servo_read(mrb_state *mrb, mrb_value self)
 //**************************************************
 mrb_value mrb_servo_attached(mrb_state *mrb, mrb_value self)
 {
-	int ch;
-	int ret = 0;
-
-	mrb_get_args(mrb, "i", &ch);
-
-	if (ch < 0 || ch >= ATTACH_MAX){
-		return mrb_fixnum_value(ret);
-	}
-
-	if ((int)servo[ch] == 0){
-		return mrb_fixnum_value(ret);
-	}
-
-	if (servo[ch]->attached()){
-		ret = 1;
-	}
-
-	return mrb_fixnum_value(ret);
+	return Is_attached(mrb, self, 0);
+}
+//**************************************************
+// ピンにサーボが割り当てられているかを確認する: Servo.attached?
+// Servo.attached?(ch)
+//	ch: サーボのチャネル 0～11まで指定できます
+// 戻り値
+//  true: 割り当てられている
+//  false: 割り当てはない
+//**************************************************
+mrb_value mrb_servo_attached_q(mrb_state *mrb, mrb_value self)
+{
+	return Is_attached(mrb, self, 1);
 }
 
 //**************************************************
@@ -228,5 +246,6 @@ void servo_Init(mrb_state *mrb)
 	mrb_define_module_function(mrb, servoModule, "us", mrb_servo_us, MRB_ARGS_REQ(2));
 	mrb_define_module_function(mrb, servoModule, "read", mrb_servo_read, MRB_ARGS_REQ(1));
 	mrb_define_module_function(mrb, servoModule, "attached", mrb_servo_attached, MRB_ARGS_REQ(1));
+	mrb_define_module_function(mrb, servoModule, "attached?", mrb_servo_attached_q, MRB_ARGS_REQ(1));
 	mrb_define_module_function(mrb, servoModule, "detach", mrb_servo_detach, MRB_ARGS_REQ(1));
 }

@@ -45,6 +45,7 @@
 #endif
 #else /*GRSAKURA*/
   #define SERIAL_BUFFER_SIZE 1024
+  //#define SERIAL_BUFFER_SIZE 256
 #endif/*GRSAKURA*/
 
 // Define config for Serial.begin(baud, config);

@@ -10,6 +10,7 @@
 #include <Arduino.h>
 #include <SD.h>
 #include <RTC.h>
+#include <eepfile.h>
 
 #include "mruby.h"
 #include "mruby/string.h"
@@ -379,15 +380,49 @@ mrb_int ret = 0;
 }
 
 //**************************************************
+// ファイルをフラッシュメモリにコピーします: SD.cpmem
+//  SD.cpmem( SDFilename, MemFilename[, mode] )
+//  SDFilename: SDカードのファイル名
+//  MemFilename: フラッシュメモリのコピー先ファイル名
+//  mode: 0上書きしない, 1:上書きする
+// 戻り値
+//	成功: 1, 失敗: 0
+//**************************************************
+mrb_value mrb_sdcard_cpmem(mrb_state *mrb, mrb_value self)
+{
+mrb_value src, dst;
+int mode;
+int ret = 1;
+
+	int n = mrb_get_args(mrb, "SS|i", &src, &dst, &mode);
+	
+	if( n<3 ){
+		mode = 0;
+	}
+
+	if(mode == 0){
+		if(!EEP.fexist(RSTRING_PTR(dst))){
+			mode = 1;
+		}
+	}
+
+	if(mode == 1){
+		if(SD2EEPROM(RSTRING_PTR(src), RSTRING_PTR(dst)) == 0){
+			ret = 0;
+		}
+	}
+	return mrb_fixnum_value( ret );
+}
+
+//**************************************************
 // ライブラリを定義します
 //**************************************************
 int sdcard_Init(mrb_state *mrb)
 {
 	//SDカードライブラリを初期化します
-	if(!SdBeginFlag && !SD.begin()){
+	if(SD_init(NULL) == 0){
 		return 0;
 	}
-	SdBeginFlag = true;
 
 	//SDクラスが既に設定されているか
 	if(SdClassFlag == true){
@@ -397,7 +432,7 @@ int sdcard_Init(mrb_state *mrb)
 	//日付と時刻を返す関数を登録
 	SdFile::dateTimeCallback( &SD_DateTime );
 
-	struct RClass *sdcardModule = mrb_define_module(mrb, "SD");
+	struct RClass *sdcardModule = mrb_define_module(mrb, SD_CLASS);
 
 	mrb_define_module_function(mrb, sdcardModule, "exists", mrb_sdcard_exists, MRB_ARGS_REQ(1));
 	mrb_define_module_function(mrb, sdcardModule, "mkdir", mrb_sdcard_mkdir, MRB_ARGS_REQ(1));
@@ -413,6 +448,8 @@ int sdcard_Init(mrb_state *mrb)
 	mrb_define_module_function(mrb, sdcardModule, "flush", mrb_sdcard_flush, MRB_ARGS_REQ(1));
 	mrb_define_module_function(mrb, sdcardModule, "size", mrb_sdcard_size, MRB_ARGS_REQ(1));
 	mrb_define_module_function(mrb, sdcardModule, "position", mrb_sdcard_position, MRB_ARGS_REQ(1));
+
+	mrb_define_module_function(mrb, sdcardModule, "cpmem", mrb_sdcard_cpmem, MRB_ARGS_REQ(2) | MRB_ARGS_OPT(1));
 
 	//SDクラスのセットフラグをtrueにする
 	SdClassFlag = true;
@@ -444,4 +481,83 @@ RTC_TIMETYPE timertc;
 
 	// FAT_TIMEマクロでフィールドを埋めて時間を返す
 	*time = FAT_TIME(hour, minute, second);
+}
+
+//**************************************************
+// SDカードライブラリを初期化します
+// filenameが指定されていれば、そのファイルが存在すれば成功を返します
+// 失敗 0, 成功 1
+//**************************************************
+int SD_init(char *filename)
+{
+	if(!SdBeginFlag && !SD.begin()){
+		return 0;
+	}
+	SdBeginFlag = true;
+
+	//Serial.println("SD find");
+
+	if(filename == NULL){
+		return 1;
+	}
+	
+	//SDカードのmrbファイルを探します
+	if(SD.exists(filename) == false){
+		return 0;
+	}	
+	return 1;
+}
+
+//**************************************************
+// SDカードのファイルをフラッシュメモリにコピーします
+// 上書きです
+// 失敗 0, 成功 1
+//**************************************************
+int SD2EEPROM(const char *sdfile, const char *eepfile)
+{
+File fsrc = SD.open(__null);
+FILEEEP fdstj;
+FILEEEP *fdst = &fdstj;
+int dsize;
+
+	//オープンします
+	if( !(fsrc = SD.open(sdfile, FILE_READ))){
+		return 0;
+	}
+
+	//ファイルサイズを取得します
+	int fsize = fsrc.size();
+
+	//ヒープメモリの確保
+	char *readData = (char*)malloc(fsize);
+	if(readData == NULL){
+		Serial.println("..Out of Memory!");
+		fsrc.close();
+		return 0;
+	}
+	
+	//ファイルがあるかもしれないので、とりあえず削除しておきます。なかったら-1が返ってくるだけ
+	EEP.fdelete(eepfile);
+
+	//EEPをオープンします
+	if(EEP.fopen(fdst, eepfile, EEP_WRITE) == -1){
+		fsrc.close();
+		free( readData );
+		return 0;
+	}
+	
+	//読み込みます
+	dsize = fsrc.read(readData, fsize);
+
+	//書き込みます
+	EEP.fwrite(fdst, readData, &dsize);
+
+	//ファイルを閉じます
+	EEP.fclose(fdst);
+	fsrc.close();
+
+	//メモリを開放します
+	free( readData );
+
+	return 1;
 }
