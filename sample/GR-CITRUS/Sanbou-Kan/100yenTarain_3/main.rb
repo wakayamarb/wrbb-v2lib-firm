@@ -1,11 +1,10 @@
 #!mruby
 #Ver.2.27
 #TB6612FNG L-L->STOP. L-H->CCW, H-L->CW, H-H->ShortBrake
-MaxVero = 128       #モータ速度速度の最大値を指定しています。0～255
+MaxVero = 255       #モータ速度速度の最大値を指定しています。0～255
 MoveTime = 1000      #500msWaitさせたかったので用意している。
 Vero = [4,10]       #モータの速度を決定するGR-CITRUSのピンが4番と10番です。     
 Num = [18,3,15,14]  #モータの回転方向などを制御するビット、1モータ2ビットです。18,3番、15と14番がペアです
-Sens = 17
 
 Usb = Serial.new(0)
 for i in Num do
@@ -26,10 +25,10 @@ end
 # プチ電車カーを後退させます
 #-------
 def mUshiro()
-  digitalWrite(Num[0],LOW)  #A1
-  digitalWrite(Num[1],HIGH) #A2
-  digitalWrite(Num[2],LOW)  #B1
-  digitalWrite(Num[3],HIGH) #B2
+  digitalWrite(Num[0],HIGH)  #A1
+  digitalWrite(Num[1],LOW) #A2
+  digitalWrite(Num[2],HIGH)  #B1
+  digitalWrite(Num[3],LOW) #B2
   MaxVero.times do|i|
     delay 5
     pwm(Vero[0], i)  #モータの回転速度を設定する命令
@@ -41,10 +40,10 @@ end
 # プチ電車カーを前進させます
 #-------
 def mMae()
-  digitalWrite(Num[0],HIGH) #A1
-  digitalWrite(Num[1],LOW)  #A2
-  digitalWrite(Num[2],HIGH) #B1
-  digitalWrite(Num[3],LOW)  #B2
+  digitalWrite(Num[0],LOW) #A1
+  digitalWrite(Num[1],HIGH)  #A2
+  digitalWrite(Num[2],LOW) #B1
+  digitalWrite(Num[3],HIGH)  #B2
   MaxVero.times do|i|
     delay 5
     pwm(Vero[0], i)  #モータの回転速度を設定する命令
@@ -93,16 +92,15 @@ end
 #-----------------------------------------
 Usb.println("System Start")
 
-#300.times do
-#    Usb.println analogRead(Sens).to_s
-#    delay 100
-#end
-#System.exit
+1.times do
+    mMae
+    delay MoveTime
+    mUshiro
+    delay MoveTime
+    mRight MoveTime
+    mLeft MoveTime
+end
 
-mMae
-delay 500
-mUshiro
-delay 500
-mLeft 250
-mRight 250
+pwm(Vero[0], 0)
+pwm(Vero[1], 0)
 mStop

@@ -1,0 +1,12 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "rubic",
+            "request": "launch",
+            "name": "Launch on target board",
+            "workspaceRoot": "${workspaceRoot}",
+            "program": "${workspaceRoot}/${command:GuessProgramName}"
+        }
+    ]
+}

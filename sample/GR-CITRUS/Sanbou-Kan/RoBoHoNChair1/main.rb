@@ -1,16 +1,27 @@
 #!mruby
 #Ver.2.27
 #TB6612FNG L-L->STOP. L-H->CCW, H-L->CW, H-H->ShortBrake
-#MaxVero = 120       #モータ速度速度の最大値を指定しています。0～255
-MaxVero = 100       #モータ速度速度の最大値を指定しています。0～255
+MaxVero = 80        #モータ速度速度の最大値を指定しています。0～255
+MaxRotVero = 80     #モータ速度速度の最大値を指定しています。0～255
 MoveTime = 450      #500msWaitさせたかったので用意している。
 Vero = [4,10]       #モータの速度を決定するGR-CITRUSのピンが4番と10番です。     
 Num = [18,3,15,14]  #モータの回転方向などを制御するビット、1モータ2ビットです。18,3番、15と14番がペアです
 Sens = 17            #アナログ距離センサ
+Lev = [0,16]        #ロボホンロボホンのレバー
 
 Usb = Serial.new(0)
 for i in Num do
  pinMode(i,OUTPUT)
+end
+for i in Lev do
+    pinMode(i, 2) #プルアップ
+end
+
+#-------
+# レバー状態状態を取得します
+#-------
+def lever()
+  3 - digitalRead(Lev[0]) - digitalRead(Lev[1]) - digitalRead(Lev[1])
 end
 
 #-------
@@ -63,12 +74,12 @@ def mLeft(t)
   digitalWrite(Num[1],LOW)  #A2
   digitalWrite(Num[2],LOW) #B1
   digitalWrite(Num[3],HIGH)  #B2
-  MaxVero.times do |i|
+  MaxRotVero.times do |i|
     pwm(Vero[0], i)
     pwm(Vero[1], i)
   end
   delay t
-  MaxVero.step(0,-1) do |i|
+  MaxRotVero.step(0,-1) do |i|
     pwm(Vero[0], i)
     pwm(Vero[1], i)
   end
@@ -82,40 +93,56 @@ def mRight(t)
   digitalWrite(Num[1],HIGH)  #A2
   digitalWrite(Num[2],HIGH) #B1
   digitalWrite(Num[3],LOW)  #B2
-  MaxVero.times do |i|
+
+  MaxRotVero.times do |i|
     pwm(Vero[0], i)
     pwm(Vero[1], i)
   end
   delay t
-  MaxVero.step(0,-1) do |i|
+  MaxRotVero.step(0,-1) do |i|
     pwm(Vero[0], i)
     pwm(Vero[1], i)
   end
 end
 
 #-----------------------------------------
+if(lever == 3)then
+    System.exit
+end
+
 Usb.println("System Start")
 
+#mMae
+#delay 500
+#mStop
+#mUshiro
+#delay 500
+#mStop
+#System.exit
+
+10.times do
+    mRight 300
+    delay 400
+end
+
+10.times do
+    mLeft 300
+    delay 400
+end
 mMae
-delay 500
+delay 250
 mStop
 mUshiro
-delay 500
+delay 250
 mStop
-System.exit
-
-mRight 5000
-delay 1000
-mLeft 5000
-System.exit
-
 
 #100.times do
 #    len = analogRead(Sens)
+#    Usb.println lever.to_s
 #    Usb.println len.to_s
 #    delay 600
 #end
-#System.exit
+System.exit
 
 maeFlg = true
 cnt = 0

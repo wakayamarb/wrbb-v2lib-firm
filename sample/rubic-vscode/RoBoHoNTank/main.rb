@@ -37,10 +37,10 @@ end
 #-------
 def mstart()
   p = 0
-  digitalWrite(Num[0],HIGH)  #A1
-  digitalWrite(Num[1],LOW)   #A2
-  digitalWrite(Num[2],HIGH)  #B1
-  digitalWrite(Num[3],LOW)   #B2
+  digitalWrite(Num[0],LOW)  #A1
+  digitalWrite(Num[1],HIGH)   #A2
+  digitalWrite(Num[2],LOW)  #B1
+  digitalWrite(Num[3],HIGH)   #B2
   MaxVero.times do
     delay 5
     pwm(Vero[0], p)
@@ -54,10 +54,10 @@ end
 def rot(r0,r1,t)
   led HIGH
   p = 0
-  digitalWrite(Num[0],r0)  #A1
-  digitalWrite(Num[1],r1)  #A2
-  digitalWrite(Num[2],r1)  #B1
-  digitalWrite(Num[3],r0)  #B2
+  digitalWrite(Num[0],r1)  #A1
+  digitalWrite(Num[1],r0)  #A2
+  digitalWrite(Num[2],r0)  #B1
+  digitalWrite(Num[3],r1)  #B2
   MaxVero.times do
     delay 5
     pwm(Vero[0], p)

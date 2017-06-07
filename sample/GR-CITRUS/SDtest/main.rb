@@ -1,7 +1,7 @@
 #!mruby
 usb = Serial.new(0)
-Rtc.init
-Rtc.setTime([2016,10,10,04,35,20])
+#Rtc.init
+#Rtc.setTime([2017,05,27,0,51,20])
 
 if( System.useSD() == 0)then
     usb.println "SD Card can't use."
@@ -36,4 +36,4 @@ size.times do
 end
 SD.close(0)
 
-SD.rename('test1.txt', 'test6.txt')
+SD.rename('test1.txt', 'test3.txt')

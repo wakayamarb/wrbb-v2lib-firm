@@ -1,17 +1,12 @@
 Wakayama.rb Ruby Board V2 library Firmware
 ------
-firmware_release フォルダ内にあるものがリリース版です。
-firmware_develop フォルダ内にあるものは開発版です。主にWindows環境で動作確認されています。
+  Since version 2.30, I canceled firmware_develop. Since old firmware is in releases, please download from here. If it does not work properly with the latest version, please obtain the previous one from the releases history.
+バージョン　2.30から、firmware_developを取りやめました。古いファームウェアは、releasesにありますので、ここからダウンロードしてください。最新バージョンで正しく動作しない場合は、リリース履歴から以前のものを取得してください。
+
 sample フォルダ内にあるサンプルに関しては、develop版で動作するサンプルも含まれています。行頭にファームウェアのバージョンが入っているのでバージョンを確認してください。
 
 実装しているrubyメソッドなどの使い方は、各フォルダ内のdescriptionフォルダ内にあるRuby Firmware on GR-CITRUS.pdfを参照してください。
 また、mrubyフォルダ内にあるbuild_config.rbが、[mruby](https://github.com/mruby/mruby)(libmruby.a)をmakeする際に使用したbuild_config.rbです。
-
-(注意)
-MacOSの場合は、firmware_release フォルダにある citrus_sketch.binを使用してください。firmware_develop を使用した場合、うまく動作しない恐れがあります。
-
-(Caution)
-For MacOS, please use citrus_sketch.bin in the firmware_release folder. Using firmware_develop may not work properly.
 
 　V2ライブラリを使ったWakayama.rb のRubyボードGR-CITRUS用のソースと実行バイナリです。
 　V2ライブラリとは、ルネサスさんが提供しているRX631のV2ライブラリを示します。
