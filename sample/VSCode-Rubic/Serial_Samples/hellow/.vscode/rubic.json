@@ -2,8 +2,8 @@
     "rubicVersion": "0.99.6",
     "boardClass": "GrCitrusBoard",
     "repositoryUuid": "809d1206-8cd8-46f6-a657-2f60c050d7c9",
-    "releaseTag": "v2.29",
+    "releaseTag": "v2.30",
     "variationPath": "citrus_sketch.bin",
-    "boardPath": "COM17",
+    "boardPath": "COM3",
     "minRubicVersion": "0.99.6"
 }

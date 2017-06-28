@@ -305,13 +305,17 @@ int value;
 
 //**************************************************
 // LEDオンオフ: led
-//	led(sw)
+//	led([sw])
 //**************************************************
 mrb_value mrb_kernel_led(mrb_state *mrb, mrb_value self)
 {
 int value;
 
-	mrb_get_args(mrb, "i", &value);
+	int n = mrb_get_args(mrb, "|i", &value);
+	
+	if (n == 0) {
+		value = 1 - digitalRead(RB_LED);
+	}
 
 #if BOARD == BOARD_GR
 	digitalWrite( PIN_LED0, value & 1 );
@@ -396,7 +400,7 @@ void kernel_Init(mrb_state *mrb)
 	mrb_define_method(mrb, mrb->kernel_module, "millis", mrb_kernel_millis, MRB_ARGS_NONE());
 	mrb_define_method(mrb, mrb->kernel_module, "micros", mrb_kernel_micros, MRB_ARGS_NONE());
 
-	mrb_define_method(mrb, mrb->kernel_module, "led", mrb_kernel_led, MRB_ARGS_REQ(1));
+	mrb_define_method(mrb, mrb->kernel_module, "led", mrb_kernel_led, MRB_ARGS_OPT(1));
 
 	mrb_define_method(mrb, mrb->kernel_module, "randomSeed", mrb_kernel_randomSeed, MRB_ARGS_REQ(1));
 	mrb_define_method(mrb, mrb->kernel_module, "random", mrb_kernel_random, MRB_ARGS_REQ(1)|MRB_ARGS_OPT(1));

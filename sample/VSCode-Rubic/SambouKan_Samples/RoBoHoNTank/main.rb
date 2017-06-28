@@ -82,6 +82,19 @@ end
 
 Usb.println("System Start")
 
+# mstart
+# delay 5000
+# mstop
+# rot(HIGH, LOW, Rottime)   #Left Rotation
+# rot(LOW, HIGH, Rottime)   #Right Rotation
+# pwm(Vero[0], 0)
+# pwm(Vero[1], 0)
+# digitalWrite(Num[0],HIGH)
+# digitalWrite(Num[1],HIGH)
+# digitalWrite(Num[2],HIGH)
+# digitalWrite(Num[3],HIGH)
+# System.exit
+
 cons = [0,0,0,0] #front,left,right,break
 moveFlg = 0
 cnt = 0
@@ -125,12 +138,12 @@ while true do
   #Usb.println cnt.to_s
   5.times do
     delay 50
-    if(analogRead(Sens) > 420)then
-      moveFlg = 0
-      Usb.println "STOP"
-      mstop
-      break
-    end
+    # if(analogRead(Sens) > 420)then
+    #   moveFlg = 0
+    #   Usb.println "STOP"
+    #   mstop
+    #   break
+    # end
   end
 
   if lvr != 3 then
