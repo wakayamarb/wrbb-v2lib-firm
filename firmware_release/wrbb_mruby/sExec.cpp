@@ -39,6 +39,10 @@
 	#include "sRtc.h"
 #endif
 
+#ifdef SAMBOUKAN
+	#include "sDCMotor.h"
+#endif
+
 //#if FIRMWARE == JAM
 //	#include "sPanCake.h"
 //#endif
@@ -82,6 +86,10 @@ bool notFinishFlag = true;
 
 #if REALTIMECLOCK
 	rtc_Init(mrb);		//RTC関連メソッドの設定
+#endif
+
+#ifdef SAMBOUKAN
+	dcMotor_Init(mrb);		//SAMBOUKAの Motorクラス
 #endif
 
 //#if FIRMWARE == JAM

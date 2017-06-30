@@ -46,8 +46,11 @@
 #define CPU_RX63NB	128		//メモリ128KB 128KBを選択した場合は、HardwareSerial.h の /*GRSAKURA*/ #define SERIAL_BUFFER_SIZE 256 にしてください。
 #define CPU_RX631F	256		//メモリ256KB
 
+//モーター制御クラスを追加したもの
+//#define SAMBOUKAN
+
 //バージョンと日付
-#define WRBB_VERSION	"-2.31(2017/6/29)"
+#define WRBB_VERSION	"-2.32(2017/7/1)"
 
 //バイトコードフォーマットの設定
 //#define BYTECODE	BYTE_CODE2

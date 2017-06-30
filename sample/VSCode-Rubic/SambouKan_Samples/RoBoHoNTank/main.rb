@@ -1,8 +1,11 @@
 #!mruby
-#Ver.2.27
+#Ver.2.31
 #TB6612FNG L-L->STOP. L-H->CCW, H-L->CW, H-H->ShortBrake
-MaxVero = 120
+#MaxVero = 120
+MaxVero = 240
+RotVero = 120
 Rottime = 1500
+RotPm = [RotVero, Rottime]
 Vero = [4,10]
 Num = [18,3,15,14]
 Lev = [0,16]
@@ -51,27 +54,23 @@ end
 #-------
 # タンクを、t ms回転させます
 #-------
-def rot(r0,r1,t)
+def rot(r0,r1,pm)
   led HIGH
-  p = 0
   digitalWrite(Num[0],r1)  #A1
   digitalWrite(Num[1],r0)  #A2
   digitalWrite(Num[2],r0)  #B1
   digitalWrite(Num[3],r1)  #B2
-  MaxVero.times do
+  p = 0
+  ps = 1
+  (2 * pm[0]).times do
     delay 5
     pwm(Vero[0], p)
     pwm(Vero[1], p)
-    p += 1
-  end
-
-  delay t
-  
-  MaxVero.times do
-    delay 5
-    pwm(Vero[0], p)
-    pwm(Vero[1], p)
-    p -= 1
+    p += ps
+    if(p == pm[0])then
+      delay pm[1]
+      ps = -1
+    end
   end
 end
 #-----------------------------------------
@@ -98,7 +97,6 @@ Usb.println("System Start")
 cons = [0,0,0,0] #front,left,right,break
 moveFlg = 0
 cnt = 0
-k = 1
 while true do
   lvr = lever
   sc = cons[lvr] + 1
@@ -116,7 +114,7 @@ while true do
         end
       elsif i == 1 then
         Usb.println "Left Rotation"
-        rot(HIGH, LOW, Rottime)
+        rot(HIGH, LOW, RotPm)
         if(moveFlg == 1)then
           mstart
         else
@@ -124,7 +122,7 @@ while true do
         end
       elsif i == 2 then
         Usb.println "Right Rotation"
-        rot(LOW, HIGH, Rottime)
+        rot(LOW, HIGH, RotPm)
         if(moveFlg == 1)then
           mstart
         else
@@ -138,12 +136,13 @@ while true do
   #Usb.println cnt.to_s
   5.times do
     delay 50
-    # if(analogRead(Sens) > 420)then
-    #   moveFlg = 0
-    #   Usb.println "STOP"
-    #   mstop
-    #   break
-    # end
+    #Usb.println analogRead(Sens).to_s
+    if(analogRead(Sens) > 420)then
+      moveFlg = 0
+      Usb.println "STOP"
+      mstop
+      led
+    end
   end
 
   if lvr != 3 then
@@ -152,8 +151,7 @@ while true do
   else
     cnt = 0
   end
-  led k
-  k = 1 - k
+  led
 end
 
 pwm(Vero[0], 0)

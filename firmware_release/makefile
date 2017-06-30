@@ -18,6 +18,7 @@ OBJFILES = ./gr_sketch.o ./gr_common/core/HardwareSerial.o ./gr_common/core/main
 	./wrbb_mruby/sWiFi.o \
 	./wrbb_mruby/sMp3.o \
 	./WavMp3p/WavMp3p.o ./WavMp3p/utility/wavmp3p_play.o \
+	./wrbb_mruby/sDCMotor.o \
 	./gr_common/core/usbdescriptors.o ./gr_common/core/usb_cdc.o ./gr_common/core/usb_core.o ./gr_common/core/usb_hal.o ./gr_common/core/WInterrupts.o ./gr_common/core/wiring.o ./gr_common/core/wiring_analog.o ./gr_common/core/wiring_digital.o ./gr_common/core/wiring_pulse.o ./gr_common/core/wiring_shift.o ./gr_common/core/avr/avrlib.o ./gr_common/lib/EEPROM/utility/r_flash_api_rx600.o ./gr_common/lib/Wire/utility/twi_rx.o ./gr_common/rx63n/interrupt_handlers.o ./gr_common/rx63n/reboot.o ./gr_common/rx63n/util.o ./gr_common/rx63n/vector_table.o \
 	./WavMp3p/libmad-0.15.1b/bit.o ./WavMp3p/libmad-0.15.1b/decoder.o ./WavMp3p/libmad-0.15.1b/fixed.o ./WavMp3p/libmad-0.15.1b/frame.o ./WavMp3p/libmad-0.15.1b/huffman.o ./WavMp3p/libmad-0.15.1b/layer12.o ./WavMp3p/libmad-0.15.1b/layer3.o ./WavMp3p/libmad-0.15.1b/minimad.o ./WavMp3p/libmad-0.15.1b/stream.o ./WavMp3p/libmad-0.15.1b/synth.o ./WavMp3p/libmad-0.15.1b/timer.o ./WavMp3p/libmad-0.15.1b/version.o ./WavMp3p/utility/wavmp3p_audio.o ./WavMp3p/utility/wavmp3p_ctrl.o ./WavMp3p/utility/wavmp3p_dma.o ./WavMp3p/utility/wavmp3p_gpio.o ./WavMp3p/utility/wavmp3p_icu.o ./WavMp3p/utility/wavmp3p_init.o ./WavMp3p/utility/wavmp3p_play_mp3.o ./WavMp3p/utility/wavmp3p_play_wav.o ./WavMp3p/utility/wavmp3p_pwm.o \
 	./gr_common/rx63n/reset_program.o
