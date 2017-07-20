@@ -8,6 +8,7 @@
  *
  */
 #include <Arduino.h>
+#include <reboot.h>
 #include <string.h>
 
 #include <mruby.h>
@@ -56,7 +57,8 @@ extern char RubyFilename[];
 extern char ExeFilename[];
 extern bool SdClassFlag;
 
-uint8_t RubyCode[RUBY_CODE_SIZE];	//静的にRubyコード領域を確保する
+//uint8_t RubyCode[RUBY_CODE_SIZE];	//静的にRubyコード領域を確保する
+uint8_t *RubyCode = NULL;					//動的にRubyコード領域を確保するため
 
 //**************************************************
 //  スクリプト言語を実行します
@@ -65,7 +67,7 @@ bool RubyRun( void )
 {
 bool notFinishFlag = true;
 
-	//DEBUG_PRINT("mrb_open", "Before");
+	DEBUG_PRINT("mrb_open", "Before");
 	mrb_state *mrb = mrb_open();
 	DEBUG_PRINT("mrb_open", "After");
 	
@@ -96,9 +98,6 @@ bool notFinishFlag = true;
 //	pancake_Init(mrb);		//PanCake関連メソッドの設定
 //#endif
 
-
-	DEBUG_PRINT("RubyFilename",RubyFilename);
-
 	strcpy( ExeFilename, RubyFilename );		//実行するファイルをExeFilename[]に入れる。
 	//strcpy( RubyFilename, RubyStartFileName );	//とりあえず、RubyFilename[]をRubyStartFileName[]に初期化する。
 
@@ -107,7 +106,7 @@ bool notFinishFlag = true;
 	if(ExeFilename[0] == 0){
 		mrb_close(mrb);
 
-		DEBUG_PRINT("ExeFilename","NULL");
+		DEBUG_PRINT("ExeFilename", "NULL");
 		return false;
 	}
 
@@ -170,12 +169,21 @@ bool notFinishFlag = true;
 	//ファイルサイズを取得する
 	unsigned long tsize = EEP.ffilesize(ExeFilename);
 
-	if( tsize>RUBY_CODE_SIZE ){
-		char az[50];
-		sprintf( az,  "%s size is greater than %lu.", ExeFilename, RUBY_CODE_SIZE );
-		Serial.println( az );
-		mrb_close(mrb);
-		return false;
+	if (tsize > RUBY_CODE_SIZE){
+		//指定のバイト数を超えている場合、ヒープ領域から再取得します。
+		if (!getRubyCodeArea(tsize)){
+			char az[50];
+			sprintf(az, "%s size is greater than remaining memory.", ExeFilename);
+			Serial.println(az);
+			mrb_close(mrb);
+
+			//RUBY_CODE_SIZEサイズのメモリ領域を再度確保します
+			if (!getRubyCodeArea(RUBY_CODE_SIZE)){
+				//この確保もできなかったら、リセットします
+				system_reboot(REBOOT_USERAPP);
+			}
+			return false;
+		}
 	}
 
 	RubyCode[0] = 0;
@@ -292,4 +300,24 @@ void pinModeInit()
     pinMode(RB_PIN27, INPUT);
     pinMode(RB_PIN30, INPUT);
     pinMode(RB_PIN31, INPUT);
+}
+
+//**************************************************
+// Rubyコード領域をヒープから確保します
+//**************************************************
+bool getRubyCodeArea(unsigned short size)
+{
+	if (RubyCode != NULL){
+		free(RubyCode);
+		RubyCode = NULL;
+	}
+
+	RubyCode = (uint8_t*)malloc(size);
+
+	if (RubyCode == NULL){
+		Serial.println("..Out of Memory!");
+		return false;
+	}
+
+	return true;
 }

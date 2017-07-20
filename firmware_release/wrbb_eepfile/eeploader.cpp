@@ -23,10 +23,7 @@
 #define COMMAND_LENGTH	32
 
 extern char RubyFilename[];
-extern uint8_t RubyCode[];
 
-
-char *WriteData = (char*)RubyCode;
 char CommandData[COMMAND_LENGTH];
 bool StopFlg = false;				//強制終了フラグ
 bool AutoPrintSwitchFlg = true;		//'>'の自動送信フラグ
@@ -181,9 +178,9 @@ bool writefile(const char *fname, int size, char code, char *readData)
 
 	if(binsize <= 0){ return result; }
 
-	if(binsize>=RUBY_CODE_SIZE && (code == 'X' || code == 'V')){
-		return result;
-	}
+	//if(binsize>=RUBY_CODE_SIZE && (code == 'X' || code == 'V')){
+	//	return result;
+	//}
 
 	USB_Serial->println();
 
@@ -360,6 +357,7 @@ int fileloader(const char* str0, const char* str1)
 #else
 		digitalWrite(RB_LED, HIGH);
 #endif
+
 		//コマンド待ち
 		USB_Serial->println();
 		USB_Serial->print("WAKAYAMA.RB Board Ver.");
@@ -574,7 +572,7 @@ int fileloader(const char* str0, const char* str1)
 		}
 		else{
 			USB_Serial->println();
-			USB_Serial->println("EEPROM FileWriter Ver. 1.76.v2");
+			USB_Serial->println("EEPROM FileWriter Ver. 1.77.v2");
 			USB_Serial->println(" Command List");
 			USB_Serial->println(" L:List Filename..........>L [ENTER]");
 			USB_Serial->println(" W:Write File.............>W Filename Size [ENTER]");

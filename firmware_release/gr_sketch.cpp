@@ -124,6 +124,9 @@ void setup()
     //Serial.setDefault();
 	//sci_convert_crlf_ex(Serial.get_handle(), CRLF_NONE, CRLF_NONE);	//バイナリを通せるようにする
 
+	//Rubyコード領域をヒープから確保します
+	getRubyCodeArea(RUBY_CODE_SIZE);		//このsetup()は、リセット時に一回しか通らないので、freeしなくてもいい。
+
 	//vmの初期化
 	init_vm();
 

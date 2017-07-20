@@ -22,7 +22,8 @@ MRuby::CrossBuild.new("RX630") do |conf|
   toolchain :gcc
 
   # Windows
-  BIN_PATH = "/cygdrive/d/Renesas/GNURXv14.03-ELF/rx-elf/rx-elf/bin"
+  BIN_PATH = "/cygdrive/c/Renesas/GNURXv14.03-ELF/rx-elf/rx-elf/bin"
+  LIB_PATH = "/cygdrive/c/Renesas/GNURXv14.03-ELF/rx-elf/rx-elf/rx-elf/lib"
   # Linux
   # BIN_PATH = "/usr/share/gnurx_v14.03_elf-1/bin"
   # macOS
@@ -30,7 +31,7 @@ MRuby::CrossBuild.new("RX630") do |conf|
 
   conf.cc do |cc|
     cc.command = "#{BIN_PATH}/rx-elf-gcc"
-    cc.flags = "-Wall -g -O2 -flto -mcpu=rx600 -m64bit-doubles"
+    cc.flags = "-Wall -g -O2 -flto -mcpu=rx600 -m64bit-doubles -L#{LIB_PATH}/"
     cc.compile_options = "%{flags} -o %{outfile} -c %{infile}"
 
     #configuration for low memory environment
@@ -41,6 +42,7 @@ MRuby::CrossBuild.new("RX630") do |conf|
     cc.defines << %w(MRB_IVHASH_INIT_SIZE=3)  # initial size for IV khash; ignored when MRB_USE_IV_SEGLIST is set
     cc.defines << %w(KHASH_DEFAULT_SIZE=2)    # default size of khash table bucket
     cc.defines << %w(POOL_PAGE_SIZE=256)      # effective only for use with mruby-eval
+    cc.defines << %w(MRB_ENABLE_DEBUG_HOOK)   # hooks for debugger
   end
 
   conf.cxx do |cxx|
@@ -107,15 +109,5 @@ MRuby::CrossBuild.new("RX630") do |conf|
 
   #light-weight regular expression
   #conf.gem :github => "masamitsu-murase/mruby-hs-regexp", :branch => "master"
-
-  # # additional configrations for Arduino API
-  # GR_COMMON_PATH = "/xxxx/wrbb-v2lib-firm/firmware_develop/gr_common"
-  # conf.cc.flags << " -DGRSAKURA -DARDUINO=100 "
-  # conf.cc.include_paths << ["#{GR_COMMON_PATH}/lib/", "#{GR_COMMON_PATH}", "#{GR_COMMON_PATH}/core", "#{GR_COMMON_PATH}/lib/SPI", "#{GR_COMMON_PATH}/lib/Wire", "#{GR_COMMON_PATH}/lib/Servo" ]
-  # conf.cxx.flags = conf.cc.flags.dup
-  # conf.cxx.include_paths = conf.cc.include_paths.dup
-
-  # # NeoPixel library for mruby-arduino environment
-  # conf.gem :github => "takjn/mruby-arduino-neopixel", :branch => "master"
 
 end
