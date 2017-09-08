@@ -2,7 +2,7 @@
 #Ver.2.31
 #TB6612FNG L-L->STOP. L-H->CCW, H-L->CW, H-H->ShortBrake
 #MaxVero = 120
-MaxVero = 240
+MaxVero = 160
 RotVero = 120
 Rottime = 1500
 RotPm = [RotVero, Rottime]
