@@ -217,17 +217,6 @@ mrb_value mrb_system_useSD(mrb_state *mrb, mrb_value self)
 	return Is_useSD(mrb, self, 0);
 }
 
-////**************************************************
-//// SDカードを使えるようにします: System.useSD?
-//// System.useSD?()
-////戻り値
-//// false:使用不可, true:使用可能
-////**************************************************
-//mrb_value mrb_system_useSD_p(mrb_state *mrb, mrb_value self)
-//{
-//	return Is_useSD(mrb, self, 1);
-//}
-
 //**************************************************
 // WiFiモジュールESP8266ボードを使えるようにします
 //**************************************************
@@ -252,16 +241,6 @@ mrb_value mrb_system_useWiFi(mrb_state *mrb, mrb_value self)
 {
 	return Is_useWiFi(mrb, self, 0);
 }
-////**************************************************
-//// WiFiモジュールESP8266ボードを使えるようにします: System.useWiFi?
-//// System.useWiFi?()
-////戻り値
-//// false:使用不可, true:使用可能
-////**************************************************
-//mrb_value mrb_system_useWiFi_p(mrb_state *mrb, mrb_value self)
-//{
-//	return Is_useWiFi(mrb, self, 1);
-//}
 
 //**************************************************
 // MP3再生を行えるようにします
@@ -317,7 +296,7 @@ int ret = 0;
 			return Is_useWiFi(mrb, self, 0);
 		}
 		else{
-			return Is_useWiFi(mrb, self, 0);
+			return Is_useWiFi(mrb, self, 1);
 		}
 	}
 #if BOARD == BOARD_GR || FIRMWARE == SDBT || FIRMWARE == SDWF || BOARD == BOARD_P05 || (BOARD == BOARD_P06 && FIRMWARE == CITRUS)

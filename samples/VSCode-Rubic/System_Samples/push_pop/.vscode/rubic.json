@@ -1,0 +1,12 @@
+{
+    "hardware": {
+        "boardClass": "GrCitrusBoard",
+        "repositoryUuid": "809d1206-8cd8-46f6-a657-2f60c050d7c9",
+        "releaseTag": "v2.33",
+        "variationPath": "00/citrus_sketch.bin",
+        "boardPath": "COM3"
+    },
+    "rubicVersion": {
+        "last": "0.99.11"
+    }
+}

@@ -267,6 +267,112 @@ mrb_value passwd;
 	return mrb_str_new_cstr(mrb, (const char*)WiFiData);
 }
 
+
+//**************************************************
+// WiFiアクセスポイントになります: WiFi.softAP
+//  WiFi.softAP(SSID,Passwd,Channel,Encrypt)
+//  SSID: WiFiのSSID
+//  Passwd: パスワード
+//  Channel: チャネル
+//  Encrypt: 暗号タイプ 0:Open, 1:WEP, 2:WPA_PSK, 3:WPA2_PSK, 4:WPA_WPA2_PSK
+//**************************************************
+mrb_value mrb_wifi_softAP(mrb_state *mrb, mrb_value self)
+{
+mrb_value ssid;
+mrb_value passwd;
+int ch = 1;
+int enc = 0;
+
+	mrb_get_args(mrb, "SSii", &ssid, &passwd, &ch, &enc);
+
+	char *s = RSTRING_PTR(ssid);
+	int slen = RSTRING_LEN(ssid);
+
+	char *p = RSTRING_PTR(passwd);
+	int plen = RSTRING_LEN(passwd);
+
+	if (enc < 0 || enc>4){
+		enc = 0;
+	}
+
+	RbSerial[WIFI_SERIAL]->print("AT+CWSAP=");
+	WiFiData[0] = 0x22;		//-> "
+	WiFiData[1] = 0;
+	RbSerial[WIFI_SERIAL]->print((const char*)WiFiData);
+
+	for (int i = 0; i<254; i++){
+		if (i >= slen){ break; }
+		WiFiData[i] = s[i];
+	}
+	WiFiData[slen] = 0;
+	RbSerial[WIFI_SERIAL]->print((const char*)WiFiData);
+
+	WiFiData[0] = 0x22;		//-> "
+	WiFiData[1] = 0x2C;		//-> ,
+	WiFiData[2] = 0x22;		//-> "
+	WiFiData[3] = 0;
+	RbSerial[WIFI_SERIAL]->print((const char*)WiFiData);
+
+	for (int i = 0; i<254; i++){
+		if (i >= plen){ break; }
+		WiFiData[i] = p[i];
+	}
+	WiFiData[plen] = 0;
+	RbSerial[WIFI_SERIAL]->print((const char*)WiFiData);
+
+	WiFiData[0] = 0x22;		//-> "
+	WiFiData[1] = 0x2C;		//-> ,
+	WiFiData[2] = 0;
+	RbSerial[WIFI_SERIAL]->print((const char*)WiFiData);
+
+	RbSerial[WIFI_SERIAL]->print(ch);
+	RbSerial[WIFI_SERIAL]->print(",");
+	RbSerial[WIFI_SERIAL]->println(enc);
+
+	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読むか、指定されたシリアルポートに出力します
+	getData(WIFI_WAIT_MSEC);
+
+	return mrb_str_new_cstr(mrb, (const char*)WiFiData);
+}
+
+//**************************************************
+// アクセスポイントに接続されているIP取得: WiFi.connetedIP
+//  WiFi.connectedIP()
+//**************************************************
+mrb_value mrb_wifi_connectedIP(mrb_state *mrb, mrb_value self)
+{
+	RbSerial[WIFI_SERIAL]->println("AT+CWLIF");
+
+	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読むか、指定されたシリアルポートに出力します
+	getData(WIFI_WAIT_MSEC);
+
+	return mrb_str_new_cstr(mrb, (const char*)WiFiData);
+}
+
+//**************************************************
+// DHCP有無の切り替え: WiFi.dhcp
+//  WiFi.dhcp(mode, bool)
+//  mode: 0:SoftAP, 1:Station, 2:Both softAP + Station
+//  bool: 0:disable , 1:enable
+//**************************************************
+mrb_value mrb_wifi_dhcp(mrb_state *mrb, mrb_value self)
+{
+int	mode;
+int bl = 0;
+
+	mrb_get_args(mrb, "ii", &mode, &bl);
+
+	RbSerial[WIFI_SERIAL]->print("AT+CWDHCP=");
+	RbSerial[WIFI_SERIAL]->print(mode);
+	RbSerial[WIFI_SERIAL]->print(",");
+	RbSerial[WIFI_SERIAL]->println(bl);
+
+	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読むか、指定されたシリアルポートに出力します
+	getData(WIFI_WAIT_MSEC);
+
+	return mrb_str_new_cstr(mrb, (const char*)WiFiData);
+}
+
 //**************************************************
 // IPアドレスとMACアドレスの表示: WiFi.ipconfig
 //  WiFi.ipconfig()
@@ -344,7 +450,6 @@ mrb_value mrb_wifi_Disconnect(mrb_state *mrb, mrb_value self)
 
 	return mrb_str_new_cstr(mrb, (const char*)WiFiData);
 }
-
 
 //**************************************************
 // 複数接続可能モードの設定: WiFi.multiConnect
@@ -1026,7 +1131,7 @@ int	num, sport, rport;
 //**************************************************
 // 指定接続番号にデータを送信します: WiFi.send
 //  WiFi.send( number, Data[, length] )
-//　number: 接続番号(1～4) 
+//　number: 接続番号(0～3) 
 //	Data: 送信するデータ
 //　length: 送信データサイズ
 //
@@ -1080,7 +1185,7 @@ int	num, len;
 //**************************************************
 // 指定接続番号からデータを受信します: WiFi.recv
 //  WiFi.recv( number )
-//　number: 接続番号(1～4) 
+//　number: 接続番号(0～3) 
 //
 //  戻り値は
 //	  受信したデータの配列　ただし、256以下
@@ -1644,17 +1749,26 @@ int len;
 //　2: SDカードが使えません
 //　3: ファイルのアクセスに失敗しました
 //
-//　クライアントからアクセスがあるとき
+//　クライアントからアクセスがあるとき、通信内容と接続番号の2つが返ります
 //  GET: パスが返ります
 //  GET以外、ヘッダの1行目が返ります
+//  ,
+//  接続番号が返ります
+//
+//  revData, conNum = WiFi.httpServer()
 //**************************************************
 mrb_value mrb_wifi_server(mrb_state *mrb, mrb_value self)
 {
 const char *tmpFilename = "header.tmp";
 const char *headFilename = "header.txt";
+char ipd[] = { 0x0d, 0x0a, '+', 'I', 'P', 'D', ',', '0', ',', 0x00 };
 int len = 0;
 File fp;
 int	port = 80;
+int sesnum = 0;
+int headerSize = 0;
+int rc, posi;
+mrb_value arv[2];
 
 	int n = mrb_get_args(mrb, "|i", &port);
 
@@ -1691,17 +1805,54 @@ int	port = 80;
 			fp.flush();
 			fp.close();
 		
+			//セッション番号を取得します
+			{
+				if (!(fp = SD.open(tmpFilename, FILE_READ))){
+					return mrb_fixnum_value(3);
+				}
+				headerSize = fp.size();
+
+				unsigned char rcvc;
+				posi = 0;
+				//WiFiData[]に先頭行を取得します
+				for (int i = 0; i < headerSize; i++){
+					rcvc = (unsigned char)fp.read();
+
+					if (posi == 0 && rcvc == '+'){
+						posi++;
+					}
+					else if (posi== 1 && rcvc == 'I'){
+						posi++;
+					}
+					else if (posi == 2 && rcvc == 'P'){
+						posi++;
+					}
+					else if (posi == 3 && rcvc == 'D'){
+						posi++;
+					}
+					else if (posi == 4 && rcvc == ','){
+						// "+IPD,"を見つけた
+						break;
+					}
+					else{
+						posi = 0;
+					}
+				}
+				if (posi == 4){
+					sesnum = fp.read() - 0x30;
+				}
+				fp.close();
+			}
+
 			//受信データに '\r\n+\r\n+IPD,0,****:'というデータがあるので削除します
-			int ret = CutGarbageData("\r\n+IPD,0,", tmpFilename, headFilename);
+			ipd[7] = sesnum + 0x30;
+			int ret = CutGarbageData((const char*)ipd, tmpFilename, headFilename);
 			if(ret != 1){
 				return mrb_fixnum_value( 3 );
 			}
 
 			//***** GETならパスを返します ******
-			int rc, posi;
 			unsigned char *uc;
-			int headerSize = 0;
-
 			{
 				if( !(fp = SD.open(headFilename, FILE_READ)) ){
 					return mrb_fixnum_value( 3 );
@@ -1727,7 +1878,9 @@ int	port = 80;
 			}
 
 			if( (posi < 6) || !(WiFiData[0] == 'G' && WiFiData[1] == 'E' && WiFiData[2] == 'T')){
-				return mrb_str_new_cstr(mrb, (const char*)WiFiData);
+				arv[0] = mrb_str_new_cstr(mrb, (const char*)WiFiData);
+				arv[1] = mrb_fixnum_value(sesnum);
+				return mrb_ary_new_from_values(mrb, 2, arv);
 			}
 
 			// 先頭の'/'を探します
@@ -1740,7 +1893,9 @@ int	port = 80;
 			}
 
 			if(posi == -1){
-				return mrb_str_new_cstr(mrb, (const char*)WiFiData);
+				arv[0] = mrb_str_new_cstr(mrb, (const char*)WiFiData);
+				arv[1] = mrb_fixnum_value(sesnum);
+				return mrb_ary_new_from_values(mrb, 2, arv);
 			}
 
 			//posi以降のスペースを探してnullを入れます
@@ -1752,10 +1907,12 @@ int	port = 80;
 			}
 		
 			uc = &WiFiData[posi];
-			return mrb_str_new_cstr(mrb, (const char*)uc);
+			arv[0] = mrb_str_new_cstr(mrb, (const char*)uc);
+			arv[1] = mrb_fixnum_value(sesnum);
+			return mrb_ary_new_from_values(mrb, 2, arv);
 		}
 		else{
-
+			//データ無し
 			return mrb_fixnum_value( 0 );
 		}
 	}
@@ -1845,6 +2002,10 @@ int esp8266_Init(mrb_state *mrb)
 	mrb_define_module_function(mrb, wifiModule, "ipconfig", mrb_wifi_Cifsr, MRB_ARGS_NONE());
 
 	mrb_define_module_function(mrb, wifiModule, "multiConnect", mrb_wifi_multiConnect, MRB_ARGS_REQ(1));
+
+	mrb_define_module_function(mrb, wifiModule, "softAP", mrb_wifi_softAP, MRB_ARGS_REQ(4));
+	mrb_define_module_function(mrb, wifiModule, "connectedIP", mrb_wifi_connectedIP, MRB_ARGS_NONE());
+	mrb_define_module_function(mrb, wifiModule, "dhcp", mrb_wifi_dhcp, MRB_ARGS_REQ(2));
 
 	mrb_define_module_function(mrb, wifiModule, "httpGetSD", mrb_wifi_getSD, MRB_ARGS_REQ(2)|MRB_ARGS_OPT(1));
 	mrb_define_module_function(mrb, wifiModule, "httpGet", mrb_wifi_get, MRB_ARGS_REQ(1)|MRB_ARGS_OPT(1));
