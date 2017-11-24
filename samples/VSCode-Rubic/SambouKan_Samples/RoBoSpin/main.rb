@@ -2,7 +2,7 @@
 #Ver.2.33
 #TB6612FNG L-L->STOP. L-H->CCW, H-L->CW, H-H->ShortBrake
 RotVero = 95
-Rottime = 620
+Rottime = 600
 RotPm = [RotVero, Rottime]
 Vero = [4,10]       #モータの速度を決定するGR-CITRUSのピンが4番と10番です。     
 Num = [18,3,15,14]  #モータの回転方向などを制御するビット、1モータ2ビットです。18,3番、15と14番がペアです

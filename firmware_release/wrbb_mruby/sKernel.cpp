@@ -11,9 +11,12 @@
 #include <util.h>
 
 #include <mruby.h>
+#include <mruby/string.h>
+#include <mruby/array.h>
 
 #include "../wrbb.h"
 
+extern HardwareSerial *USB_Serial;
 
 //**************************************************
 // デジタルライト
@@ -365,6 +368,58 @@ long value1,value2;
 }
 
 //**************************************************
+// putsの再帰呼び出し部
+//**************************************************
+void putsRecursible(mrb_state *mrb, mrb_value value)
+{
+	if (mrb_array_p(value)){
+		int len = RARRAY_LEN(value);
+		for (int i = 0; i < len; i++){
+			putsRecursible(mrb, mrb_ary_ref(mrb, value, i));
+		}
+	}
+	else if (mrb_fixnum_p(value)){
+		USB_Serial->println(mrb_fixnum(value));
+	}
+	else if (mrb_float_p(value)){
+		USB_Serial->println(mrb_float(value));
+	}
+	else if (mrb_string_p(value)){
+		USB_Serial->println(RSTRING_PTR(value));
+	}
+	else if (mrb_nil_p(value)){
+		USB_Serial->println("nil");
+	}
+	else if (mrb_bool(value)){
+		USB_Serial->println(mrb_bool(value));
+	}
+	else{
+		USB_Serial->println(0);
+	}
+}
+
+//**************************************************
+// USBシリアルに文字を出力: puts
+//	puts([object])
+//**************************************************
+mrb_value mrb_kernel_puts(mrb_state *mrb, mrb_value self)
+{
+	mrb_value value;
+
+	int n = mrb_get_args(mrb, "|o", &value);
+
+	if (n == 0) {
+		USB_Serial->println("");
+		return mrb_nil_value();			//戻り値は無しですよ。
+	}
+
+	//puts処理部分です中で再帰呼び出ししています
+	putsRecursible(mrb, value);
+
+	return mrb_nil_value();			//戻り値は無しですよ。
+}
+
+//**************************************************
 // 隠しコマンドです:  El_Psy.Congroo
 //	El_Psy.Congroo()
 //**************************************************
@@ -404,6 +459,8 @@ void kernel_Init(mrb_state *mrb)
 
 	mrb_define_method(mrb, mrb->kernel_module, "randomSeed", mrb_kernel_randomSeed, MRB_ARGS_REQ(1));
 	mrb_define_method(mrb, mrb->kernel_module, "random", mrb_kernel_random, MRB_ARGS_REQ(1)|MRB_ARGS_OPT(1));
+
+	mrb_define_method(mrb, mrb->kernel_module, "puts", mrb_kernel_puts, MRB_ARGS_OPT(1));
 
 	struct RClass *El_PsyModule = mrb_define_module(mrb, "El_Psy");
 	mrb_define_module_function(mrb, El_PsyModule, "Congroo", mrb_El_Psy_congroo, MRB_ARGS_NONE());

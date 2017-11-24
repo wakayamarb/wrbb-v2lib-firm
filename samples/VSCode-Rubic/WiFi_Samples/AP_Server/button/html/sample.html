@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <style>
+      html, body {
+        height: 100%;
+      }
+      .h-wrap {
+        width: 100%;
+        display: flex;
+        align-items: stretch;
+        justify-content: space-between;
+        margin: 0;
+        padding: 0;
+      }
+      .button {
+        padding: 0;
+        margin: 0;
+        font-size: 40px;
+        font-weight: bold;
+        height: 200px;
+      }
+      
+      .flex-1 {
+        padding: 0px;
+        margin: 5px;
+        flex: 1;
+      }
+    </style>
+    <title>cross keys</title>
+  </head>
+  <body>
+    <form method="get">
+      <div class="h-wrap">
+        <div class="padding flex-1"><!--詰め物--></div>
+        <button class="button flex-1" type="submit" id="front" name="front" value="1">前進</button>
+        <div class="padding flex-1"><!--詰め物--></div>
+      </div>
+      <div class="h-wrap">
+        <button class="button flex-1" type="submit" id="left" name="left" value="1">左旋回</button>
+        <button class="button flex-1" type="submit" id="stop" name="stop" value="1">停止</button>
+        <button class="button flex-1" type="submit" id="right" name="right" value="1">右旋回</button>
+      </div>
+      <div class="h-wrap">
+        <div class="padding flex-1"><!--詰め物--></div>
+        <button class="button flex-1" type="submit" id="back" name="back" value="1">後退</button>
+        <div class="padding flex-1"><!--詰め物--></div>
+      </div>
+    </form>
+<!--    
+    <form method="get" >
+      <button type="submit" name='stop' value='1' style="position: absolute; left: 38.5%; top: 38.5%; width:25%; height:25%;padding: 0px;font-size:250%;">停止</button>
+      <button type="submit" name='front' value='1' style="position: absolute; left: 38.5%; top: 0%; width:25%; height:25%;padding: 0px;font-size:250%;">前進</button>
+      <button type="submit" name='back' value='1' style="position: absolute; left: 38.5%; bottom: 0%; width:25%; height:25%; padding: 0px;font-size:250%;">後退</button>
+      <button type="submit" name='left' value='1' style="position: absolute; left: 10%; top: 38.5%; width:25%; height:25%;padding: 0px;font-size:250%;">左旋回</button>
+      <button type="submit" name='right' value='1' style="position: absolute; right: 10%; top: 38.5%; width:25%; height:25%;padding: 0px;font-size:250%;">右旋回</button>
+    </h1>
+    </form>
+  -->
+  </body>
+</html>
+  

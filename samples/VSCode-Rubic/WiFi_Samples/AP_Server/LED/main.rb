@@ -57,21 +57,21 @@ headerbtn += "Content-Length: " + bodybtn.length.to_s + "\r\n\r\n"
 
 Usb.println WiFi.httpServer(80).to_s
 
-#header.txtを読み込む
-def headview
-  fn = SD.open(0, 'header.txt', 0)
-  if(fn < 0)then
-    Usb.println "SD open error"
-  else
-    size = SD.size(fn)
-    for i in 0..size
-      Usb.print SD.read(fn).chr
-    end
-    SD.close(fn)
-  end
+# #header.txtを読み込む
+# def headview
+#   fn = SD.open(0, 'header.txt', 0)
+#   if(fn < 0)then
+#     Usb.println "SD open error"
+#   else
+#     size = SD.size(fn)
+#     for i in 0..size
+#       Usb.print SD.read(fn).chr
+#     end
+#     SD.close(fn)
+#   end
 
-  Usb.println WiFi.connectedIP
-end
+#   Usb.println WiFi.connectedIP
+# end
 
 while(true)do
   res, sesnum = WiFi.httpServer
@@ -82,40 +82,40 @@ while(true)do
     WiFi.send(sesnum, headerbtn)
     WiFi.send(sesnum, bodybtn)
 
-    headview()
+    #headview()
   elsif(res == "/?led=0")
     Usb.println res + " " + sesnum.to_s
     led 0
     WiFi.send(sesnum, headerbtn)
     WiFi.send(sesnum, bodybtn)
-    headview()
+    #headview()
   elsif(res == "/?led=1")
     Usb.println res + " " + sesnum.to_s
     led 1
     WiFi.send(sesnum, headerbtn)
     WiFi.send(sesnum, bodybtn)
-    headview()
+    #headview()
   elsif(res == "/?exit=1")
     Usb.println res + " " + sesnum.to_s
     
     WiFi.send(sesnum, headerbtn)
     WiFi.send(sesnum, bodybtn)
-    headview()
+    #headview()
     break
   elsif(res == "0,CLOSED\r\n")
     Usb.println res + " " + sesnum.to_s
     
-    headview()
+    #headview()
   elsif(res.to_s.length > 2 && ((res.bytes[0].to_s + res.bytes[1].to_s  == "0,") || (res.bytes[0].to_s + res.bytes[1].to_s  == "1,")))
     Usb.println "Else(*,:" + res + " " + sesnum.to_s
   
-    headview()
+    #headview()
   elsif(res != 0)
-    Usb.println "Else:" + res.to_s
-      
+    Usb.println res
+        
     WiFi.send(sesnum, headerbtn)
     WiFi.send(sesnum, bodybtn)
-    headview()
+    #headview()
   end
   delay 0
 end

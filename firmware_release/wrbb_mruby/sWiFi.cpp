@@ -1736,8 +1736,8 @@ int len;
 }
 
 //**************************************************
-// httpサーバを開始します: WiFi.httpServer
-//  WiFi.httpServer( [Port] )
+// httpサーバを開始します: WiFi.httpServerSD
+//  WiFi.httpServerSD( [Port] )
 //　Port: 待ちうけポート番号
 //　　　　-1: サーバ停止
 //
@@ -1755,9 +1755,9 @@ int len;
 //  ,
 //  接続番号が返ります
 //
-//  revData, conNum = WiFi.httpServer()
+//  revData, conNum = WiFi.httpServerSD()
 //**************************************************
-mrb_value mrb_wifi_server(mrb_state *mrb, mrb_value self)
+mrb_value mrb_wifi_serverSD(mrb_state *mrb, mrb_value self)
 {
 const char *tmpFilename = "header.tmp";
 const char *headFilename = "header.txt";
@@ -1937,10 +1937,397 @@ mrb_value arv[2];
 }
 
 //**************************************************
+// httpサーバを開始します: WiFi.httpServer
+//  WiFi.httpServer( [Port] )
+//　Port: 待ちうけポート番号
+//　　　　-1: サーバ停止
+//
+//　ポート番号を省略したときはアクセス確認します
+//　戻り値
+//　0: アクセスはありません
+//　文字データ: アクセスあり
+//
+//　クライアントからアクセスがあるとき、通信内容と接続番号の2つが返ります
+//  GET: パスが返ります
+//  GET以外、取り込んだ200バイト程度が返ります
+//  ,
+//  接続番号が返ります
+//
+//  revData, conNum = WiFi.httpServer()
+//**************************************************
+mrb_value mrb_wifi_server(mrb_state *mrb, mrb_value self)
+{
+	char ipd[] = { 0x0d, 0x0a, '+', 'I', 'P', 'D', ',' };
+	int	port = 80;
+	int sesnum = 0;
+	mrb_value arv[2];
+
+	int n = mrb_get_args(mrb, "|i", &port);
+
+	if (n < 1){
+		if (RbSerial[WIFI_SERIAL]->available() > 0){
+			unsigned char recv[256];
+			unsigned char c;
+			bool rwriteFlg = true;
+			bool snmFlg = false;
+			bool crnFlg = false;
+			bool redFlg = true;		//検索文字列が途中で違ったときに、違った文字が検索文字の先頭文字と同じだった場合に、次の文字を読み込まずに、その文字から検索開始したいときにfalseにします。
+			int ipdCnt = 0;
+			int recCnt = 0;
+			int wifCnt = 0;
+			unsigned long times;
+			unsigned int wait_msec = WIFI_WAIT_MSEC;
+			times = millis();
+
+			while (true){
+				//wait_msec 待つ
+				if (millis() - times > wait_msec){
+					break;
+				}
+
+				while (RbSerial[WIFI_SERIAL]->available())
+				{
+					if (redFlg){
+						c = (unsigned char)RbSerial[WIFI_SERIAL]->read();
+					}
+
+					if (snmFlg){
+						sesnum = c - 0x30;
+						//Serial.print("S Num = ");
+						//Serial.println(sesnum);
+
+						snmFlg = false;
+						crnFlg = true;	//コロンを見つけるまで飛ばすフラグ
+					}
+					else if (crnFlg){
+						if (c == ':'){
+							crnFlg = false;	//コロンを見つけるまで読み飛ばす処理終わり
+							ipdCnt = 0;		//\r\nIPD+,検索条件の初期化
+							recCnt = -1;	//バッファしたデータの廃棄フラグ
+						}
+					}
+					else if (c == ipd[ipdCnt]){
+						//Serial.print("|");
+						//Serial.print((int)ipd[ipdCnt]);
+						//Serial.println("|");
+						redFlg = true;
+						rwriteFlg = true;
+						ipdCnt++;
+						if (ipdCnt == 7){
+							//"\r\n+IPD,"を見つけた
+							snmFlg = true;	//セッション番号を読み込むフラグ
+						}
+					}
+					else{
+						if (c == ipd[0] && redFlg == true){
+							redFlg = false;
+						}
+						else{
+							redFlg = true;
+						}
+						rwriteFlg = false;
+						ipdCnt = 0;		//\r\nIPD+,検索条件の初期化
+					}
+
+					if (rwriteFlg){
+						if (recCnt < 0){
+							recCnt = 0;
+						}
+						else{
+							recv[recCnt] = c;
+							recCnt++;
+							if (recCnt >= 256){ break; }
+						}
+					}
+					else{
+						if (recCnt > 0){
+							for (int i = 0; i < recCnt; i++){
+								WiFiData[wifCnt] = recv[i];
+								wifCnt++;
+								if (wifCnt >= 256){ break; }
+							}
+							recCnt = 0;
+						}
+						if (wifCnt >= 256){ break; }
+
+						if (redFlg){
+							WiFiData[wifCnt] = c;
+							wifCnt++;
+							if (wifCnt >= 256){ break; }
+						}
+					}
+					times = millis();
+					wait_msec = 1000;	//データが届き始めたら、1sec待ちに変更する
+				}
+				if (wifCnt >= 256){ break; }
+				if (recCnt >= 256){ break; }
+			}
+
+			//GETが無いときはそのまま返します。
+			if (wifCnt < 6){
+				arv[0] = mrb_str_new_cstr(mrb, (const char*)WiFiData);
+				arv[1] = mrb_fixnum_value(sesnum);
+				return mrb_ary_new_from_values(mrb, 2, arv);
+			}
+
+			//"GET /"を探します
+			unsigned char *uc;
+			int posi = -1;
+			for (int i = 0; i < wifCnt - 5; i++){
+				if (WiFiData[i] == 'G' && WiFiData[i + 1] == 'E' && WiFiData[i + 2] == 'T' && WiFiData[i + 3] == ' ' && WiFiData[i + 4] == '/'){
+					posi = i + 4;
+					break;
+				}
+			}
+
+			if (posi == -1){
+				arv[0] = mrb_str_new_cstr(mrb, (const char*)WiFiData);
+				arv[1] = mrb_fixnum_value(sesnum);
+				return mrb_ary_new_from_values(mrb, 2, arv);
+			}
+
+			//スペースを検索します
+			for (int i = posi; i < wifCnt; i++){
+				if (WiFiData[i] == ' '){
+					WiFiData[i] = 0;
+					break;
+				}
+			}
+
+			uc = &WiFiData[posi];
+			arv[0] = mrb_str_new_cstr(mrb, (const char*)uc);
+			arv[1] = mrb_fixnum_value(sesnum);
+			return mrb_ary_new_from_values(mrb, 2, arv);
+		}
+		else{
+			//データ無し
+			return mrb_fixnum_value(0);
+		}
+	}
+
+	//****** AT+CIPSERVERコマンド ******
+	if (port < 0){
+		RbSerial[WIFI_SERIAL]->println("AT+CIPSERVER=0");
+	}
+	else{
+		RbSerial[WIFI_SERIAL]->print("AT+CIPSERVER=1,");
+		RbSerial[WIFI_SERIAL]->println(port);
+	}
+
+	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読むか、指定されたシリアルポートに出力します
+	getData(WIFI_WAIT_MSEC);
+	return mrb_str_new_cstr(mrb, (const char*)WiFiData);
+}
+
+const char* base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+#define is_base64(c) ( \
+    isalnum((unsigned char)c) || \
+    ((unsigned char)c == '+') || \
+    ((unsigned char)c == '/'))
+
+#define is_newline(c) ( \
+    ((unsigned char)c == '\n') || \
+    ((unsigned char)c == '\r'))
+
+//**************************************************
+// base64エンコードします
+//**************************************************
+mrb_value base64_encode(mrb_state *mrb, char const* sourFile, char const* descFile)
+{
+	unsigned char char_array_3[3] = { 0 };
+	unsigned char char_array_4[4] = { 0 };
+	File frd, fwrt;
+
+	//読込みファイルをオープンします
+	if (!(frd = SD.open(sourFile, FILE_READ))){
+		return mrb_fixnum_value(2);
+	}
+
+	SD.remove(descFile);		//受信するためファイルを事前に消している
+
+	if (!(fwrt = SD.open(descFile, FILE_WRITE))){
+		frd.close();
+		return mrb_fixnum_value(2);
+	}
+
+	//int tLED = 1;
+	int i = 0;
+	int j = 0;
+	long size = frd.size();
+	for (long k = 0; k < size; k++){
+		char_array_3[i++] = (unsigned char)frd.read();
+		if (i == 3) {
+			char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+			char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+			char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+			char_array_4[3] = char_array_3[2] & 0x3f;
+
+			fwrt.write((unsigned char*)&base64_chars[char_array_4[0]], 1);
+			fwrt.write((unsigned char*)&base64_chars[char_array_4[1]], 1);
+			fwrt.write((unsigned char*)&base64_chars[char_array_4[2]], 1);
+			fwrt.write((unsigned char*)&base64_chars[char_array_4[3]], 1);
+			i = 0;
+
+			//digitalWrite(RB_LED, tLED);
+			//tLED = 1 - tLED;
+		}
+	}
+
+	if (i) {
+		for (j = i; j < 3; j++)
+			char_array_3[j] = '\0';
+
+		char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+		char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+		char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+		char_array_4[3] = char_array_3[2] & 0x3f;
+
+		for (j = 0; (j < i + 1); j++){
+			fwrt.write((unsigned char*)&base64_chars[char_array_4[j]], 1);
+		}
+
+		while ((i++ < 3)){
+			fwrt.write('=');
+		}
+	}
+
+	fwrt.flush();
+	fwrt.close();
+	frd.close();
+
+	return mrb_fixnum_value(0);
+}
+
+//**************************************************
+// base64デコードします
+//**************************************************
+mrb_value base64_decode(mrb_state *mrb, char const* sourFile, char const* descFile)
+{
+	unsigned char char_array_3[3] = { 0 };
+	unsigned char char_array_4[4] = { 0 };
+	File frd, fwrt;
+
+	//読込みファイルをオープンします
+	if (!(frd = SD.open(sourFile, FILE_READ))){
+		return mrb_fixnum_value(2);
+	}
+
+	SD.remove(descFile);		//受信するためファイルを事前に消している
+
+	if (!(fwrt = SD.open(descFile, FILE_WRITE))){
+		frd.close();
+		return mrb_fixnum_value(2);
+	}
+
+	//int tLED = 1;
+	int i = 0;
+	int j = 0;
+	unsigned char c;
+	long size = frd.size();
+	for (long k = 0; k < size; k++){
+		c = (unsigned char)frd.read();
+
+		if (!is_newline(c)){
+			if (c == '=' || !is_base64(c)){
+				break;
+			}
+		}
+
+		if (!is_newline(c)){
+			char_array_4[i++] = c;
+		}
+
+		if (i == 4) {
+			for (i = 0; i < 4; i++){
+				char_array_4[i] = strchr(base64_chars, char_array_4[i]) - base64_chars;
+			}
+			char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
+			char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
+			char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
+
+			fwrt.write((unsigned char*)&char_array_3[0], 1);
+			fwrt.write((unsigned char*)&char_array_3[1], 1);
+			fwrt.write((unsigned char*)&char_array_3[2], 1);
+			i = 0;
+
+			//digitalWrite(RB_LED, tLED);
+			//tLED = 1 - tLED;
+		}
+	}
+	if (i) {
+		for (j = i; j < 4; j++)
+			char_array_4[j] = 0;
+
+		for (j = 0; j < 4; j++)
+			char_array_4[j] = strchr(base64_chars, char_array_4[j]) - base64_chars;
+
+		char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
+		char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
+		char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
+
+		for (j = 0; (j < i - 1); j++){
+			fwrt.write((unsigned char*)&char_array_3[j], 1);
+		}
+	}
+
+
+	fwrt.flush();
+	fwrt.close();
+	frd.close();
+
+	return mrb_fixnum_value(0);
+}
+
+//**************************************************
+// BASE64変換を行う: WiFi.base64
+//  WiFi.base64( SoFile, DeFile[, decode] )
+//  Sofile: 入力ファイル名
+//  DeFile: 出力ファイル名
+//  decode: 0:エンコード, 1:デコード
+//          省略時はエンコードします。
+//
+//　戻り値
+//　0: 成功しました
+//  1: SDカードがありません
+//  2: ファイルのオープンに失敗しました
+//  
+//**************************************************
+mrb_value mrb_wifi_base64(mrb_state *mrb, mrb_value self)
+{
+mrb_value vsour, vdesc;
+char *fsour;
+char *fdesc;
+int decode = 0;
+
+	int n = mrb_get_args(mrb, "SS|i", &vsour, &vdesc, &decode);
+
+	if (n < 3){
+		decode = 0;
+	}
+
+	fsour = RSTRING_PTR(vsour);
+	fdesc = RSTRING_PTR(vdesc);
+
+	//SDカードが利用可能か確かめます
+	if (!sdcard_Init(mrb)){
+		return mrb_fixnum_value(1);
+	}
+
+	if (decode == 0){
+		//エンコードします
+		return base64_encode(mrb, (char const*)fsour, (char const*)fdesc);
+	}
+
+	//デコードします
+	return base64_decode(mrb, (char const*)fsour, (char const*)fdesc);
+}
+
+//**************************************************
 // ライブラリを定義します
 //**************************************************
 int esp8266_Init(mrb_state *mrb)
-{	
+{
 	//ESP8266からの受信を出力しないに設定
 	WiFiRecvOutlNum = -1;
 
@@ -1955,11 +2342,11 @@ int esp8266_Init(mrb_state *mrb)
 	int ret;
 	int cnt = 0;
 
-	while(true){
+	while (true){
 		//受信バッファを空にします
-		while((len = RbSerial[WIFI_SERIAL]->available()) > 0){
+		while ((len = RbSerial[WIFI_SERIAL]->available()) > 0){
 			//RbSerial[0]->print(len);
-			for(int i=0; i<len; i++){
+			for (int i = 0; i < len; i++){
 				RbSerial[WIFI_SERIAL]->read();
 			}
 		}
@@ -1969,18 +2356,18 @@ int esp8266_Init(mrb_state *mrb)
 
 		//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読む
 		ret = getData(500);
-		if(ret == 1){
+		if (ret == 1){
 			//1の時は、WiFiが使用可能
 			break;
 		}
-		else if(ret == 0){
+		else if (ret == 0){
 			//タイムアウトした場合は WiFiが使えないとする
 			return 0;
 		}
 
 		//0,1で無いときは256バイト以上が返ってきている
 		cnt++;
-		if( cnt >= 3){
+		if (cnt >= 3){
 			//3回ATE0を試みてダメだったら、あきらめる。
 			return 0;
 		}
@@ -1988,9 +2375,9 @@ int esp8266_Init(mrb_state *mrb)
 
 	struct RClass *wifiModule = mrb_define_module(mrb, WIFI_CLASS);
 
-	mrb_define_module_function(mrb, wifiModule, "at", mrb_wifi_at, MRB_ARGS_REQ(1)|MRB_ARGS_OPT(1));
+	mrb_define_module_function(mrb, wifiModule, "at", mrb_wifi_at, MRB_ARGS_REQ(1) | MRB_ARGS_OPT(1));
 
-	mrb_define_module_function(mrb, wifiModule, "serialOut", mrb_wifi_Sout, MRB_ARGS_REQ(1)|MRB_ARGS_OPT(1));
+	mrb_define_module_function(mrb, wifiModule, "serialOut", mrb_wifi_Sout, MRB_ARGS_REQ(1) | MRB_ARGS_OPT(1));
 
 	mrb_define_module_function(mrb, wifiModule, "cwmode", mrb_wifi_Cwmode, MRB_ARGS_REQ(1));
 	mrb_define_module_function(mrb, wifiModule, "setMode", mrb_wifi_Cwmode, MRB_ARGS_REQ(1));
@@ -2007,12 +2394,12 @@ int esp8266_Init(mrb_state *mrb)
 	mrb_define_module_function(mrb, wifiModule, "connectedIP", mrb_wifi_connectedIP, MRB_ARGS_NONE());
 	mrb_define_module_function(mrb, wifiModule, "dhcp", mrb_wifi_dhcp, MRB_ARGS_REQ(2));
 
-	mrb_define_module_function(mrb, wifiModule, "httpGetSD", mrb_wifi_getSD, MRB_ARGS_REQ(2)|MRB_ARGS_OPT(1));
-	mrb_define_module_function(mrb, wifiModule, "httpGet", mrb_wifi_get, MRB_ARGS_REQ(1)|MRB_ARGS_OPT(1));
+	mrb_define_module_function(mrb, wifiModule, "httpGetSD", mrb_wifi_getSD, MRB_ARGS_REQ(2) | MRB_ARGS_OPT(1));
+	mrb_define_module_function(mrb, wifiModule, "httpGet", mrb_wifi_get, MRB_ARGS_REQ(1) | MRB_ARGS_OPT(1));
 
 	mrb_define_module_function(mrb, wifiModule, "udpOpen", mrb_wifi_udpOpen, MRB_ARGS_REQ(4));
 
-	mrb_define_module_function(mrb, wifiModule, "send", mrb_wifi_send, MRB_ARGS_REQ(2)|MRB_ARGS_OPT(1));
+	mrb_define_module_function(mrb, wifiModule, "send", mrb_wifi_send, MRB_ARGS_REQ(2) | MRB_ARGS_OPT(1));
 	mrb_define_module_function(mrb, wifiModule, "recv", mrb_wifi_recv, MRB_ARGS_REQ(1));
 
 	mrb_define_module_function(mrb, wifiModule, "httpPostSD", mrb_wifi_postSD, MRB_ARGS_REQ(3));
@@ -2020,10 +2407,13 @@ int esp8266_Init(mrb_state *mrb)
 
 	mrb_define_module_function(mrb, wifiModule, "cClose", mrb_wifi_cClose, MRB_ARGS_REQ(1));
 
+	mrb_define_module_function(mrb, wifiModule, "httpServerSD", mrb_wifi_serverSD, MRB_ARGS_OPT(1));
 	mrb_define_module_function(mrb, wifiModule, "httpServer", mrb_wifi_server, MRB_ARGS_OPT(1));
 
 	mrb_define_module_function(mrb, wifiModule, "version", mrb_wifi_Version, MRB_ARGS_NONE());
 	mrb_define_module_function(mrb, wifiModule, "disconnect", mrb_wifi_Disconnect, MRB_ARGS_NONE());
+
+	mrb_define_module_function(mrb, wifiModule, "base64", mrb_wifi_base64, MRB_ARGS_REQ(2) | MRB_ARGS_OPT(1));
 
 	mrb_define_module_function(mrb, wifiModule, "bypass", mrb_wifi_bypass, MRB_ARGS_NONE());
 
