@@ -382,7 +382,7 @@ void putsRecursible(mrb_state *mrb, mrb_value value)
 		USB_Serial->println(mrb_fixnum(value));
 	}
 	else if (mrb_float_p(value)){
-		USB_Serial->println(mrb_float(value));
+		USB_Serial->println(mrb_float(value), 7);
 	}
 	else if (mrb_string_p(value)){
 		USB_Serial->println(RSTRING_PTR(value));

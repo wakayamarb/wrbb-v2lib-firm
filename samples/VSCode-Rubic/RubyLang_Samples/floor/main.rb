@@ -1,9 +1,5 @@
 #!mruby
-serial = Serial.new(0)
-
+#GR-CITRUS v2.36
 a=4095
-
-serial.println((a % 256).to_s)
-
-serial.println((a/256).floor.to_s)
-
+puts a % 256
+puts (a/256).floor

@@ -63,16 +63,16 @@ uint8_t *RubyCode = NULL;					//動的にRubyコード領域を確保するた�
 //**************************************************
 //  スクリプト言語を実行します
 //**************************************************
-bool RubyRun( void )
+bool RubyRun(void)
 {
-bool notFinishFlag = true;
+	bool notFinishFlag = true;
 
 	DEBUG_PRINT("mrb_open", "Before");
 	mrb_state *mrb = mrb_open();
 	DEBUG_PRINT("mrb_open", "After");
-	
-	if(mrb == NULL){
-		Serial.println( "Can not Open mrb!!" );
+
+	if (mrb == NULL){
+		Serial.println("Can not Open mrb!!");
 		return false;
 	}
 
@@ -94,16 +94,16 @@ bool notFinishFlag = true;
 	dcMotor_Init(mrb);		//SAMBOUKAの Motorクラス
 #endif
 
-//#if FIRMWARE == JAM
-//	pancake_Init(mrb);		//PanCake関連メソッドの設定
-//#endif
+	//#if FIRMWARE == JAM
+	//	pancake_Init(mrb);		//PanCake関連メソッドの設定
+	//#endif
 
-	strcpy( ExeFilename, RubyFilename );		//実行するファイルをExeFilename[]に入れる。
+	strcpy(ExeFilename, RubyFilename);		//実行するファイルをExeFilename[]に入れる。
 	//strcpy( RubyFilename, RubyStartFileName );	//とりあえず、RubyFilename[]をRubyStartFileName[]に初期化する。
 
 	RubyFilename[0] = 0;						//Rubyファイル名をクリアする。System.setRun()やFileloaderでセットされ無い限り何も入っていない
 
-	if(ExeFilename[0] == 0){
+	if (ExeFilename[0] == 0){
 		mrb_close(mrb);
 
 		DEBUG_PRINT("ExeFilename", "NULL");
@@ -112,28 +112,28 @@ bool notFinishFlag = true;
 
 	FILEEEP fpj;
 	FILEEEP *fp = &fpj;
-	if(EEP.fopen(fp, ExeFilename, EEP_READ) == -1){
+	if (EEP.fopen(fp, ExeFilename, EEP_READ) == -1){
 		char az[50];
-		sprintf( az,  "%s is not Open!!", ExeFilename );
+		sprintf(az, "%s is not Open!!", ExeFilename);
 
 		//SD用ボードがマウントしていればSDカードにmrbファイルが無いかチェックします
-		if(SD_init(ExeFilename) == 1){
+		if (SD_init(ExeFilename) == 1){
 			//見つけたので、SDカードからフラッシュメモリにコピーします
-			if(SD2EEPROM(ExeFilename, ExeFilename) == 0){
-				Serial.println( az );
+			if (SD2EEPROM(ExeFilename, ExeFilename) == 0){
+				Serial.println(az);
 				mrb_close(mrb);
 				return false;
 			}
 
 			//コピーしたので、再度オープンします
-			if(EEP.fopen(fp, ExeFilename, EEP_READ) == -1){
-				Serial.println( az );
+			if (EEP.fopen(fp, ExeFilename, EEP_READ) == -1){
+				Serial.println(az);
 				mrb_close(mrb);
 				return false;
 			}
 		}
 		else{
-			Serial.println( az );
+			Serial.println(az);
 			mrb_close(mrb);
 			return false;
 		}
@@ -142,21 +142,23 @@ bool notFinishFlag = true;
 	//mrbファイルチェックを行う
 	//int mrbFlag = 0;
 	char he[8];
-	for( int i=0; i<8; i++ ){	he[i] = EEP.fread(fp);	}
+	for (int i = 0; i < 8; i++){ he[i] = EEP.fread(fp); }
 
-	if( !(he[0]=='R' && he[1]=='I'
-	&& he[2]=='T' && he[3]=='E'
 #if BYTECODE == BYTE_CODE2
-	&& he[4]=='0' && he[5]=='0'
-	&& he[6]=='0' && he[7]=='2'
+	if (!(he[0] == 'R' && he[1] == 'I' && he[2] == 'T' && he[3] == 'E' && he[4] == '0' && he[5] == '0' && he[6] == '0' && he[7] == '2')
+		)
 #elif BYTECODE == BYTE_CODE3
-	&& he[4]=='0' && he[5]=='0'
-	&& he[6]=='0' && he[7]=='3'
+	if (!(he[0] == 'R' && he[1] == 'I' && he[2] == 'T' && he[3] == 'E' && he[4] == '0' && he[5] == '0' && he[6] == '0' && he[7] == '3')
+		)
+#elif BYTECODE == BYTE_CODE4
+	if (!(he[0] == 'R' && he[1] == 'I' && he[2] == 'T' && he[3] == 'E' && he[4] == '0' && he[5] == '0' && he[6] == '0' && he[7] == '3')
+		&& !(he[0] == 'R' && he[1] == 'I' && he[2] == 'T' && he[3] == 'E' && he[4] == '0' && he[5] == '0' && he[6] == '0' && he[7] == '4')
+		)
 #endif
-	)){
+	{
 		char az[50];
-		sprintf( az,  "%s is not mrb file!!", ExeFilename );
-		Serial.println( az );
+		sprintf(az, "%s is not mrb file!!", ExeFilename);
+		Serial.println(az);
 
 		EEP.fclose(fp);
 		mrb_close(mrb);
@@ -164,7 +166,7 @@ bool notFinishFlag = true;
 	}
 
 	//先頭にする
-	EEP.fseek(fp, 0, EEP_SEEKTOP );
+	EEP.fseek(fp, 0, EEP_SEEKTOP);
 
 	//ファイルサイズを取得する
 	unsigned long tsize = EEP.ffilesize(ExeFilename);
@@ -188,7 +190,7 @@ bool notFinishFlag = true;
 
 	RubyCode[0] = 0;
 	unsigned long pos = 0;
-	while( !EEP.fEof(fp) ){
+	while (!EEP.fEof(fp)){
 		RubyCode[pos] = EEP.fread(fp);
 		pos++;
 	}
@@ -199,9 +201,9 @@ bool notFinishFlag = true;
 	int arena = mrb_gc_arena_save(mrb);
 
 	//mrubyを実行します
-	mrb_load_irep( mrb, (const uint8_t *)RubyCode);
+	mrb_load_irep(mrb, (const uint8_t *)RubyCode);
 
-	if( mrb->exc ){
+	if (mrb->exc){
 		//struct RString *str;
 		char *s;
 		int len;
@@ -215,17 +217,17 @@ bool notFinishFlag = true;
 			const char *e = "Sys#exit";	//Sys#exitだったら正常終了ということ。
 			int k = 8;		// ↑が8文字なので。
 			int j = 0;
-			for( int i=0; i<len; i++ ){
-				if(*(s + i) == *(e + j)){
+			for (int i = 0; i < len; i++){
+				if (*(s + i) == *(e + j)){
 					j++;
-					if(j == k){ break; }
+					if (j == k){ break; }
 				}
 				else{
 					j = 0;
 				}
 			}
 
-			if( j<8 ){
+			if (j < 8){
 				Serial_print_error(mrb, obj);
 				notFinishFlag = false;
 			}
@@ -251,12 +253,9 @@ void Serial_print_error(mrb_state *mrb, mrb_value obj)
 	Serial.write((const unsigned char *)RSTRING_PTR(obj), RSTRING_LEN(obj));
 	Serial.println();
 
-	//mrb_value exc = mrb_obj_value(mrb->exc);
 	mrb_value backtrace = mrb_get_backtrace(mrb);
-
-	int j = 0;
-	for (mrb_int n = mrb_ary_len(mrb, backtrace); j < n; ++j) {
-		mrb_value v = mrb_ary_ref(mrb, backtrace, j);
+	for (int i = 0; i < RARRAY_LEN(backtrace); i++){
+		mrb_value v = mrb_ary_ref(mrb, backtrace, i);
 		Serial.write((const unsigned char *)RSTRING_PTR(v), RSTRING_LEN(v));
 		Serial.println();
 	}

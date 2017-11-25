@@ -1,12 +1,11 @@
 #!mruby
-# Ver 2.23
-Usb = Serial.new(0)
-Usb.println(ON.to_s)    #-> 1
-Usb.println(OFF.to_s)   #-> 0
-Usb.println(HIGH.to_s)  #-> 1
-Usb.println(LOW.to_s)   #-> 0
-Usb.println(OUTPUT.to_s)   #-> 1
-Usb.println(INPUT.to_s)  #-> 0
+# Ver 2.37
+puts ON    #-> 1
+puts OFF   #-> 0
+puts HIGH  #-> 1
+puts LOW   #-> 0
+puts OUTPUT   #-> 1
+puts INPUT  #-> 0
 
 LOW = 3
-Usb.println(LOW.to_s)   #-> 3
+puts LOW   #-> 3

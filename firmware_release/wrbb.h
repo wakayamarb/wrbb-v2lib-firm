@@ -18,11 +18,12 @@
 #  define DEBUG_PRINT(m,v)    // do nothing
 #endif
 
-#define RUBY_CODE_SIZE (1024 * 8)		//8kBまで実行可能とする
+#define RUBY_CODE_SIZE (1024 * 8)		//サイズ制限は無くしたが、8kb以下であればmallocしなくてもいいような仕組みを持たせている
 
 //バイトコードバージョンを定義します
 #define BYTE_CODE2	2
 #define BYTE_CODE3	3
+#define BYTE_CODE4	4
 
 //ファームウェアのバージョンを定義します
 #define MASTER		1000
@@ -50,15 +51,18 @@
 //#define SAMBOUKAN
 
 //バージョンと日付
-#define WRBB_VERSION	"-2.36(2017/11/24)"
+#define WRBB_VERSION	"-2.37(2017/11/26)"
 
 //バイトコードフォーマットの設定
 //#define BYTECODE	BYTE_CODE2
-#define BYTECODE	BYTE_CODE3
+//#define BYTECODE	BYTE_CODE3
+#define BYTECODE	BYTE_CODE4
 #if BYTECODE == BYTE_CODE2
 #	define BYTECODE_TEXT	"f2"
-#else
+#elif BYTECODE == BYTE_CODE3
 #	define BYTECODE_TEXT	"f3"
+#elif BYTECODE == BYTE_CODE4
+#	define BYTECODE_TEXT	"f4"
 #endif
 
 //基板のタイプ設定

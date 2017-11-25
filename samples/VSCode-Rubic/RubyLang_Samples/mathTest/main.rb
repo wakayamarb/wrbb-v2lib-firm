@@ -1,15 +1,14 @@
 #!mruby
-# v2.18
-usb = Serial.new(0)
-usb.println(Math::PI.to_s)
-usb.println(Math::sqrt(2).to_s)
+#GR-CITRUS v2.36
+puts Math::PI
+puts Math::sqrt(2)
 deg = 30
 rad = ( deg * Math::PI/ 180.0 ) # 度->ラジアン変換
-usb.println(Math.sin(rad).to_s)
-usb.println(Math.cos(rad).to_s)
-usb.println(Math.tan(rad).to_s)
-usb.println(Math.asin(rad).to_s)
-usb.println(Math.acos(rad).to_s)
-usb.println(Math.atan(rad).to_s)
-usb.println(Math.exp(1).to_s)
-usb.println(Math.log(10).to_s)
+puts Math.sin(rad).to_s
+puts Math.cos(rad).to_s
+puts Math.tan(rad)
+puts Math.asin(rad)
+puts Math.acos(rad)
+puts Math.atan(rad)
+puts Math.exp(1)
+puts Math.log(10)

@@ -1,6 +1,6 @@
 #!mruby
-Usb = Serial.new(0)
+#GR-CITRUS v2.36
 a = 123
-s = "00000"+a.to_s
-Usb.println s[s.length-4..s.length]
+s = "00000" + a.to_s
+puts s[s.length-4..s.length]
 
