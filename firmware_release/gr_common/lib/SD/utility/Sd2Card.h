@@ -63,9 +63,11 @@ uint8_t const SPI_QUARTER_SPEED = 2;
  * master unless SS is set to output mode.
  */
 /** The default chip select pin for the SD card is SS. */
-#ifndef GRSAKURA
+#ifndef __RX600__
 uint8_t const  SD_CHIP_SELECT_PIN = SS_PIN;
-#else
+#elif defined(GRSAKURA)
+uint8_t const  SD_CHIP_SELECT_PIN = 22;
+#elif defined(GRCITRUS)
 uint8_t const  SD_CHIP_SELECT_PIN = 2;
 #endif
 // The following three pins must not be redefined for hardware SPI.

@@ -26,14 +26,14 @@
 
 #include "wiring_private.h"
 #include "pins_arduino.h"
-#ifdef GRSAKURA
+#ifdef __RX600__
 #include "Arduino.h"
 #include "utilities.h"
 #include "rx63n/interrupt_handlers.h"
 #include "rx63n/util.h"
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
-uint8_t analog_reference = DEFAULT;
+static uint8_t analog_reference = DEFAULT;
 
 void analogReference(uint8_t mode)
 {
@@ -43,16 +43,16 @@ void analogReference(uint8_t mode)
 	analog_reference = mode;
 }
 
-#ifdef GRSAKURA
+#ifdef __RX600__
 static uint8_t analog_read_clock = 0b00; // PCLK/8
 
 void analogReadClock(uint8_t clock)
 {
 	analog_read_clock = clock;
 }
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
-#ifdef GRSAKURA
+#ifdef __RX600__
 void setPinModeAnalogRead(int pin)
 {
     // GR-CITRUS does not assign analog pins from A4(18) to 27,
@@ -77,11 +77,11 @@ void resetPinModeAnalogRead(int pin)
 {
 	(void)pin;
 }
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
 int analogRead(uint8_t pin)
 {
-#ifndef GRSAKURA
+#ifndef __RX600__
 	uint8_t low, high;
 
 #if defined(analogPinToChannel)
@@ -136,14 +136,19 @@ int analogRead(uint8_t pin)
 
 	// combine the two bytes
 	return (high << 8) | low;
-#else /*GRSAKURA*/
+#else /*__RX600__*/
 	volatile uint16_t* adcdr = NULL;
 
 	startModule(MstpIdS12AD);
     if (pin < 14) pin += 14; // allow for channel or pin numbers
 
-	if (pin >= PIN_AN000 && pin <= PIN_AN013) {
-		int an0 = pin - PIN_AN000;
+	if ((pin >= PIN_AN000 && pin <= PIN_AN007) || (pin >= PIN_AN008 && pin <= PIN_AN013)) {
+		int an0;
+		if (pin >= PIN_AN000 && pin <= PIN_AN007){
+		    an0 = pin - PIN_AN000;
+		} else {
+		    an0 = pin - PIN_AN008 + 8; // from AN8
+		}
 		setPinMode(pin, PinModeAnalogRead);
 		S12AD.ADEXICR.BIT.TSS = 0;
 		S12AD.ADEXICR.BIT.OCS = 0;
@@ -195,7 +200,7 @@ int analogRead(uint8_t pin)
 		break;
 	}
 	return val;
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 }
 
 // Right now, PWM output only works on the pins with
@@ -204,7 +209,7 @@ int analogRead(uint8_t pin)
 // to digital output.
 void analogWrite(uint8_t pin, int val)
 {
-#ifndef GRSAKURA
+#ifndef __RX600__
 	// We need to make sure the PWM output is enabled for those pins
 	// that support it, as we turn it off when digitally reading or
 	// writing with them.  Also, make sure the pin is in output mode
@@ -384,13 +389,14 @@ void analogWrite(uint8_t pin, int val)
 				}
 		}
 	}
-#else /*GRSAKURA*/
+#else /*__RX600__*/
 	bool hardPwm = isHardwarePWMPin(pin);
 	int period;
 	int term;
 	if (hardPwm) {
-		period = 255 * HardwarePWMFreq / SoftwarePWMFreq;
-		term = val * HardwarePWMFreq / SoftwarePWMFreq;
+		float m = getPWMClockMultiple(pin);
+		period = (int)(255 * m);
+		term = (int)(val * m);
 	} else {
 		period = 255;
 		term = val;
@@ -409,10 +415,26 @@ void analogWrite(uint8_t pin, int val)
 			changePinModeSoftwarePWM(pin, period, term, 0);
 		}
 	}
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 }
 
-#ifdef GRSAKURA
+#ifdef __RX600__
+void analogWriteFrequency(uint32_t freq)
+{
+    uint32_t clock = 255 * freq;
+    analogWriteClock(PIN_IO0, clock);
+    analogWriteClock(PIN_IO1, clock);
+    analogWriteClock(PIN_IO4, clock);
+    analogWriteClock(PIN_IO5, clock);
+    analogWriteClock(PIN_IO6, clock);
+    analogWriteClock(PIN_IO11, clock);
+}
+
+void analogWriteClock(uint8_t pin, uint32_t clock)
+{
+    setAnalogWriteClock(pin, clock);
+}
+
 /*
 void setPinModeAnalogWrite(int pin)
 {
@@ -427,12 +449,16 @@ void resetPinModeAnalogWrite(int pin)
 		resetPinModeSoftwarePWM(pin);
 	}
 }
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
-#ifdef GRSAKURA
+#ifdef __RX600__
 void analogWriteDAC(int port, int val)
 {
-	int pin = PIN_IO9;
+#ifdef GRSAKURA
+	int pin = PIN_IO53;
+#elif defined(GRCITRUS)
+    int pin = PIN_IO9;
+#endif
 	if (getPinMode(pin) != PinModeDac) {
 		setPinMode(pin, PinModeDac);
 	}
@@ -447,7 +473,11 @@ void analogWriteDAC(int port, int val)
 
 void setPinModeDac(int pin)
 {
+#ifdef GRSAKURA
+	if (pin == PIN_IO53) {
+#elif defined(GRCITRUS)
 	if (pin == PIN_IO9) {
+#endif
 		int port = digitalPinToPort(pin);
 		int bit = digitalPinToBit(pin);
 		startModule(MstpIdDA);
@@ -459,9 +489,13 @@ void setPinModeDac(int pin)
 
 void resetPinModeDac(int pin)
 {
-	if (pin == PIN_IO9) {
+#ifdef GRSAKURA
+    if (pin == PIN_IO53) {
+#elif defined(GRCITRUS)
+    if (pin == PIN_IO9) {
+#endif
 		stopModule(MstpIdDA);
 		pinMode(pin, INPUT);
 	}
 }
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/

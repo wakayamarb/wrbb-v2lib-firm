@@ -20,7 +20,7 @@
 #ifndef Binary_h
 #define Binary_h
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 #define B0 0
 #endif
 #define B00 0
@@ -30,7 +30,7 @@
 #define B000000 0
 #define B0000000 0
 #define B00000000 0
-#ifndef GRSAKURA
+#ifndef __RX600__
 #define B1 1
 #endif
 #define B01 1

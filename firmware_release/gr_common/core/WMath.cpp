@@ -30,11 +30,11 @@ extern "C" {
 void randomSeed(unsigned int seed)
 {
   if (seed != 0) {
-#ifndef GRSAKURA
+#ifndef __RX600__
     srandom(seed);
-#else /*GRSAKURA*/
+#else /*__RX600__*/
     srand(seed);
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
   }
 }
 
@@ -43,11 +43,11 @@ long random(long howbig)
   if (howbig == 0) {
     return 0;
   }
-#ifndef GRSAKURA
+#ifndef __RX600__
   return random() % howbig;
-#else /*GRSAKURA*/
+#else /*__RX600__*/
   return rand() % howbig;
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 }
 
 long random(long howsmall, long howbig)
@@ -64,7 +64,7 @@ long map(long x, long in_min, long in_max, long out_min, long out_max)
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 unsigned int makeWord(unsigned int w) { return w; }
 unsigned int makeWord(unsigned char h, unsigned char l) { return (h << 8) | l; }
 #else

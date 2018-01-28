@@ -81,7 +81,8 @@ void INT_Excep_CMT1_CMI1(void){ }
 void INT_Excep_CMT3_CMI3(void){ }
 
 // ETHER EINT
-void INT_Excep_ETHER_EINT(void){ }
+/** MOD EK 25/02/14: Rewired into rx63n/drivers/ethernet/ */
+//void INT_Excep_ETHER_EINT(void){ }
 
 // USB0 D0FIFO0
 void INT_Excep_USB0_D0FIFO0(void){}
@@ -521,10 +522,12 @@ void INT_Excep_TMR3_OVI3(void){ }
 void INT_Excep_RIIC0_EEI0(void){ }
 
 // RIIC0 RXI0
-void INT_Excep_RIIC0_RXI0(void){ }
+// moved to twi_rx.c
+//void INT_Excep_RIIC0_RXI0(void){ }
 
 // RIIC0 TXI0
-void INT_Excep_RIIC0_TXI0(void){ }
+// moved to twi_rx.c
+//void INT_Excep_RIIC0_TXI0(void){ }
 
 // RIIC0 TEI0
 void INT_Excep_RIIC0_TEI0(void){ }

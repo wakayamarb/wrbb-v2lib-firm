@@ -25,10 +25,10 @@
 */
 
 #include <inttypes.h>
-#ifndef GRSAKURA
+#ifndef __RX600__
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#endif /*GRSAKURA*/
+#endif /*__RX600__*/
 #include <avr/pgmspace.h>
 #include <stdio.h>
 
@@ -47,7 +47,7 @@ void attachInterrupt(uint8_t interruptNum, void (*userFunc)(void), int mode) {
     // to the configuration bits in the hardware register, so we simply shift
     // the mode into place.
 
-#ifdef GRSAKURA
+#ifdef __RX600__
     // Enable the interrupt.
     // Set the digital filters to use PCLK/1 and disable them.
     ICU.IRQFLTC0.WORD = 0U;
@@ -79,9 +79,9 @@ void attachInterrupt(uint8_t interruptNum, void (*userFunc)(void), int mode) {
     default:
         return;
     }
-#endif //GRSAKURA
+#endif //__RX600__
 
-#ifndef GRSAKURA
+#ifndef __RX600__
     switch (interruptNum) {
 #if defined(__AVR_ATmega32U4__)
 	// I hate doing this, but the register assignment differs between the 1280/2560
@@ -151,8 +151,8 @@ void attachInterrupt(uint8_t interruptNum, void (*userFunc)(void), int mode) {
     #elif defined(MCUCR) && defined(ISC00) && defined(GIMSK)
       MCUCR = (MCUCR & ~((1 << ISC00) | (1 << ISC01))) | (mode << ISC00);
       GIMSK |= (1 << INT0);
-    #elif defined(GRSAKURA)
-      //GRSAKURA
+    #elif defined(__RX600__)
+      //__RX600__
 
 
     #else
@@ -170,8 +170,8 @@ void attachInterrupt(uint8_t interruptNum, void (*userFunc)(void), int mode) {
     #elif defined(MCUCR) && defined(ISC10) && defined(GIMSK) && defined(GIMSK)
       MCUCR = (MCUCR & ~((1 << ISC10) | (1 << ISC11))) | (mode << ISC10);
       GIMSK |= (1 << INT1);
-    #elif defined(GRSAKURA)
-      //GRSAKURA
+    #elif defined(__RX600__)
+      //__RX600__
     #else
       #warning attachInterrupt may need some more work for this cpu (case 1)
     #endif
@@ -200,6 +200,345 @@ void attachInterrupt(uint8_t interruptNum, void (*userFunc)(void), int mode) {
     // Some pin choices are unavailable on the Sakura.
     switch (interruptNum)
     {
+#ifdef GRSAKURA
+    // IRQ0 -------------------------------------------------------------------/
+    case PIN_IO36:
+        // Clear the interrupt enable for this IRQ vector.
+        *GET_ADR_IER(IRQ0) &= ~BIT_00;
+
+        // Set the desired pin to an input.
+        pinMode(PIN_IO36, INPUT_PULLUP);
+
+        // Enable the IRQ on this pin. Use byte access to ensure all other bits
+        // are cleared.
+        MPC.PD0PFS.BYTE = BIT_PFS_ISE;
+
+        // Set the method of interruption.
+        *GET_ADR_IRQCR(IRQ0) |= mode_bitmask;
+
+        // Clear the interrupt flag.
+        *GET_ADR_IR(IRQ0) &= ~BIT_00;
+
+        // Set the interrupt priority so that the CPU accepts it.
+        *GET_ADR_IPR(IRQ0) = DEFAULT_INT_PRIORITY;
+
+        // Enable the interrupt.
+        *GET_ADR_IER(IRQ0) |= BIT_00;
+        break;
+
+    // IRQ1 -------------------------------------------------------------------/
+    case PIN_IO37:
+        *GET_ADR_IER(IRQ1) &= ~BIT_01;
+        pinMode(PIN_IO37, INPUT_PULLUP);
+        MPC.PD1PFS.BYTE = BIT_PFS_ISE;
+        *GET_ADR_IRQCR(IRQ1) |= mode_bitmask;
+        *GET_ADR_IR(IRQ1) &= ~BIT_00;
+        *GET_ADR_IPR(IRQ1) = DEFAULT_INT_PRIORITY;
+        *GET_ADR_IER(IRQ1) |= BIT_01;
+        break;
+
+    // IRQ2 -------------------------------------------------------------------/
+    case PIN_IO30:
+    case PIN_IO38:
+        *GET_ADR_IER(IRQ2) &= ~BIT_02;
+        // Disable pins other than the requested one for this IRQ.
+        if (interruptNum == PIN_IO30)
+        {
+            pinMode(PIN_IO30, INPUT_PULLUP);
+            MPC.P12PFS.BYTE = BIT_PFS_ISE;
+            MPC.PD2PFS.BYTE = 0U;
+        }
+        if (interruptNum == PIN_IO38)
+        {
+            pinMode(PIN_IO38, INPUT_PULLUP);
+            MPC.P12PFS.BYTE = 0U;
+            MPC.PD2PFS.BYTE = BIT_PFS_ISE;
+        }
+        *GET_ADR_IRQCR(IRQ2) |= mode_bitmask;
+        *GET_ADR_IR(IRQ2) &= ~BIT_00;
+        *GET_ADR_IPR(IRQ2) = DEFAULT_INT_PRIORITY;
+        *GET_ADR_IER(IRQ2) |= BIT_02;
+        break;
+
+    // IRQ3 -------------------------------------------------------------------/
+    case PIN_IO31:
+    case PIN_IO39:
+        *GET_ADR_IER(IRQ3) &= ~BIT_03;
+        if (interruptNum == PIN_IO31)
+        {
+            pinMode(PIN_IO31, INPUT_PULLUP);
+            MPC.P13PFS.BYTE = BIT_PFS_ISE;
+            MPC.PD3PFS.BYTE = 0U;
+        }
+        if (interruptNum == PIN_IO39)
+        {
+            pinMode(PIN_IO39, INPUT_PULLUP);
+            MPC.P13PFS.BYTE = 0U;
+            MPC.PD3PFS.BYTE = BIT_PFS_ISE;
+        }
+        *GET_ADR_IRQCR(IRQ3) |= mode_bitmask;
+        *GET_ADR_IR(IRQ3) &= ~BIT_00;
+        *GET_ADR_IPR(IRQ3) = DEFAULT_INT_PRIORITY;
+        *GET_ADR_IER(IRQ3) |= BIT_03;
+        break;
+
+    // IRQ4 -------------------------------------------------------------------/
+    case PIN_IO32:
+    case PIN_IO40:
+        *GET_ADR_IER(IRQ4) &= ~BIT_04;
+        if (interruptNum == PIN_IO32)
+        {
+            pinMode(PIN_IO32, INPUT_PULLUP);
+            MPC.P14PFS.BYTE = BIT_PFS_ISE;
+            MPC.PD4PFS.BYTE = 0U;
+        }
+        if (interruptNum == PIN_IO40)
+        {
+            pinMode(PIN_IO40, INPUT_PULLUP);
+            MPC.P14PFS.BYTE = 0U;
+            MPC.PD4PFS.BYTE = BIT_PFS_ISE;
+        }
+        *GET_ADR_IRQCR(IRQ4) |= mode_bitmask;
+        *GET_ADR_IR(IRQ4) &= ~BIT_00;
+        *GET_ADR_IPR(IRQ4) = DEFAULT_INT_PRIORITY;
+        *GET_ADR_IER(IRQ4) |= BIT_04;
+        break;
+
+    // IRQ5 -------------------------------------------------------------------/
+    case PIN_IO33:
+    case PIN_IO41:
+    case PIN_IO49:
+        *GET_ADR_IER(IRQ5) &= ~BIT_05;
+        if (interruptNum == PIN_IO33)
+        {
+            pinMode(PIN_IO33, INPUT_PULLUP);
+            MPC.P15PFS.BYTE = BIT_PFS_ISE;
+            MPC.PD5PFS.BYTE = 0U;
+            MPC.PE5PFS.BYTE = 0U;
+        }
+        if (interruptNum == PIN_IO41)
+        {
+            pinMode(PIN_IO41, INPUT_PULLUP);
+            MPC.P15PFS.BYTE = 0U;
+            MPC.PD5PFS.BYTE = BIT_PFS_ISE;
+            MPC.PE5PFS.BYTE = 0U;
+        }
+        if (interruptNum == PIN_IO49)
+        {
+            pinMode(PIN_IO49, INPUT_PULLUP);
+            MPC.P15PFS.BYTE = 0U;
+            MPC.PD5PFS.BYTE = 0U;
+            MPC.PE5PFS.BYTE = BIT_PFS_ISE;
+        }
+        *GET_ADR_IRQCR(IRQ5) |= mode_bitmask;
+        *GET_ADR_IR(IRQ5) &= ~BIT_00;
+        *GET_ADR_IPR(IRQ5) = DEFAULT_INT_PRIORITY;
+        *GET_ADR_IER(IRQ5) |= BIT_05;
+        break;
+
+    // IRQ6 -------------------------------------------------------------------/
+    case PIN_IO34:
+    case PIN_IO42:
+    case PIN_IO50:
+        *GET_ADR_IER(IRQ6) &= ~BIT_06;
+        if (interruptNum == PIN_IO34)
+        {
+            pinMode(PIN_IO34, INPUT_PULLUP);
+            MPC.P16PFS.BYTE = BIT_PFS_ISE;
+            MPC.PD6PFS.BYTE = 0U;
+            MPC.PE6PFS.BYTE = 0U;
+        }
+        if (interruptNum == PIN_IO42)
+        {
+            pinMode(PIN_IO42, INPUT_PULLUP);
+            MPC.P16PFS.BYTE = 0U;
+            MPC.PD6PFS.BYTE = BIT_PFS_ISE;
+            MPC.PE6PFS.BYTE = 0U;
+        }
+        if (interruptNum == PIN_IO50)
+        {
+            pinMode(PIN_IO50, INPUT_PULLUP);
+            MPC.P16PFS.BYTE = 0U;
+            MPC.PD6PFS.BYTE = 0U;
+            MPC.PE6PFS.BYTE = BIT_PFS_ISE;
+        }
+        *GET_ADR_IRQCR(IRQ6) |= mode_bitmask;
+        *GET_ADR_IR(IRQ6) &= ~BIT_00;
+        *GET_ADR_IPR(IRQ6) = DEFAULT_INT_PRIORITY;
+        *GET_ADR_IER(IRQ6) |= BIT_06;
+        break;
+
+    // IRQ7 -------------------------------------------------------------------/
+    case PIN_IO35:
+    case PIN_IO43:
+    case PIN_IO51:
+        *GET_ADR_IER(IRQ7) &= ~BIT_07;
+        if (interruptNum == PIN_IO35)
+        {
+            pinMode(PIN_IO35, INPUT_PULLUP);
+            MPC.P17PFS.BYTE = BIT_PFS_ISE;
+            MPC.PD7PFS.BYTE = 0U;
+            MPC.PE7PFS.BYTE = 0U;
+        }
+        if (interruptNum == PIN_IO43)
+        {
+            pinMode(PIN_IO43, INPUT_PULLUP);
+            MPC.P17PFS.BYTE = 0U;
+            MPC.PD7PFS.BYTE = BIT_PFS_ISE;
+            MPC.PE7PFS.BYTE = 0U;
+        }
+        if (interruptNum == PIN_IO51)
+        {
+            pinMode(PIN_IO51, INPUT_PULLUP);
+            MPC.P17PFS.BYTE = 0U;
+            MPC.PD7PFS.BYTE = 0U;
+            MPC.PE7PFS.BYTE = BIT_PFS_ISE;
+        }
+        *GET_ADR_IRQCR(IRQ7) |= mode_bitmask;
+        *GET_ADR_IR(IRQ7) &= ~BIT_00;
+        *GET_ADR_IPR(IRQ7) = DEFAULT_INT_PRIORITY;
+        *GET_ADR_IER(IRQ7) |= BIT_07;
+        break;
+
+    // IRQ8 -------------------------------------------------------------------/
+    case PIN_IO1:
+        *GET_ADR_IER(IRQ8) &= ~BIT_00;
+        pinMode(PIN_IO1, INPUT_PULLUP);
+        MPC.P20PFS.BYTE = BIT_PFS_ISE;
+        *GET_ADR_IRQCR(IRQ8) |= mode_bitmask;
+        *GET_ADR_IR(IRQ8) &= ~BIT_00;
+        *GET_ADR_IPR(IRQ8) = DEFAULT_INT_PRIORITY;
+        *GET_ADR_IER(IRQ8) |= BIT_00;
+        break;
+
+    // IRQ9 -------------------------------------------------------------------/
+    case PIN_IO0:
+        *GET_ADR_IER(IRQ9) &= ~BIT_01;
+        pinMode(PIN_IO0, INPUT_PULLUP);
+        MPC.P21PFS.BYTE = BIT_PFS_ISE;
+        *GET_ADR_IRQCR(IRQ9) |= mode_bitmask;
+        *GET_ADR_IR(IRQ9) &= ~BIT_00;
+        *GET_ADR_IPR(IRQ9) = DEFAULT_INT_PRIORITY;
+        *GET_ADR_IER(IRQ9) |= BIT_01;
+        break;
+
+    // IRQ10 ------------------------------------------------------------------/
+    case PIN_IO29:
+        *GET_ADR_IER(IRQ10) &= ~BIT_02;
+        pinMode(PIN_IO29, INPUT_PULLUP);
+        MPC.P55PFS.BYTE = BIT_PFS_ISE;
+        *GET_ADR_IRQCR(IRQ10) |= mode_bitmask;
+        *GET_ADR_IR(IRQ10) &= ~BIT_00;
+        *GET_ADR_IPR(IRQ10) = DEFAULT_INT_PRIORITY;
+        *GET_ADR_IER(IRQ10) |= BIT_02;
+        break;
+
+    // IRQ11 ------------------------------------------------------------------/
+    // No mapping available for the Sakura.
+
+    // IRQ12 ------------------------------------------------------------------/
+    case PIN_IO23:
+        *GET_ADR_IER(IRQ12) &= ~BIT_04;
+        pinMode(PIN_IO23, INPUT_PULLUP);
+        MPC.PC1PFS.BYTE = BIT_PFS_ISE;
+        *GET_ADR_IRQCR(IRQ12) |= mode_bitmask;
+        *GET_ADR_IR(IRQ12) &= ~BIT_00;
+        *GET_ADR_IPR(IRQ12) = DEFAULT_INT_PRIORITY;
+        *GET_ADR_IER(IRQ12) |= BIT_04;
+        break;
+
+    // IRQ13 ------------------------------------------------------------------/
+    case PIN_IO53:
+    case PIN_IO11:
+        *GET_ADR_IER(IRQ13) &= ~BIT_05;
+        if (interruptNum == PIN_IO53)
+        {
+            pinMode(PIN_IO53, INPUT_PULLUP);
+            MPC.P05PFS.BYTE = BIT_PFS_ISE;
+            MPC.PC6PFS.BYTE = 0U;
+        }
+        if (interruptNum == PIN_IO11)
+        {
+            pinMode(PIN_IO11, INPUT_PULLUP);
+            MPC.P05PFS.BYTE = 0U;
+            MPC.PC6PFS.BYTE = BIT_PFS_ISE;
+        }
+        *GET_ADR_IRQCR(IRQ13) |= mode_bitmask;
+        *GET_ADR_IR(IRQ13) &= ~BIT_00;
+        *GET_ADR_IPR(IRQ13) = DEFAULT_INT_PRIORITY;
+        *GET_ADR_IER(IRQ13) |= BIT_05;
+        break;
+
+    // IRQ14 ------------------------------------------------------------------/
+    case PIN_IO22:
+    case PIN_IO12:
+        *GET_ADR_IER(IRQ14) &= ~BIT_06;
+        if (interruptNum == PIN_IO22)
+        {
+            pinMode(PIN_IO22, INPUT_PULLUP);
+            MPC.PC0PFS.BYTE = BIT_PFS_ISE;
+            MPC.PC7PFS.BYTE = 0U;
+        }
+        if (interruptNum == PIN_IO12)
+        {
+            pinMode(PIN_IO12, INPUT_PULLUP);
+            MPC.PC0PFS.BYTE = 0U;
+            MPC.PC7PFS.BYTE = BIT_PFS_ISE;
+        }
+        *GET_ADR_IRQCR(IRQ14) |= mode_bitmask;
+        *GET_ADR_IR(IRQ14) &= ~BIT_00;
+        *GET_ADR_IPR(IRQ14) = DEFAULT_INT_PRIORITY;
+        *GET_ADR_IER(IRQ14) |= BIT_06;
+        break;
+
+    // IRQ15 ------------------------------------------------------------------/
+    case PIN_IO52:
+        *GET_ADR_IER(IRQ15) &= ~BIT_07;
+        pinMode(PIN_IO52, INPUT_PULLUP);
+        MPC.PC1PFS.BYTE = BIT_PFS_ISE;
+        *GET_ADR_IRQCR(IRQ15) |= mode_bitmask;
+        *GET_ADR_IR(IRQ15) &= ~BIT_00;
+        *GET_ADR_IPR(IRQ15) = DEFAULT_INT_PRIORITY;
+        *GET_ADR_IER(IRQ15) |= BIT_07;
+        break;
+
+    // NMI --------------------------------------------------------------------/
+    case PIN_IO54:
+        // The NMI pin (P35/IO54) is a special case. First, disable the digital
+        // filter for the NMI. Note that the NMI cannot be disabled without a
+        // reset once it is enabled.
+        ICU.NMIFLTE.BIT.NFLTEN = 0U;
+        ICU.NMIFLTC.BIT.NFCLKSEL = 0U;
+
+        // Set the method of interruption. Only falling or rising edges can be
+        // used for the NMI.
+        if (FALLING == mode)
+        {
+            ICU.NMICR.BIT.NMIMD = 0U;
+        }
+        else if (RISING == mode)
+        {
+            ICU.NMICR.BIT.NMIMD = 1U;
+        }
+        else
+        {
+            return;
+        }
+
+        // Clear the NMI flag by writing to the NMICLR register.
+        ICU.NMICLR.BIT.NMICLR = 1U;
+
+        // Enable the digital filter.
+        ICU.NMIFLTE.BIT.NFLTEN = 1U;
+
+        // Enable the interrupt.
+        ICU.NMIER.BIT.NMIEN = 1U;
+        break;
+
+    // ------------------------------------------------------------------------/
+    default:
+        break;
+#elif defined(GRCITRUS)
     // IRQ0 -------------------------------------------------------------------/
     case PIN_IO44:
         // Clear the interrupt enable for this IRQ vector.
@@ -539,8 +878,9 @@ void attachInterrupt(uint8_t interruptNum, void (*userFunc)(void), int mode) {
     // ------------------------------------------------------------------------/
     default:
         break;
+#endif
     } // switch : interruptNum
-#endif //GRSAKURA
+#endif //__RX600__
 
   }
 }
@@ -551,7 +891,7 @@ void detachInterrupt(uint8_t interruptNum) {
     // ATmega8.  There, INT0 is 6 and INT1 is 7.)
     intFunc[interruptNum] = NULL;
 
-#ifndef GRSAKURA
+#ifndef __RX600__
     switch (interruptNum) {
 #if defined(__AVR_ATmega32U4__)
     case 0:
@@ -602,8 +942,8 @@ void detachInterrupt(uint8_t interruptNum) {
       GICR &= ~(1 << INT0); // atmega32
     #elif defined(GIMSK) && defined(INT0)
       GIMSK &= ~(1 << INT0);
-    #elif defined(GRSAKURA)
-      //GRSAKURA
+    #elif defined(__RX600__)
+      //__RX600__
     #else
       #error detachInterrupt not finished for this cpu
     #endif
@@ -616,21 +956,22 @@ void detachInterrupt(uint8_t interruptNum) {
       GICR &= ~(1 << INT1); // atmega32
     #elif defined(GIMSK) && defined(INT1)
       GIMSK &= ~(1 << INT1);
-    #elif defined(GRSAKURA)
-      //GRSAKURA
+    #elif defined(__RX600__)
+      //__RX600__
     #else
       #warning detachInterrupt may need some more work for this cpu (case 1)
     #endif
       break;
 #endif
     }
-#endif // GRSAKURA
+#endif // __RX600__
     // Determine which IRQ is being disabled. Note that the NMI (IO54) cannot
     // be disabled.
     switch (interruptNum)
     {
+#ifdef GRSAKURA
     // IRQ0 -------------------------------------------------------------------/
-    case PIN_IO44:
+    case PIN_IO36:
         // Clear the interrupt enable for this IRQ vector.
         *GET_ADR_IER(IRQ0) &= ~BIT_00;
 
@@ -646,7 +987,7 @@ void detachInterrupt(uint8_t interruptNum) {
         break;
 
     // IRQ1 -------------------------------------------------------------------/
-    case PIN_IO45:
+    case PIN_IO37:
         *GET_ADR_IER(IRQ1) &= ~BIT_01;
         MPC.PD1PFS.BYTE = 0U;
         *GET_ADR_IPR(IRQ1) = 0U;
@@ -654,15 +995,15 @@ void detachInterrupt(uint8_t interruptNum) {
         break;
 
     // IRQ2 -------------------------------------------------------------------/
-    case PIN_IO18:
-    case PIN_IO46:
+    case PIN_IO30:
+    case PIN_IO38:
         *GET_ADR_IER(IRQ2) &= ~BIT_02;
         // Disable only the requested pin.
-        if (interruptNum == PIN_IO18)
+        if (interruptNum == PIN_IO30)
         {
             MPC.P12PFS.BYTE = 0U;
         }
-        if (interruptNum == PIN_IO46)
+        if (interruptNum == PIN_IO38)
         {
             MPC.PD2PFS.BYTE = 0U;
         }
@@ -671,14 +1012,14 @@ void detachInterrupt(uint8_t interruptNum) {
         break;
 
     // IRQ3 -------------------------------------------------------------------/
-//    case PIN_IO19: // IO19 is wired to IO20, so removed.
-    case PIN_IO47:
+    case PIN_IO31:
+    case PIN_IO39:
         *GET_ADR_IER(IRQ3) &= ~BIT_03;
-        if (interruptNum == PIN_IO19)
+        if (interruptNum == PIN_IO31)
         {
             MPC.P13PFS.BYTE = 0U;
         }
-        if (interruptNum == PIN_IO47)
+        if (interruptNum == PIN_IO39)
         {
             MPC.PD3PFS.BYTE = 0U;
         }
@@ -687,14 +1028,14 @@ void detachInterrupt(uint8_t interruptNum) {
         break;
 
     // IRQ4 -------------------------------------------------------------------/
-    case PIN_IO41:
-    case PIN_IO48:
+    case PIN_IO32:
+    case PIN_IO40:
         *GET_ADR_IER(IRQ4) &= ~BIT_04;
-        if (interruptNum == PIN_IO41)
+        if (interruptNum == PIN_IO32)
         {
             MPC.P14PFS.BYTE = 0U;
         }
-        if (interruptNum == PIN_IO48)
+        if (interruptNum == PIN_IO40)
         {
             MPC.PD4PFS.BYTE = 0U;
         }
@@ -703,20 +1044,19 @@ void detachInterrupt(uint8_t interruptNum) {
         break;
 
     // IRQ5 -------------------------------------------------------------------/
-    case PIN_IO19: // Wired to IO20
-    case PIN_IO20:
+    case PIN_IO33:
+    case PIN_IO41:
     case PIN_IO49:
-    case PIN_IO56:
         *GET_ADR_IER(IRQ5) &= ~BIT_05;
-        if (interruptNum == PIN_IO20 || interruptNum == PIN_IO19)
+        if (interruptNum == PIN_IO33)
         {
             MPC.P15PFS.BYTE = 0U;
         }
-        if (interruptNum == PIN_IO49)
+        if (interruptNum == PIN_IO41)
         {
             MPC.PD5PFS.BYTE = 0U;
         }
-        if (interruptNum == PIN_IO56)
+        if (interruptNum == PIN_IO49)
         {
             MPC.PE5PFS.BYTE = 0U;
         }
@@ -725,19 +1065,19 @@ void detachInterrupt(uint8_t interruptNum) {
         break;
 
     // IRQ6 -------------------------------------------------------------------/
+    case PIN_IO34:
     case PIN_IO42:
     case PIN_IO50:
-    case PIN_IO57:
         *GET_ADR_IER(IRQ6) &= ~BIT_06;
-        if (interruptNum == PIN_IO42)
+        if (interruptNum == PIN_IO34)
         {
             MPC.P16PFS.BYTE = 0U;
         }
-        if (interruptNum == PIN_IO50)
+        if (interruptNum == PIN_IO42)
         {
             MPC.PD6PFS.BYTE = 0U;
         }
-        if (interruptNum == PIN_IO57)
+        if (interruptNum == PIN_IO50)
         {
             MPC.PE6PFS.BYTE = 0U;
         }
@@ -746,19 +1086,19 @@ void detachInterrupt(uint8_t interruptNum) {
         break;
 
     // IRQ7 -------------------------------------------------------------------/
+    case PIN_IO35:
     case PIN_IO43:
     case PIN_IO51:
-    case PIN_IO58:
         *GET_ADR_IER(IRQ7) &= ~BIT_07;
-        if (interruptNum == PIN_IO43)
+        if (interruptNum == PIN_IO35)
         {
             MPC.P17PFS.BYTE = 0U;
         }
-        if (interruptNum == PIN_IO51)
+        if (interruptNum == PIN_IO43)
         {
             MPC.PD7PFS.BYTE = 0U;
         }
-        if (interruptNum == PIN_IO58)
+        if (interruptNum == PIN_IO51)
         {
             MPC.PE7PFS.BYTE = 0U;
         }
@@ -767,7 +1107,7 @@ void detachInterrupt(uint8_t interruptNum) {
         break;
 
     // IRQ8 -------------------------------------------------------------------/
-    case PIN_IO0:
+    case PIN_IO1:
         *GET_ADR_IER(IRQ8) &= ~BIT_00;
         MPC.P20PFS.BYTE = 0U;
         *GET_ADR_IPR(IRQ8) = 0U;
@@ -775,7 +1115,7 @@ void detachInterrupt(uint8_t interruptNum) {
         break;
 
     // IRQ9 -------------------------------------------------------------------/
-    case PIN_IO1:
+    case PIN_IO0:
         *GET_ADR_IER(IRQ9) &= ~BIT_01;
         MPC.P21PFS.BYTE = 0U;
         *GET_ADR_IPR(IRQ9) = 0U;
@@ -783,8 +1123,7 @@ void detachInterrupt(uint8_t interruptNum) {
         break;
 
     // IRQ10 ------------------------------------------------------------------/
-    case PIN_IO6:  // Wired to IO25
-    case PIN_IO25:
+    case PIN_IO29:
         *GET_ADR_IER(IRQ10) &= ~BIT_02;
         MPC.P55PFS.BYTE = 0U;
         *GET_ADR_IPR(IRQ10) = 0U;
@@ -795,7 +1134,7 @@ void detachInterrupt(uint8_t interruptNum) {
     // No mapping available for the Sakura.
 
     // IRQ12 ------------------------------------------------------------------/
-    case PIN_IO3:
+    case PIN_IO23:
         *GET_ADR_IER(IRQ12) &= ~BIT_04;
         MPC.PC1PFS.BYTE = 0U;
         *GET_ADR_IPR(IRQ12) = 0U;
@@ -803,10 +1142,10 @@ void detachInterrupt(uint8_t interruptNum) {
         break;
 
     // IRQ13 ------------------------------------------------------------------/
-    case PIN_IO9:
+    case PIN_IO53:
     case PIN_IO11:
         *GET_ADR_IER(IRQ13) &= ~BIT_05;
-        if (interruptNum == PIN_IO9)
+        if (interruptNum == PIN_IO53)
         {
             MPC.P05PFS.BYTE = 0U;
         }
@@ -819,10 +1158,10 @@ void detachInterrupt(uint8_t interruptNum) {
         break;
 
     // IRQ14 ------------------------------------------------------------------/
-    case PIN_IO2:
+    case PIN_IO22:
     case PIN_IO12:
         *GET_ADR_IER(IRQ14) &= ~BIT_06;
-        if (interruptNum == PIN_IO2)
+        if (interruptNum == PIN_IO22)
         {
             MPC.PC0PFS.BYTE = 0U;
         }
@@ -835,7 +1174,7 @@ void detachInterrupt(uint8_t interruptNum) {
         break;
 
     // IRQ15 ------------------------------------------------------------------/
-    case PIN_IO59:
+    case PIN_IO52:
         *GET_ADR_IER(IRQ15) &= ~BIT_07;
         MPC.PC1PFS.BYTE = 0U;
         *GET_ADR_IPR(IRQ15) = 0U;
@@ -843,13 +1182,236 @@ void detachInterrupt(uint8_t interruptNum) {
         break;
 
     // NMI --------------------------------------------------------------------/
-    case PIN_IO31:
+    case PIN_IO54:
         // Cannot be disabled.
         break;
 
     // ------------------------------------------------------------------------/
     default:
         break;
+#elif defined(GRCITRUS)
+        // IRQ0 -------------------------------------------------------------------/
+        case PIN_IO44:
+            // Clear the interrupt enable for this IRQ vector.
+            *GET_ADR_IER(IRQ0) &= ~BIT_00;
+
+            // Clear the IRQ on this pin. Use byte access to ensure all other bits
+            // are cleared.
+            MPC.PD0PFS.BYTE = 0U;
+
+            // Clear the interrupt priority.
+            *GET_ADR_IPR(IRQ0) = 0U;
+
+            // Clear the interrupt flag.
+            *GET_ADR_IR(IRQ0) &= ~BIT_00;
+            break;
+
+        // IRQ1 -------------------------------------------------------------------/
+        case PIN_IO45:
+            *GET_ADR_IER(IRQ1) &= ~BIT_01;
+            MPC.PD1PFS.BYTE = 0U;
+            *GET_ADR_IPR(IRQ1) = 0U;
+            *GET_ADR_IR(IRQ1) &= ~BIT_00;
+            break;
+
+        // IRQ2 -------------------------------------------------------------------/
+        case PIN_IO18:
+        case PIN_IO46:
+            *GET_ADR_IER(IRQ2) &= ~BIT_02;
+            // Disable only the requested pin.
+            if (interruptNum == PIN_IO18)
+            {
+                MPC.P12PFS.BYTE = 0U;
+            }
+            if (interruptNum == PIN_IO46)
+            {
+                MPC.PD2PFS.BYTE = 0U;
+            }
+            *GET_ADR_IPR(IRQ2) = 0U;
+            *GET_ADR_IR(IRQ2) &= ~BIT_00;
+            break;
+
+        // IRQ3 -------------------------------------------------------------------/
+    //    case PIN_IO19: // IO19 is wired to IO20, so removed.
+        case PIN_IO47:
+            *GET_ADR_IER(IRQ3) &= ~BIT_03;
+            if (interruptNum == PIN_IO19)
+            {
+                MPC.P13PFS.BYTE = 0U;
+            }
+            if (interruptNum == PIN_IO47)
+            {
+                MPC.PD3PFS.BYTE = 0U;
+            }
+            *GET_ADR_IPR(IRQ3) = 0U;
+            *GET_ADR_IR(IRQ3) &= ~BIT_00;
+            break;
+
+        // IRQ4 -------------------------------------------------------------------/
+        case PIN_IO41:
+        case PIN_IO48:
+            *GET_ADR_IER(IRQ4) &= ~BIT_04;
+            if (interruptNum == PIN_IO41)
+            {
+                MPC.P14PFS.BYTE = 0U;
+            }
+            if (interruptNum == PIN_IO48)
+            {
+                MPC.PD4PFS.BYTE = 0U;
+            }
+            *GET_ADR_IPR(IRQ4) = 0U;
+            *GET_ADR_IR(IRQ4) &= ~BIT_00;
+            break;
+
+        // IRQ5 -------------------------------------------------------------------/
+        case PIN_IO19: // Wired to IO20
+        case PIN_IO20:
+        case PIN_IO49:
+        case PIN_IO56:
+            *GET_ADR_IER(IRQ5) &= ~BIT_05;
+            if (interruptNum == PIN_IO20 || interruptNum == PIN_IO19)
+            {
+                MPC.P15PFS.BYTE = 0U;
+            }
+            if (interruptNum == PIN_IO49)
+            {
+                MPC.PD5PFS.BYTE = 0U;
+            }
+            if (interruptNum == PIN_IO56)
+            {
+                MPC.PE5PFS.BYTE = 0U;
+            }
+            *GET_ADR_IPR(IRQ5) = 0U;
+            *GET_ADR_IR(IRQ5) &= ~BIT_00;
+            break;
+
+        // IRQ6 -------------------------------------------------------------------/
+        case PIN_IO42:
+        case PIN_IO50:
+        case PIN_IO57:
+            *GET_ADR_IER(IRQ6) &= ~BIT_06;
+            if (interruptNum == PIN_IO42)
+            {
+                MPC.P16PFS.BYTE = 0U;
+            }
+            if (interruptNum == PIN_IO50)
+            {
+                MPC.PD6PFS.BYTE = 0U;
+            }
+            if (interruptNum == PIN_IO57)
+            {
+                MPC.PE6PFS.BYTE = 0U;
+            }
+            *GET_ADR_IPR(IRQ6) = 0U;
+            *GET_ADR_IR(IRQ6) &= ~BIT_00;
+            break;
+
+        // IRQ7 -------------------------------------------------------------------/
+        case PIN_IO43:
+        case PIN_IO51:
+        case PIN_IO58:
+            *GET_ADR_IER(IRQ7) &= ~BIT_07;
+            if (interruptNum == PIN_IO43)
+            {
+                MPC.P17PFS.BYTE = 0U;
+            }
+            if (interruptNum == PIN_IO51)
+            {
+                MPC.PD7PFS.BYTE = 0U;
+            }
+            if (interruptNum == PIN_IO58)
+            {
+                MPC.PE7PFS.BYTE = 0U;
+            }
+            *GET_ADR_IPR(IRQ7) = 0U;
+            *GET_ADR_IR(IRQ7) &= ~BIT_00;
+            break;
+
+        // IRQ8 -------------------------------------------------------------------/
+        case PIN_IO0:
+            *GET_ADR_IER(IRQ8) &= ~BIT_00;
+            MPC.P20PFS.BYTE = 0U;
+            *GET_ADR_IPR(IRQ8) = 0U;
+            *GET_ADR_IR(IRQ8) &= ~BIT_00;
+            break;
+
+        // IRQ9 -------------------------------------------------------------------/
+        case PIN_IO1:
+            *GET_ADR_IER(IRQ9) &= ~BIT_01;
+            MPC.P21PFS.BYTE = 0U;
+            *GET_ADR_IPR(IRQ9) = 0U;
+            *GET_ADR_IR(IRQ9) &= ~BIT_00;
+            break;
+
+        // IRQ10 ------------------------------------------------------------------/
+        case PIN_IO6:  // Wired to IO25
+        case PIN_IO25:
+            *GET_ADR_IER(IRQ10) &= ~BIT_02;
+            MPC.P55PFS.BYTE = 0U;
+            *GET_ADR_IPR(IRQ10) = 0U;
+            *GET_ADR_IR(IRQ10) &= ~BIT_00;
+            break;
+
+        // IRQ11 ------------------------------------------------------------------/
+        // No mapping available for the Sakura.
+
+        // IRQ12 ------------------------------------------------------------------/
+        case PIN_IO3:
+            *GET_ADR_IER(IRQ12) &= ~BIT_04;
+            MPC.PC1PFS.BYTE = 0U;
+            *GET_ADR_IPR(IRQ12) = 0U;
+            *GET_ADR_IR(IRQ12) &= ~BIT_00;
+            break;
+
+        // IRQ13 ------------------------------------------------------------------/
+        case PIN_IO9:
+        case PIN_IO11:
+            *GET_ADR_IER(IRQ13) &= ~BIT_05;
+            if (interruptNum == PIN_IO9)
+            {
+                MPC.P05PFS.BYTE = 0U;
+            }
+            if (interruptNum == PIN_IO11)
+            {
+                MPC.PC6PFS.BYTE = 0U;
+            }
+            *GET_ADR_IPR(IRQ13) = 0U;
+            *GET_ADR_IR(IRQ13) &= ~BIT_00;
+            break;
+
+        // IRQ14 ------------------------------------------------------------------/
+        case PIN_IO2:
+        case PIN_IO12:
+            *GET_ADR_IER(IRQ14) &= ~BIT_06;
+            if (interruptNum == PIN_IO2)
+            {
+                MPC.PC0PFS.BYTE = 0U;
+            }
+            if (interruptNum == PIN_IO12)
+            {
+                MPC.PC7PFS.BYTE = 0U;
+            }
+            *GET_ADR_IPR(IRQ14) = 0U;
+            *GET_ADR_IR(IRQ14) &= ~BIT_00;
+            break;
+
+        // IRQ15 ------------------------------------------------------------------/
+        case PIN_IO59:
+            *GET_ADR_IER(IRQ15) &= ~BIT_07;
+            MPC.PC1PFS.BYTE = 0U;
+            *GET_ADR_IPR(IRQ15) = 0U;
+            *GET_ADR_IR(IRQ15) &= ~BIT_00;
+            break;
+
+        // NMI --------------------------------------------------------------------/
+        case PIN_IO31:
+            // Cannot be disabled.
+            break;
+
+        // ------------------------------------------------------------------------/
+        default:
+            break;
+#endif
     } // switch : pin.
 
   }
@@ -930,7 +1492,7 @@ ISR(INT7_vect) {
 
 #else
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 ISR(INT0_vect) {
   if(intFunc[EXTERNAL_INT_0])
     intFunc[EXTERNAL_INT_0]();
@@ -942,7 +1504,7 @@ ISR(INT1_vect) {
 }
 #else
 
- //GRSAKURA
+ //__RX600__
 // INTERRUPT HANDLERS *********************************************************/
 // NMI and IRQ interrupt handlers. Note that all of these are declared in
 // interrupts_handlers.h but defined here for clarity.
@@ -950,6 +1512,208 @@ ISR(INT1_vect) {
 /**
  * NMI interrupt handler.
  */
+#ifdef GRSAKURA
+void NonMaskableInterrupt(void)
+{
+    if (intFunc[PIN_IO54] != NULL)
+    {
+        intFunc[PIN_IO54]();
+    }
+}
+
+/**
+ * IRQ0 interrupt handler.
+ */
+void INT_Excep_ICU_IRQ0(void)
+{
+    if (intFunc[PIN_IO36] != NULL)
+    {
+        intFunc[PIN_IO36]();
+    }
+}
+
+/**
+ * IRQ1 interrupt handler.
+ */
+void INT_Excep_ICU_IRQ1(void)
+{
+    if (intFunc[PIN_IO37] != NULL)
+    {
+        intFunc[PIN_IO37]();
+    }
+}
+
+/**
+ * IRQ2 interrupt handler.
+ */
+void INT_Excep_ICU_IRQ2(void)
+{
+    if (intFunc[PIN_IO30] != NULL)
+    {
+        intFunc[PIN_IO30]();
+    } else if (intFunc[PIN_IO38] != NULL){
+        intFunc[PIN_IO38]();
+    }
+}
+
+/**
+ * IRQ3 interrupt handler.
+ */
+void INT_Excep_ICU_IRQ3(void)
+{
+    if (intFunc[PIN_IO31] != NULL)
+    {
+        intFunc[PIN_IO31]();
+    } else if (intFunc[PIN_IO39] != NULL){
+        intFunc[PIN_IO39]();
+    }
+}
+
+/**
+ * IRQ4 interrupt handler.
+ */
+void INT_Excep_ICU_IRQ4(void)
+{
+    if (intFunc[PIN_IO32] != NULL)
+    {
+        intFunc[PIN_IO32]();
+    } else if (intFunc[PIN_IO40] != NULL){
+        intFunc[PIN_IO40]();
+    }
+}
+
+/**
+ * IRQ5 interrupt handler.
+ */
+void INT_Excep_ICU_IRQ5(void)
+{
+    if (intFunc[PIN_IO33] != NULL)
+    {
+        intFunc[PIN_IO33]();
+    } else if (intFunc[PIN_IO41] != NULL){
+        intFunc[PIN_IO41]();
+    } else if (intFunc[PIN_IO49] != NULL){
+        intFunc[PIN_IO49]();
+    }
+}
+
+/**
+ * IRQ6 interrupt handler.
+ */
+void INT_Excep_ICU_IRQ6(void)
+{
+    if (intFunc[PIN_IO34] != NULL)
+    {
+        intFunc[PIN_IO34]();
+    } else if (intFunc[PIN_IO42] != NULL){
+        intFunc[PIN_IO42]();
+    } else if (intFunc[PIN_IO50] != NULL){
+        intFunc[PIN_IO50]();
+    }
+}
+
+/**
+ * IRQ7 interrupt handler.
+ */
+void INT_Excep_ICU_IRQ7(void)
+{
+    if (intFunc[PIN_IO35] != NULL)
+    {
+        intFunc[PIN_IO35]();
+    } else if (intFunc[PIN_IO43] != NULL){
+        intFunc[PIN_IO43]();
+    } else if (intFunc[PIN_IO51] != NULL){
+        intFunc[PIN_IO51]();
+    }
+}
+
+/**
+ * IRQ8 interrupt handler.
+ */
+void INT_Excep_ICU_IRQ8(void)
+{
+    if (intFunc[PIN_IO1] != NULL)
+    {
+        intFunc[PIN_IO1]();
+    }
+}
+/**
+ * IRQ9 interrupt handler.
+ */
+void INT_Excep_ICU_IRQ9(void)
+{
+    if (intFunc[PIN_IO0] != NULL)
+    {
+        intFunc[PIN_IO0]();
+    }
+}
+
+/**
+ * IRQ10 interrupt handler.
+ */
+void INT_Excep_ICU_IRQ10(void)
+{
+    if (intFunc[PIN_IO29] != NULL)
+    {
+        intFunc[PIN_IO29]();
+    }
+}
+
+/**
+ * IRQ11 interrupt handler.
+ */
+void INT_Excep_ICU_IRQ11(void)
+{
+}
+
+/**
+ * IRQ12 interrupt handler.
+ */
+void INT_Excep_ICU_IRQ12(void)
+{
+    if (intFunc[PIN_IO23] != NULL)
+    {
+        intFunc[PIN_IO23]();
+    }
+}
+
+/**
+ * IRQ13 interrupt handler.
+ */
+void INT_Excep_ICU_IRQ13(void)
+{
+    if (intFunc[PIN_IO53] != NULL)
+    {
+        intFunc[PIN_IO53]();
+    } else if (intFunc[PIN_IO11] != NULL){
+        intFunc[PIN_IO11]();
+    }
+}
+
+/**
+ * IRQ14 interrupt handler.
+ */
+void INT_Excep_ICU_IRQ14(void)
+{
+    if (intFunc[PIN_IO22] != NULL)
+    {
+        intFunc[PIN_IO22]();
+    } else if (intFunc[PIN_IO12] != NULL){
+        intFunc[PIN_IO12]();
+    }
+}
+
+/**
+ * IRQ15 interrupt handler.
+ */
+void INT_Excep_ICU_IRQ15(void)
+{
+    if (intFunc[PIN_IO52] != NULL)
+    {
+        intFunc[PIN_IO52]();
+    }
+}
+#elif defined(GRCITRUS)
 void NonMaskableInterrupt(void)
 {
     if (intFunc[PIN_IO31] != NULL)
@@ -1155,7 +1919,8 @@ void INT_Excep_ICU_IRQ15(void)
     }
 }
 
-#endif /*GRSAKURA*/
+#endif
+#endif /*__RX600__*/
 
 #if defined(EICRA) && defined(ISC20)
 ISR(INT2_vect) {

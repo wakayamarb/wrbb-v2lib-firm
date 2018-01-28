@@ -30,10 +30,10 @@
 
 #include <avr/pgmspace.h>
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 #include <avr/interrupt.h>
 #include <avr/io.h>
-#else /*GRSAKURA*/
+#else /*__RX600__*/
 #define F_CPU (96 * 1000 * 1000)
 #define PCLK  (48 * 1000 * 1000)
 #define _BV(bit) (1 << (bit))
@@ -41,8 +41,8 @@
 #include "rx63n/specific_instructions.h"
 #include "Types.h"
 #include "binary.h"
-#include "utilities.h"
-#endif/*GRSAKURA*/
+#include "Utilities.h"
+#endif/*__RX600__*/
 
 #ifdef __cplusplus
 extern "C"{
@@ -56,17 +56,17 @@ void yield(void);
 #define INPUT 0x0
 #define OUTPUT 0x1
 #define INPUT_PULLUP 0x2
-#ifdef GRSAKURA
+#ifdef __RX600__
 #define OUTPUT_HIGH 0x3
 #define OUTPUT_OPENDRAIN 0x4
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 #define true 0x1
 #define false 0x0
-#else /*GRSAKURA*/
+#else /*__RX600__*/
 #include <stdbool.h>
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
 #define PI 3.1415926535897932384626433832795
 #define HALF_PI 1.5707963267948966192313216916398
@@ -85,12 +85,12 @@ void yield(void);
 #define FALLING 2
 #define RISING 3
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 #if defined(__AVR_ATtiny24__) || defined(__AVR_ATtiny44__) || defined(__AVR_ATtiny84__) || defined(__AVR_ATtiny25__) || defined(__AVR_ATtiny45__) || defined(__AVR_ATtiny85__)
 #define DEFAULT 0
 #define EXTERNAL 1
 #define INTERNAL 2
-#else
+#else  
 #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__) || defined(__AVR_ATmega1284__) || defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega644__) || defined(__AVR_ATmega644A__) || defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644PA__)
 #define INTERNAL1V1 2
 #define INTERNAL2V56 3
@@ -100,12 +100,12 @@ void yield(void);
 #define DEFAULT 1
 #define EXTERNAL 0
 #endif
-#else /*GRSAKURA*/
+#else /*__RX600__*/
 #define DEFAULT 0
 #define INTERNAL 1
 #define EXTERNAL 2
 #define RAW12BIT 3
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
 // undefine stdlib's abs if encountered
 #ifdef abs
@@ -145,10 +145,10 @@ typedef unsigned int word;
 
 #define bit(b) (1UL << (b))
 
-#ifndef GRSAKURA //defined in Types.h
+#ifndef __RX600__ //defined in Types.h
 typedef uint8_t boolean;
 typedef uint8_t byte;
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
 void init(void);
 
@@ -158,10 +158,12 @@ int digitalRead(uint8_t);
 int analogRead(uint8_t);
 void analogReference(uint8_t mode);
 void analogWrite(uint8_t, int);
-#ifdef GRSAKURA
+#ifdef __RX600__
 void analogWriteDAC(int port, int val);
 void analogReadClock(uint8_t clock);
-#endif/*GRSAKURA*/
+void analogWriteFrequency(uint32_t);
+void analogWriteClock(uint8_t, uint32_t);
+#endif/*__RX600__*/
 
 unsigned long millis(void);
 unsigned long micros(void);
@@ -185,42 +187,42 @@ void loop(void);
 
 // On the ATmega1280, the addresses of some of the port registers are
 // greater than 255, so we can't store them in uint8_t's.
-#ifndef GRSAKURA
+#ifndef __RX600__
 extern const uint16_t PROGMEM port_to_mode_PGM[];
 extern const uint16_t PROGMEM port_to_input_PGM[];
 extern const uint16_t PROGMEM port_to_output_PGM[];
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
 extern const uint8_t PROGMEM digital_pin_to_port_PGM[];
-#ifndef GRSAKURA
+#ifndef __RX600__
 // extern const uint8_t PROGMEM digital_pin_to_bit_PGM[];
-#else /*GRSAKURA*/
+#else /*__RX600__*/
 extern const uint8_t PROGMEM digital_pin_to_bit_PGM[];
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 extern const uint8_t PROGMEM digital_pin_to_bit_mask_PGM[];
 extern const uint8_t PROGMEM digital_pin_to_timer_PGM[];
 
 // Get the bit location within the hardware port of the given virtual pin.
 // This comes from the pins_*.c file for the active board configuration.
-//
+// 
 // These perform slightly better as macros compared to inline functions
 //
 #define digitalPinToPort(P) ( pgm_read_byte( digital_pin_to_port_PGM + (P) ) )
 #define digitalPinToBitMask(P) ( pgm_read_byte( digital_pin_to_bit_mask_PGM + (P) ) )
-#ifdef GRSAKURA
+#ifdef __RX600__
 #define digitalPinToBit(P) ( pgm_read_byte( digital_pin_to_bit_PGM + (P) ) )
-#endif/*GRSAKURA*/
-#ifndef GRSAKURA
+#endif/*__RX600__*/
+#ifndef __RX600__
 #define digitalPinToTimer(P) ( pgm_read_byte( digital_pin_to_timer_PGM + (P) ) )
-#else /*GRSAKURA*/
+#else /*__RX600__*/
 #define digitalPinToTimer(P) (NOT_ON_TIMER)
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 #define analogInPinToBit(P) (P)
-#ifndef GRSAKURA
+#ifndef __RX600__
 #define portOutputRegister(P) ( (volatile uint8_t *)( pgm_read_word( port_to_output_PGM + (P))) )
 #define portInputRegister(P) ( (volatile uint8_t *)( pgm_read_word( port_to_input_PGM + (P))) )
 #define portModeRegister(P) ( (volatile uint8_t *)( pgm_read_word( port_to_mode_PGM + (P))) )
-#else /*GRSAKURA*/
+#else /*__RX600__*/
 #define portOutputRegister(P) ( (volatile uint8_t *)( ( &PORT0.PODR + (P))) )
 #define portInputRegister(P) ( (volatile uint8_t*)( ( &PORT0.PIDR + (P))) )
 #define portModeRegister(P) ( (volatile uint8_t*)( ( &PORT0.PMR  + (P))) )
@@ -228,20 +230,20 @@ extern const uint8_t PROGMEM digital_pin_to_timer_PGM[];
 #define portOpendrainRegister(P, B) ( (B) <= 3 ? ((volatile uint8_t*)( ( &PORT0.ODR0 + 2 * (P)))) : ((volatile uint8_t*)( ( &PORT0.ODR1 + 2 * (P)))) )
 #define portPullupControlRegister(P) ( (volatile uint8_t*)( ( &PORT0.PCR  + (P))) )
 #define portDriveSpecControlRegister(P) ( (volatile uint8_t*)( ( &PORT0.DSCR + (P))) )
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 #define NOT_A_PIN 0
 #define NOT_A_PORT 0
-#else /*GRSAKURA*/
+#else /*__RX600__*/
 #define NOT_A_PIN 0xff
 #define NOT_A_PORT 0xff
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
 #define NOT_AN_INTERRUPT -1
 
 #ifdef ARDUINO_MAIN
-#ifndef GRSAKURA
+#ifndef __RX600__
 #define PA 1
 #define PB 2
 #define PC 3
@@ -253,10 +255,10 @@ extern const uint8_t PROGMEM digital_pin_to_timer_PGM[];
 #define PJ 10
 #define PK 11
 #define PL 12
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 #endif
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 #define NOT_ON_TIMER 0
 #define TIMER0A 1
 #define TIMER0B 2
@@ -272,13 +274,13 @@ extern const uint8_t PROGMEM digital_pin_to_timer_PGM[];
 #define TIMER4A 11
 #define TIMER4B 12
 #define TIMER4C 13
-#define TIMER4D 14
+#define TIMER4D 14	
 #define TIMER5A 15
 #define TIMER5B 16
 #define TIMER5C 17
-#else /*GRSAKURA*/
+#else /*__RX600__*/
 #define NOT_ON_TIMER 0
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
 #ifdef __cplusplus
 } // extern "C"
@@ -288,9 +290,9 @@ extern const uint8_t PROGMEM digital_pin_to_timer_PGM[];
 #include "WCharacter.h"
 #include "WString.h"
 #include "HardwareSerial.h"
-#ifndef GRSAKURA
+#ifndef __RX600__
 #include "USBAPI.h"
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 #if defined(HAVE_HWSERIAL0) && defined(HAVE_CDCSERIAL)
 #error "Targets with both UART0 and CDC serial not supported"
 #endif

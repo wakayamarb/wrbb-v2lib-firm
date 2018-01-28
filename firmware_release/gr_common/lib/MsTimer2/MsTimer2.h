@@ -1,7 +1,7 @@
 #ifndef MsTimer2_h
 #define MsTimer2_h
 
-#if defined (GRSAKURA)
+#if defined (__RX600__)
 #define F_CPU 48000000 //PCLK is 48MHz, CPU is operating at 96MHz
 #else
 #include <avr/interrupt.h>

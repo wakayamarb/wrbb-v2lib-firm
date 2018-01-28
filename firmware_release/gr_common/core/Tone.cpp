@@ -32,12 +32,12 @@ Version Modified By Date     Comments
 0008    S Kanemoto  12/06/22 Fixed for Leonardo by @maris_HY
 *************************************************/
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
-#else /*GRSAKURA*/
+#else /*__RX600__*/
 #include <rx63n/util.h>
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 #include "Arduino.h"
 #include "pins_arduino.h"
 
@@ -90,7 +90,7 @@ volatile uint8_t timer5_pin_mask;
 #endif
 
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
 
 #define AVAILABLE_TONE_PINS 1
@@ -125,16 +125,16 @@ const uint8_t PROGMEM tone_pin_to_timer_PGM[] = { 2 /*, 1, 0 */ };
 static uint8_t tone_pins[AVAILABLE_TONE_PINS] = { 255 /*, 255, 255 */ };
 
 #endif
-#else /*GRSAKURA*/
+#else /*__RX600__*/
 #define AVAILABLE_TONE_PINS 1
 
 const uint8_t PROGMEM tone_pin_to_timer_PGM[] = { 3 /*, 1 */ };
 //static uint8_t tone_pins[AVAILABLE_TONE_PINS] = { 255 /*, 255 */ }; //comment out to remove warning
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
 
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 static int8_t toneBegin(uint8_t _pin)
 {
   int8_t _timer = -1;
@@ -245,7 +245,7 @@ static int8_t toneBegin(uint8_t _pin)
 
   return _timer;
 }
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
 
 
@@ -253,7 +253,7 @@ static int8_t toneBegin(uint8_t _pin)
 
 void tone(uint8_t _pin, unsigned int frequency, unsigned long duration)
 {
-#ifndef GRSAKURA
+#ifndef __RX600__
   uint8_t prescalarbits = 0b001;
   long toggle_count = 0;
   uint32_t ocr = 0;
@@ -429,7 +429,7 @@ void tone(uint8_t _pin, unsigned int frequency, unsigned long duration)
 
     }
   }
-#else /*GRSAKURA*/
+#else /*__RX600__*/
 	if (getPinMode(_pin) != PinModeTone) {
 		setPinMode(_pin, PinModeTone);
 	}
@@ -448,10 +448,10 @@ void tone(uint8_t _pin, unsigned int frequency, unsigned long duration)
 		setPinModeSoftwarePWM(_pin, period, term, length);
 	}
 #endif
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 }
 
-#ifdef GRSAKURA
+#ifdef __RX600__
 /*
 void setPinModeTone(int pin)
 {
@@ -470,7 +470,7 @@ void resetPinModeTone(int pin)
 	}
 #endif
 }
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
 
 // XXX: this function only works properly for timer 2 (the only one we use
@@ -478,7 +478,7 @@ void resetPinModeTone(int pin)
 // proper PWM functionality for the timer.
 void disableTimer(uint8_t _timer)
 {
-#ifndef GRSAKURA
+#ifndef __RX600__
   switch (_timer)
   {
     case 0:
@@ -528,14 +528,14 @@ void disableTimer(uint8_t _timer)
       break;
 #endif
   }
-#else /*GRSAKURA*/
-#endif/*GRSAKURA*/
+#else /*__RX600__*/
+#endif/*__RX600__*/
 }
 
 
 void noTone(uint8_t _pin)
 {
-#ifndef GRSAKURA
+#ifndef __RX600__
   int8_t _timer = -1;
   
   for (int i = 0; i < AVAILABLE_TONE_PINS; i++) {
@@ -546,14 +546,14 @@ void noTone(uint8_t _pin)
   }
   
   disableTimer(_timer);
-#else /*GRSAKURA*/
+#else /*__RX600__*/
   pinMode(_pin, OUTPUT);
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
   digitalWrite(_pin, 0);
 }
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 #ifdef USE_TIMER0
 ISR(TIMER0_COMPA_vect)
 {
@@ -677,5 +677,5 @@ ISR(TIMER5_COMPA_vect)
   }
 }
 #endif
-#else /*GRSAKURA*/
-#endif/*GRSAKURA*/
+#else /*__RX600__*/
+#endif/*__RX600__*/

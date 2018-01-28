@@ -33,7 +33,7 @@
  */
 
 #include <MsTimer2.h>
-#if defined (GRSAKURA)
+#if defined (__RX600__)
 #include "rx63n/iodefine.h"
 #include "rx63n/interrupt_handlers.h"
 #endif
@@ -104,7 +104,7 @@ void MsTimer2::set(unsigned long ms, void (*f)()) {
         TCCR2 &= ~((1<<CS21) | (1<<CS20));
         prescaler = 256.0;
     }
-#elif defined (GRSAKURA)
+#elif defined (__RX600__)
 //    SYSTEM.PRCR.WORD = 0xA503;
     // Cancel any module stops for the TPUB channels and re-lock.
     SYSTEM.MSTPCRA.BIT.MSTPA13 = 0U;
@@ -135,7 +135,7 @@ void MsTimer2::set(unsigned long ms, void (*f)()) {
     TPU1.TIER.BIT.TGIEA = 1U;
 
 #endif
-#if defined (GRSAKURA)
+#if defined (__RX600__)
     tcnt2 = (int)((float)F_CPU * 0.001 / prescaler);
 #else
     tcnt2 = 256 - (int)((float)F_CPU * 0.001 / prescaler);
@@ -161,7 +161,7 @@ void MsTimer2::start() {
 #elif defined (__AVR_ATmega8__)
     TCNT2 = tcnt2;
     TIMSK |= (1<<TOIE2);
-#elif defined (GRSAKURA)
+#elif defined (__RX600__)
     // Set the period.
     TPU1.TGRA = tcnt2 - 1;
     // Start the timer.
@@ -177,7 +177,7 @@ void MsTimer2::stop() {
     TIMSK &= ~(1<<TOIE2);
 #elif defined (__AVR_ATmega8__)
     TIMSK &= ~(1<<TOIE2);
-#elif defined (GRSAKURA)
+#elif defined (__RX600__)
     // Stop the timer.
     TPUA.TSTR.BIT.CST1 = 0U;
 #endif
@@ -194,7 +194,7 @@ void MsTimer2::_overflow() {
     }
 }
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 ISR(TIMER2_OVF_vect) {
 #if defined (__AVR_ATmega168__) || defined (__AVR_ATmega48__) || defined (__AVR_ATmega88__) || defined (__AVR_ATmega328P__) || (__AVR_ATmega1280__)
     TCNT2 = MsTimer2::tcnt2;

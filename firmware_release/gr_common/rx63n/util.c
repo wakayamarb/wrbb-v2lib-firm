@@ -395,6 +395,104 @@ void resetPinMode(int pin)
     }
 }
 
+typedef enum {
+#ifdef GRSAKURA
+    TimerTypeTPU3, // PIN_IO0
+    TimerTypeMTU1, // PIN_IO1
+//  TimerTypeTPU3, // PIN_IO2
+//  TimerTypeTPU3, // PIN_IO3
+    TimerTypeMTU4, // PIN_IO4
+    TimerTypeTPU4, // PIN_IO5
+    TimerTypeTPU0, // PIN_IO6
+//  TimerTypeTPU0, // PIN_IO7
+    TimerTypeMTU3, // PIN_IO11
+    TimerTypeNum,
+    TimerTypeErr = -1,
+#elif defined(GRCITRUS)
+    TimerTypeTPU3,
+    TimerTypeMTU1,
+    TimerTypeMTU4,
+    TimerTypeTPU4,
+    TimerTypeTPU0,
+    TimerTypeMTU3,
+    TimerTypeNum,
+    TimerTypeErr = -1,
+#endif
+} TimerType;
+
+static uint8_t pwmClockTpsc[TimerTypeNum] = {
+    0b010, 0b010, 0b010, 0b010, 0b010, 0b010,
+};
+
+static float pwmClockMultiple[TimerTypeNum] = {
+    HardwarePWMFreq / SoftwarePWMFreq,
+    HardwarePWMFreq / SoftwarePWMFreq,
+    HardwarePWMFreq / SoftwarePWMFreq,
+    HardwarePWMFreq / SoftwarePWMFreq,
+    HardwarePWMFreq / SoftwarePWMFreq,
+    HardwarePWMFreq / SoftwarePWMFreq,
+};
+
+static TimerType pin2TimerType(int pin)
+{
+    static const TimerType t[] = {
+#ifdef GRSAKURA
+        TimerTypeTPU3, // PIN_IO0
+        TimerTypeMTU1, // PIN_IO1
+        TimerTypeTPU3, // PIN_IO2
+        TimerTypeTPU3, // PIN_IO3
+        TimerTypeMTU4, // PIN_IO4
+        TimerTypeTPU4, // PIN_IO5
+        TimerTypeTPU0, // PIN_IO6
+        TimerTypeTPU0, // PIN_IO7
+        TimerTypeErr,  // PIN_IO8
+        TimerTypeErr,  // PIN_IO9
+        TimerTypeErr,  // PIN_IO10
+        TimerTypeMTU3, // PIN_IO11
+#elif defined(GRCITRUS)
+        TimerTypeMTU1, // PIN_IO0
+        TimerTypeTPU3, // PIN_IO1
+        TimerTypeErr,  // PIN_IO2
+        TimerTypeErr,  // PIN_IO3
+        TimerTypeErr,  // PIN_IO4
+        TimerTypeTPU4, // PIN_IO5
+        TimerTypeErr,  // PIN_IO6
+        TimerTypeTPU0, // PIN_IO7
+        TimerTypeTPU0, // PIN_IO8
+        TimerTypeErr,  // PIN_IO9
+        TimerTypeErr,  // PIN_IO10
+        TimerTypeMTU1, // PIN_IO11
+#endif
+    };
+    return (pin >= 0 && pin < (int)(sizeof(t) / sizeof(TimerType))) ? t[pin] : TimerTypeErr;
+}
+
+void setAnalogWriteClock(int pin, uint32_t clock)
+{
+    TimerType timer = pin2TimerType(pin);
+    if (timer != TimerTypeErr) {
+        if (clock >= PCLK / 255) {
+            pwmClockMultiple[timer] = (float)PCLK / clock;
+            pwmClockTpsc[timer] = 0b000;
+        } else if (clock >= PCLK / 4 / 255) {
+            pwmClockMultiple[timer] = (float)PCLK / 4 / clock;
+            pwmClockTpsc[timer] = 0b001;
+        } else if (clock >= PCLK / 16 / 255) {
+            pwmClockMultiple[timer] = (float)PCLK / 16 / clock;
+            pwmClockTpsc[timer] = 0b010;
+        } else {
+            pwmClockMultiple[timer] = (float)PCLK / 64 / clock;
+            pwmClockTpsc[timer] = 0b011;
+        }
+    }
+}
+
+float getPWMClockMultiple(int pin)
+{
+    TimerType timer = pin2TimerType(pin);
+    return (timer != TimerTypeErr) ? pwmClockMultiple[timer] : 1.0f;
+}
+
 void setPinModeHardwarePWM(int pin, int period, int term, unsigned long length)
 {
     if (pin >= 0 && pin < NUM_DIGITAL_PINS) {
@@ -403,14 +501,125 @@ void setPinModeHardwarePWM(int pin, int period, int term, unsigned long length)
             return;
         }
         int bit = digitalPinToBit(pin);
-        int tpsc = 0b10; // PCLK/16
         switch (pin) {
+#ifdef GRSAKURA
+        case PIN_IO0:
+            startModule(MstpIdTPU3);
+            assignPinFunction(pin, 0b00011, 0, 0);
+            BSET(portModeRegister(port), bit);
+            TPUA.TSTR.BIT.CST3 = 0;
+            TPU3.TCR.BIT.TPSC = pwmClockTpsc[TimerTypeTPU3];
+            TPU3.TCR.BIT.CCLR = 0b010;
+            TPU3.TCR.BIT.CKEG = 0b01;
+            TPU3.TMDR.BIT.MD = 0b0011;
+            changePinModeHardwarePWM(pin, period, term, length);
+            TPUA.TSTR.BIT.CST3 = 1;
+            break;
+        case PIN_IO1:
+            startModule(MstpIdMTU1);
+            assignPinFunction(pin, 0b00001, 0, 0);
+            BSET(portModeRegister(port), bit);
+            MTU.TSTR.BIT.CST1 = 0;
+            MTU1.TCR.BIT.TPSC = pwmClockTpsc[TimerTypeMTU1];
+            MTU1.TCR.BIT.CCLR = 0b001;
+            MTU1.TCR.BIT.CKEG = 0b01;
+            MTU1.TMDR.BIT.MD = 0b0010;
+            changePinModeHardwarePWM(pin, period, term, length);
+            MTU.TSTR.BIT.CST1 = 1;
+            break;
+        case PIN_IO2:
+            startModule(MstpIdTPU3);
+            assignPinFunction(pin, 0b00011, 0, 0);
+            BSET(portModeRegister(port), bit);
+            TPUA.TSTR.BIT.CST3 = 0;
+            TPU3.TCR.BIT.TPSC = pwmClockTpsc[TimerTypeTPU3];
+            TPU3.TCR.BIT.CCLR = 0b010;
+            TPU3.TCR.BIT.CKEG = 0b01;
+            TPU3.TMDR.BIT.MD = 0b0011;
+            changePinModeHardwarePWM(pin, period, term, length);
+            TPUA.TSTR.BIT.CST3 = 1;
+            break;
+        case PIN_IO3:
+            startModule(MstpIdTPU3);
+            assignPinFunction(pin, 0b00011, 0, 0);
+            BSET(portModeRegister(port), bit);
+            TPUA.TSTR.BIT.CST3 = 0;
+            TPU3.TCR.BIT.TPSC = pwmClockTpsc[TimerTypeTPU3];
+            TPU3.TCR.BIT.CCLR = 0b010;
+            TPU3.TCR.BIT.CKEG = 0b01;
+            TPU3.TMDR.BIT.MD = 0b0011;
+            changePinModeHardwarePWM(pin, period, term, length);
+            TPUA.TSTR.BIT.CST3 = 1;
+            break;
+        case PIN_IO4:
+            startModule(MstpIdMTU4);
+            assignPinFunction(pin, 0b00001, 0, 0);
+            BSET(portModeRegister(port), bit);
+            MTU.TSTR.BIT.CST4 = 0;
+            MTU.TOER.BIT.OE4A = 1;
+            MTU4.TCR.BIT.TPSC = pwmClockTpsc[TimerTypeMTU4];
+            MTU4.TCR.BIT.CCLR = 0b001;
+            MTU4.TCR.BIT.CKEG = 0b01;
+            MTU4.TMDR.BIT.MD = 0b0010;
+            changePinModeHardwarePWM(pin, period, term, length);
+            MTU.TSTR.BIT.CST4 = 1;
+            break;
+        case PIN_IO5:
+            // TIOCA4
+            startModule(MstpIdTPU4);
+            assignPinFunction(pin, 0b00011, 0, 0);
+            BSET(portModeRegister(port), bit);
+            TPUA.TSTR.BIT.CST4 = 0;
+            TPU4.TCR.BIT.TPSC = pwmClockTpsc[TimerTypeTPU4];
+            TPU4.TCR.BIT.CCLR = 0b001;
+            TPU4.TCR.BIT.CKEG = 0b01;
+            TPU4.TMDR.BIT.MD = 0b0010;
+            changePinModeHardwarePWM(pin, period, term, length);
+            TPUA.TSTR.BIT.CST4 = 1;
+            break;
+        case PIN_IO6:
+            startModule(MstpIdTPU0);
+            assignPinFunction(pin, 0b00011, 0, 0);
+            BSET(portModeRegister(port), bit);
+            TPUA.TSTR.BIT.CST0 = 0;
+            TPU0.TCR.BIT.TPSC = pwmClockTpsc[TimerTypeTPU0];
+            TPU0.TCR.BIT.CCLR = 0b001;
+            TPU0.TCR.BIT.CKEG = 0b01;
+            TPU0.TMDR.BIT.MD = 0b0011;
+            changePinModeHardwarePWM(pin, period, term, length);
+            TPUA.TSTR.BIT.CST0 = 1;
+            break;
+        case PIN_IO7:
+            startModule(MstpIdTPU0);
+            assignPinFunction(pin, 0b00011, 0, 0);
+            BSET(portModeRegister(port), bit);
+            TPUA.TSTR.BIT.CST0 = 0;
+            TPU0.TCR.BIT.TPSC = pwmClockTpsc[TimerTypeTPU0];
+            TPU0.TCR.BIT.CCLR = 0b001;
+            TPU0.TCR.BIT.CKEG = 0b01;
+            TPU0.TMDR.BIT.MD = 0b0011;
+            changePinModeHardwarePWM(pin, period, term, length);
+            TPUA.TSTR.BIT.CST0 = 1;
+            break;
+        case PIN_IO11:
+            startModule(MstpIdMTU3);
+            assignPinFunction(pin, 0b00001, 0, 0);
+            BSET(portModeRegister(port), bit);
+            MTU.TSTR.BIT.CST3 = 0;
+            MTU3.TCR.BIT.TPSC = pwmClockTpsc[TimerTypeMTU3];
+            MTU3.TCR.BIT.CCLR = 0b101;
+            MTU3.TCR.BIT.CKEG = 0b01;
+            MTU3.TMDR.BIT.MD = 0b0010;
+            changePinModeHardwarePWM(pin, period, term, length);
+            MTU.TSTR.BIT.CST3 = 1;
+            break;
+#elif defined(GRCITRUS)
         case PIN_IO1:
             startModule(MstpIdTPU3);
             assignPinFunction(pin, 0b00011, 0, 0);
             BSET(portModeRegister(port), bit);
             TPUA.TSTR.BIT.CST3 = 0;
-            TPU3.TCR.BIT.TPSC = tpsc;
+            TPU3.TCR.BIT.TPSC = pwmClockTpsc[TimerTypeTPU3];
             TPU3.TCR.BIT.CCLR = 0b010;
             TPU3.TCR.BIT.CKEG = 0b01;
             TPU3.TMDR.BIT.MD = 0b0011;
@@ -422,7 +631,7 @@ void setPinModeHardwarePWM(int pin, int period, int term, unsigned long length)
             assignPinFunction(pin, 0b00001, 0, 0);
             BSET(portModeRegister(port), bit);
             MTU.TSTR.BIT.CST1 = 0;
-            MTU1.TCR.BIT.TPSC = tpsc;
+            MTU1.TCR.BIT.TPSC = pwmClockTpsc[TimerTypeMTU1];
             MTU1.TCR.BIT.CCLR = 0b001;
             MTU1.TCR.BIT.CKEG = 0b01;
             MTU1.TMDR.BIT.MD = 0b0010;
@@ -434,7 +643,7 @@ void setPinModeHardwarePWM(int pin, int period, int term, unsigned long length)
             assignPinFunction(pin, 0b00011, 0, 0);
             BSET(portModeRegister(port), bit);
             TPUA.TSTR.BIT.CST3 = 0;
-            TPU3.TCR.BIT.TPSC = tpsc;
+            TPU3.TCR.BIT.TPSC = pwmClockTpsc[TimerTypeTPU3];
             TPU3.TCR.BIT.CCLR = 0b010;
             TPU3.TCR.BIT.CKEG = 0b01;
             TPU3.TMDR.BIT.MD = 0b0011;
@@ -446,7 +655,7 @@ void setPinModeHardwarePWM(int pin, int period, int term, unsigned long length)
             assignPinFunction(pin, 0b00011, 0, 0);
             BSET(portModeRegister(port), bit);
             TPUA.TSTR.BIT.CST3 = 0;
-            TPU3.TCR.BIT.TPSC = tpsc;
+            TPU3.TCR.BIT.TPSC = pwmClockTpsc[TimerTypeTPU3];
             TPU3.TCR.BIT.CCLR = 0b010;
             TPU3.TCR.BIT.CKEG = 0b01;
             TPU3.TMDR.BIT.MD = 0b0011;
@@ -459,7 +668,7 @@ void setPinModeHardwarePWM(int pin, int period, int term, unsigned long length)
             BSET(portModeRegister(port), bit);
             MTU.TSTR.BIT.CST4 = 0;
             MTU.TOER.BIT.OE4A = 1;
-            MTU4.TCR.BIT.TPSC = tpsc;
+            MTU4.TCR.BIT.TPSC = pwmClockTpsc[TimerTypeMTU4];
             MTU4.TCR.BIT.CCLR = 0b001;
             MTU4.TCR.BIT.CKEG = 0b01;
             MTU4.TMDR.BIT.MD = 0b0010;
@@ -475,7 +684,7 @@ void setPinModeHardwarePWM(int pin, int period, int term, unsigned long length)
             bit = digitalPinToBit(pin);
             BSET(portModeRegister(port), bit);
             TPUA.TSTR.BIT.CST4 = 0;
-            TPU4.TCR.BIT.TPSC = tpsc;
+            TPU4.TCR.BIT.TPSC = pwmClockTpsc[TimerTypeTPU4];
             TPU4.TCR.BIT.CCLR = 0b001;
             TPU4.TCR.BIT.CKEG = 0b01;
             TPU4.TMDR.BIT.MD = 0b0010;
@@ -487,7 +696,7 @@ void setPinModeHardwarePWM(int pin, int period, int term, unsigned long length)
             assignPinFunction(pin, 0b00011, 0, 0);
             BSET(portModeRegister(port), bit);
             TPUA.TSTR.BIT.CST0 = 0;
-            TPU0.TCR.BIT.TPSC = tpsc;
+            TPU0.TCR.BIT.TPSC = pwmClockTpsc[TimerTypeTPU0];
             TPU0.TCR.BIT.CCLR = 0b001;
             TPU0.TCR.BIT.CKEG = 0b01;
             TPU0.TMDR.BIT.MD = 0b0011;
@@ -499,7 +708,7 @@ void setPinModeHardwarePWM(int pin, int period, int term, unsigned long length)
             assignPinFunction(pin, 0b00011, 0, 0);
             BSET(portModeRegister(port), bit);
             TPUA.TSTR.BIT.CST0 = 0;
-            TPU0.TCR.BIT.TPSC = tpsc;
+            TPU0.TCR.BIT.TPSC = pwmClockTpsc[TimerTypeTPU0];
             TPU0.TCR.BIT.CCLR = 0b001;
             TPU0.TCR.BIT.CKEG = 0b01;
             TPU0.TMDR.BIT.MD = 0b0011;
@@ -511,13 +720,14 @@ void setPinModeHardwarePWM(int pin, int period, int term, unsigned long length)
             assignPinFunction(pin, 0b00001, 0, 0);
             BSET(portModeRegister(port), bit);
             MTU.TSTR.BIT.CST3 = 0;
-            MTU3.TCR.BIT.TPSC = tpsc;
+            MTU3.TCR.BIT.TPSC = pwmClockTpsc[TimerTypeMTU3];
             MTU3.TCR.BIT.CCLR = 0b101;
             MTU3.TCR.BIT.CKEG = 0b01;
             MTU3.TMDR.BIT.MD = 0b0010;
             changePinModeHardwarePWM(pin, period, term, length);
             MTU.TSTR.BIT.CST3 = 1;
             break;
+#endif
         }
     }
 }
@@ -530,6 +740,117 @@ void changePinModeHardwarePWM(int pin, int period, int term, unsigned long lengt
             return;
         }
         switch (pin) {
+#ifdef GRSAKURA
+        case PIN_IO0:
+            if (term <= 0) {
+                TPU3.TIORH.BIT.IOA = 0b0001;
+                TPU3.TGRA = 0;
+            } else {
+                TPU3.TIORH.BIT.IOA = 0b0101;
+                TPU3.TGRA = term - 1;
+            }
+            TPU3.TIORH.BIT.IOB = 0b0110;
+            TPU3.TGRB = period - 1;
+            break;
+        case PIN_IO1:
+            MTU1.TIOR.BIT.IOB = 0b0001;
+            if (term <= 0) {
+                MTU1.TGRB = 0;
+                MTU1.TIOR.BIT.IOA = 0b0001;
+            } else if (term < period) {
+                MTU1.TGRB = term - 1;
+                MTU1.TIOR.BIT.IOA = 0b0010;
+            } else {
+                MTU1.TGRB = period - 1;
+                MTU1.TIOR.BIT.IOA = 0b0110;
+            }
+            MTU1.TGRA = period - 1;
+            break;
+        case PIN_IO2:
+            if (term <= 0) {
+                TPU3.TIORL.BIT.IOC = 0b0001;
+                TPU3.TGRC = 0;
+            } else {
+                TPU3.TIORL.BIT.IOC = 0b0101;
+                TPU3.TGRC = term - 1;
+            }
+            TPU3.TIORH.BIT.IOB = 0b0110;
+            TPU3.TGRB = period - 1;
+            break;
+        case PIN_IO3:
+            if (term <= 0) {
+                TPU3.TIORL.BIT.IOD = 0b0001;
+                TPU3.TGRD = 0;
+            } else {
+                TPU3.TIORL.BIT.IOD = 0b0101;
+                TPU3.TGRD = term - 1;
+            }
+            TPU3.TIORH.BIT.IOB = 0b0110;
+            TPU3.TGRB = period - 1;
+            break;
+        case PIN_IO4:
+            MTU4.TIORH.BIT.IOB = 0b0001;
+            if (term <= 0) {
+                MTU4.TGRB = 0;
+                MTU4.TIORH.BIT.IOA = 0b0001;
+            } else if (term < period) {
+                MTU4.TGRB = term - 1;
+                MTU4.TIORH.BIT.IOA = 0b0010;
+            } else {
+                MTU4.TGRB = period - 1;
+                MTU4.TIORH.BIT.IOA = 0b0110;
+            }
+            MTU4.TGRA = period - 1;
+            break;
+        case PIN_IO5:
+            // TIOCA4
+            TPU4.TIOR.BIT.IOB = 0b0101;
+            if (term <= 0) {
+                TPU4.TGRB = 0;
+                TPU4.TIOR.BIT.IOA = 0b0001;
+            } else {
+                TPU4.TGRB = term - 1;
+                TPU4.TIOR.BIT.IOA = 0b0110;
+            }
+            TPU4.TGRA = period - 1;
+            break;
+        case PIN_IO6:
+            if (term <= 0) {
+                TPU0.TIORL.BIT.IOC = 0b0001;
+                TPU0.TGRC = 0;
+            } else {
+                TPU0.TIORL.BIT.IOC = 0b0101;
+                TPU0.TGRC = term - 1;
+            }
+            TPU0.TIORH.BIT.IOA = 0b0110;
+            TPU0.TGRA = period - 1;
+            break;
+        case PIN_IO7:
+            if (term <= 0) {
+                TPU0.TIORL.BIT.IOD = 0b0001;
+                TPU0.TGRD = 0;
+            } else {
+                TPU0.TIORL.BIT.IOD = 0b0101;
+                TPU0.TGRD = term - 1;
+            }
+            TPU0.TIORH.BIT.IOA = 0b0110;
+            TPU0.TGRA = period - 1;
+            break;
+        case PIN_IO11:
+            MTU3.TIORL.BIT.IOD = 0b0001;
+            if (term <= 0) {
+                MTU3.TGRD = 0;
+                MTU3.TIORL.BIT.IOC = 0b0001;
+            } else if (term < period) {
+                MTU3.TGRD = term - 1;
+                MTU3.TIORL.BIT.IOC = 0b0010;
+            } else {
+                MTU3.TGRD = period - 1;
+                MTU3.TIORL.BIT.IOC = 0b0110;
+            }
+            MTU3.TGRC = period - 1;
+            break;
+#elif defined(GRCITRUS)
         case PIN_IO1:
             if (term <= 0) {
                 TPU3.TIORH.BIT.IOA = 0b0001;
@@ -639,6 +960,7 @@ void changePinModeHardwarePWM(int pin, int period, int term, unsigned long lengt
             }
             MTU3.TGRC = period - 1;
             break;
+#endif
         }
     }
 }
@@ -651,6 +973,44 @@ void resetPinModeHardwarePWM(int pin)
             return;
         }
         switch (pin) {
+#ifdef GRSAKURA
+        case PIN_IO0:
+            setPinMode(pin, PinModeInput);
+            //stopModule(MstpIdTPU3);
+            break;
+        case PIN_IO1:
+            setPinMode(pin, PinModeInput);
+            //stopModule(MstpIdMTU1);
+            break;
+        case PIN_IO2:
+            setPinMode(pin, PinModeInput);
+            //stopModule(MstpIdTPU3);
+            break;
+        case PIN_IO3:
+            setPinMode(pin, PinModeInput);
+            //stopModule(MstpIdTPU3);
+            break;
+        case PIN_IO4:
+            setPinMode(pin, PinModeInput);
+            //stopModule(MstpIdMTU4);
+            break;
+        case PIN_IO5:
+            setPinMode(pin, PinModeInput);
+            //stopModule(MstpIdTPU4);
+            break;
+        case PIN_IO6:
+            setPinMode(pin, PinModeInput);
+            //stopModule(MstpIdTPU0);
+            break;
+        case PIN_IO7:
+            setPinMode(pin, PinModeInput);
+            //stopModule(MstpIdTPU0);
+            break;
+        case PIN_IO11:
+            setPinMode(pin, PinModeInput);
+            //stopModule(MstpIdMTU1);
+            break;
+#elif defined(GRCITRUS)
         case PIN_IO1:
             setPinMode(pin, PinModeInput);
             //stopModule(MstpIdTPU3);
@@ -688,6 +1048,7 @@ void resetPinModeHardwarePWM(int pin)
             setPinMode(pin, PinModeInput);
             //stopModule(MstpIdMTU1);
             break;
+#endif
         }
     }
 }

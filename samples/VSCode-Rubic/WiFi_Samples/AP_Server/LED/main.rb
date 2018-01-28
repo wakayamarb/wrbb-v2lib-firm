@@ -111,7 +111,7 @@ while(true)do
   
     #headview()
   elsif(res != 0)
-    Usb.println res
+    #Usb.println res
         
     WiFi.send(sesnum, headerbtn)
     WiFi.send(sesnum, bodybtn)

@@ -28,7 +28,7 @@
 #include "wiring_private.h"
 #include "pins_arduino.h"
 
-#ifdef GRSAKURA
+#ifdef __RX600__
 #include "rx63n/util.h"
 
 static void _setPinModeCommon(int pin, PinMode mode)
@@ -123,11 +123,11 @@ void resetPinModeOutputOpenDrain(int pin)
 {
 	_resetPinModeCommon(pin, PinModeOutputOpenDrain);
 }
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
 void pinMode(uint8_t pin, uint8_t mode)
 {
-#ifndef GRSAKURA
+#ifndef __RX600__
 	uint8_t bit = digitalPinToBitMask(pin);
 	uint8_t port = digitalPinToPort(pin);
 	volatile uint8_t *reg, *out;
@@ -156,7 +156,7 @@ void pinMode(uint8_t pin, uint8_t mode)
 		*reg |= bit;
 		SREG = oldSREG;
 	}
-#else /*GRSAKURA*/
+#else /*__RX600__*/
 	switch (mode) {
 	case INPUT:
 		setPinMode(pin, PinModeInput);
@@ -174,7 +174,7 @@ void pinMode(uint8_t pin, uint8_t mode)
 		setPinMode(pin, PinModeOutputOpenDrain);
 		break;
 	}
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 }
 
 // Forcing this inline keeps the callers from having to push their own stuff
@@ -193,7 +193,7 @@ void pinMode(uint8_t pin, uint8_t mode)
 //static inline void turnOffPWM(uint8_t timer)
 static void turnOffPWM(uint8_t timer)
 {
-#ifndef GRSAKURA
+#ifndef __RX600__
 	switch (timer)
 	{
 		#if defined(TCCR1A) && defined(COM1A1)
@@ -250,19 +250,19 @@ static void turnOffPWM(uint8_t timer)
 		case  TIMER5C:  cbi(TCCR5A, COM5C1);    break;
 		#endif
 	}
-#else /*GRSAKURA*/
+#else /*__RX600__*/
 	(void)timer;
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 }
 
 void digitalWrite(uint8_t pin, uint8_t val)
 {
 	uint8_t timer = digitalPinToTimer(pin);
-#ifndef GRSAKURA
+#ifndef __RX600__
 	uint8_t bit = digitalPinToBitMask(pin);
-#else /*GRSAKURA*/
+#else /*__RX600__*/
 	uint8_t bit = digitalPinToBit(pin);
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 	uint8_t port = digitalPinToPort(pin);
 	volatile uint8_t *out;
 
@@ -274,7 +274,7 @@ void digitalWrite(uint8_t pin, uint8_t val)
 
 	out = portOutputRegister(port);
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 	uint8_t oldSREG = SREG;
 	cli();
 
@@ -285,17 +285,17 @@ void digitalWrite(uint8_t pin, uint8_t val)
 	}
 
 	SREG = oldSREG;
-#else /*GRSAKURA*/
-    if (val == LOW) {
-        BCLR(out, bit);
-    } else {
-        BSET(out, bit);
-    }
+#else /*__RX600__*/
 	switch (getPinMode(pin)) {
 	case PinModeOutput:
 	case PinModeOutputHigh:
 	case PinModeOutputOpenDrain:
 	default:
+		if (val == LOW) {
+			BCLR(out, bit);
+		} else {
+			BSET(out, bit);
+		}
 		break;
 	case PinModeInput:
 		if (val != LOW) {
@@ -312,7 +312,7 @@ void digitalWrite(uint8_t pin, uint8_t val)
 		}
 		break;
 	}
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 }
 
 int digitalRead(uint8_t pin)

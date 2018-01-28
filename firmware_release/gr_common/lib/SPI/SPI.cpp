@@ -25,13 +25,13 @@ uint8_t SPIClass::inTransactionFlag = 0;
 
 void SPIClass::begin()
 {
-#ifndef GRSAKURA
+#ifndef __RX600__
   uint8_t sreg = SREG;
 #else
   uint8_t sreg = isNoInterrupts();
 #endif
   noInterrupts(); // Protect from a scheduler and prevent transactionBegin
-#ifndef GRSAKURA
+#ifndef __RX600__
   if (!initialized) {
     // Set SS to high so a connected chip will be "deselected" by default
     uint8_t port = digitalPinToPort(SS);
@@ -86,9 +86,10 @@ void SPIClass::begin()
   MPC.PC6PFS.BIT.PSEL = 0x0d;
   PORTC.PMR.BIT.B7 = 1;
   MPC.PC7PFS.BIT.PSEL = 0x0d;
-  PORTC.PMR.BIT.B4 = 1;
-  MPC.PC4PFS.BIT.PSEL = 0x0d;
-  RSPI0.SPCMD0.BIT.SSLA = 0;
+/* SS is controlled by GPIO */
+//  PORTC.PMR.BIT.B4 = 1;
+//  MPC.PC4PFS.BIT.PSEL = 0x0d;
+//  RSPI0.SPCMD0.BIT.SSLA = 0;
 
   /* Wake RSPI unit from standby mode */
   MSTP(RSPI0) = 0u;
@@ -98,21 +99,21 @@ void SPIClass::begin()
   RSPI0.SSLP.BIT.SSL0P = 0u;
   /* Set SPPCR register */
   RSPI0.SPPCR.BYTE = 0u;
-  /* Set bit rate to 12Mbit/s, by setting SPBR to 0 */
-  RSPI0.SPBR = SPI_CLOCK_DIV4;
+  /* Set bit rate to 4Mbit/s, by setting SPBR to 0 */
+  RSPI0.SPBR = SPI_CLOCK_DIV12;
   /* Set SPDCR register */
   RSPI0.SPDCR.BYTE = 0x20u;
   /* Set RSPI sequence control pointer to SPCMD0 */
   RSPI0.SPSCR.BYTE = 0u;
   /* Set SPCMD0 register (command register 0) */
-  RSPI0.SPCMD0.WORD = 0x1700u; //LSB first, 8bit, SPI MODE0, SSL0(External)
+  RSPI0.SPCMD0.WORD = 0x0700u; //MSB first, 8bit, SPI MODE0, SSL0(External)
 
   RSPI0.SPCR.BIT.SPRIE = 1; // Enable Receive Interrupt Request
   RSPI0.SPCR.BIT.SPE = 1; //Start SPI
 
 #endif
   initialized++; // reference count
-#ifndef GRSAKURA
+#ifndef __RX600__
   SREG = sreg;
 #else
   if (!sreg) {
@@ -122,7 +123,7 @@ void SPIClass::begin()
 }
 
 void SPIClass::end() {
-#ifndef GRSAKURA
+#ifndef __RX600__
   uint8_t sreg = SREG;
 #else
   uint8_t sreg = isNoInterrupts();
@@ -133,7 +134,7 @@ void SPIClass::end() {
     initialized--;
   // If there are no more references disable SPI
   if (!initialized) {
-#ifndef GRSAKURA
+#ifndef __RX600__
     SPCR &= ~_BV(SPE);
 #else
     RSPI0.SPCR.BIT.SPE = 0; //Stop SPI
@@ -143,7 +144,7 @@ void SPIClass::end() {
     inTransactionFlag = 0;
     #endif
   }
-#ifndef GRSAKURA
+#ifndef __RX600__
   SREG = sreg;
 #else
   if (!sreg) {
@@ -192,7 +193,7 @@ void SPIClass::end() {
 void SPIClass::usingInterrupt(uint8_t interruptNumber)
 {
   uint8_t mask = 0;
-#ifndef GRSAKURA
+#ifndef __RX600__
   uint8_t sreg = SREG;
 #else
   uint8_t sreg = isNoInterrupts();
@@ -230,7 +231,7 @@ void SPIClass::usingInterrupt(uint8_t interruptNumber)
   interruptMask |= mask;
   if (!interruptMode)
     interruptMode = 1;
-#ifndef GRSAKURA
+#ifndef __RX600__
   SREG = sreg;
 #else
   if (!sreg) {
@@ -245,7 +246,7 @@ void SPIClass::notUsingInterrupt(uint8_t interruptNumber)
   if (interruptMode == 2)
     return;
   uint8_t mask = 0;
-#ifndef GRSAKURA
+#ifndef __RX600__
   uint8_t sreg = SREG;
 #else
   uint8_t sreg = isNoInterrupts();
@@ -283,7 +284,7 @@ void SPIClass::notUsingInterrupt(uint8_t interruptNumber)
   interruptMask &= ~mask;
   if (!interruptMask)
     interruptMode = 0;
-#ifndef GRSAKURA
+#ifndef __RX600__
   SREG = sreg;
 #else
   if (!sreg) {

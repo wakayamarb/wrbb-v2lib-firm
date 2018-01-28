@@ -369,7 +369,7 @@ static inline __attribute__((always_inline))
 }
 #endif  // Sd2PinMap_h
 
-#elif defined(GRSAKURA)
+#elif defined(__RX600__)
 
 #ifndef Sd2PinMap_h
 #define Sd2PinMap_h

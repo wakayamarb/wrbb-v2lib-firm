@@ -77,7 +77,7 @@ void HardwareSetup(void)
     //EtherC, EDMAC
     SYSTEM.MSTPCRB.BIT.MSTPB15 = 0;
 
-#ifndef GRSAKURA
+#ifndef __RX600__
     // Protection on
     SYSTEM.PRCR.WORD = 0xA500u;
 #else

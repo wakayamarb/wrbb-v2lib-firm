@@ -19,13 +19,30 @@
 
 #include <Arduino.h>
 
+void EthernetMaininit() __attribute__((weak));
+void EthernetMainloop() __attribute__((weak));
 int main(void)
 {
+    //init(); //moved to reset_program.asm
+#if defined(GRSAKURA)
+    if (EthernetMaininit) {
+        EthernetMaininit();
+    }
+#endif
+
+#if defined(USBCON)
+	USBDevice.attach();
+#endif
     setup();
 
     for (;;) {
         loop();
         //if (serialEventRun) serialEventRun();
+#if defined(GRSAKURA)
+        if (EthernetMainloop) {
+            EthernetMainloop();
+        }
+#endif
 	}
 	return 0;
 }

@@ -28,7 +28,7 @@
 // this is so I can support Attiny series and any other chip without a uart
 #if defined(HAVE_HWSERIAL0) || defined(HAVE_HWSERIAL1) || defined(HAVE_HWSERIAL2) || defined(HAVE_HWSERIAL3) || defined(HAVE_HWSERIAL4) || defined(HAVE_HWSERIAL5) || defined(HAVE_HWSERIAL6) || defined(HAVE_HWSERIAL7)
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 // Ensure that the various bit positions we use are available with a 0
 // postfix, so we can always use the values for UART0 for all UARTs. The
 // alternative, passing the various values for each UART to the
@@ -59,7 +59,7 @@
 #error No UART found in HardwareSerial.cpp
 #endif
 #endif // !defined TXC0
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
 // Check at compiletime that it is really ok to use the bit positions of
 // UART0 for the other UARTs as well, in case these values ever get
@@ -82,7 +82,7 @@
 
 // Constructors ////////////////////////////////////////////////////////////////
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 HardwareSerial::HardwareSerial(
   volatile uint8_t *ubrrh, volatile uint8_t *ubrrl,
   volatile uint8_t *ucsra, volatile uint8_t *ucsrb,
@@ -94,7 +94,7 @@ HardwareSerial::HardwareSerial(
     _tx_buffer_head(0), _tx_buffer_tail(0)
 {
 }
-#else /*GRSAKURA*/
+#else /*__RX600__*/
 HardwareSerial::HardwareSerial(
   int serial_channel,
   volatile st_sci0* sci,
@@ -110,13 +110,13 @@ HardwareSerial::HardwareSerial(
     _tx_buffer_head(0), _tx_buffer_tail(0)
 {
 }
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
 // Actual interrupt handlers //////////////////////////////////////////////////////////////
 
 void HardwareSerial::_rx_complete_irq(void)
 {
-#ifndef GRSAKURA
+#ifndef __RX600__
   if (bit_is_clear(*_ucsra, UPE0)) {
     // No Parity error, read byte and store it in the buffer if there is
     // room
@@ -135,7 +135,7 @@ void HardwareSerial::_rx_complete_irq(void)
     // Parity error, read byte but discard it
     *_udr;
   };
-#else /*GRSAKURA*/
+#else /*__RX600__*/
   unsigned char c = _sci->RDR;
   st_sci0_ssr ssr;
   ssr.BYTE = _sci->SSR.BYTE;
@@ -156,11 +156,11 @@ void HardwareSerial::_rx_complete_irq(void)
       _sci->SSR.BYTE = ssr.BYTE;
     }
   }
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 }
 
-#ifdef GRSAKURA
-bool HardwareSerial::_store_char(unsigned char c)
+#ifdef __RX600__
+int HardwareSerial::_store_char(unsigned char c)
 {
 #if SERIAL_BUFFER_SIZE < 256
   uint8_t i = (uint8_t)(_rx_buffer_head + 1) % SERIAL_BUFFER_SIZE;
@@ -189,6 +189,6 @@ bool HardwareSerial::_buffer_available()
     return (_tx_buffer_head != _tx_buffer_tail);
 }
 
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
 #endif // whole file

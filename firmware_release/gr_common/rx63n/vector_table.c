@@ -499,9 +499,9 @@ const fp RelocatableVectors[] RVECT_SECT  = {
 //;0x02D8 RIIC0 EEI0
     (fp)Interrupt_IIC_ICEEI0,
 //;0x02DC RIIC0 RXI0
-    (fp)Interrupt_IIC_ICRXI0,
+    (fp)INT_Excep_RIIC0_RXI0,
 //;0x02E0 RIIC0 TXI0
-    (fp)Interrupt_IIC_ICTXI0,
+    (fp)INT_Excep_RIIC0_TXI0,
 //;0x02E4 RIIC0 TEI0
     (fp)Interrupt_IIC_ICTEI0,
 //;0x02E8 RIIC1 EEI1

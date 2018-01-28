@@ -90,7 +90,7 @@ static fInterruptFunc_t g_fRTCInterruptFunc = NULL;
  ***************************************************************************/
 int rtc_init()
 {
-#ifndef GRSAKURA
+#ifndef __RX600__
     /* Protection off */
     SYSTEM.PRCR.WORD = 0xA503;
 #endif
@@ -340,7 +340,7 @@ int rtc_set_alarm_time(int hour, int min, int week_flag)
     RTC0.RMINAR.BIT.ENB = 1;
     RTC0.RHRAR.BIT.ENB = 1;
     if(week_flag <= 0x06){
-        RTC0.RWKAR.BIT.ENB = week_flag;
+        RTC0.RWKAR.BIT.ENB = 1;
     } else {
         RTC0.RWKAR.BIT.ENB = 0;
     }

@@ -43,7 +43,7 @@
 #define MSBFIRST 1
 #endif
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 #define SPI_CLOCK_DIV4 0x00
 #define SPI_CLOCK_DIV16 0x01
 #define SPI_CLOCK_DIV64 0x02
@@ -64,6 +64,7 @@
 #define SPI_CLOCK_DIV2   0x00  // 24MHz
 #define SPI_CLOCK_DIV4   0x01  // 12MHz
 #define SPI_CLOCK_DIV8   0x03  // 6MHz
+#define SPI_CLOCK_DIV12  0x05  // 4MHz
 #define SPI_CLOCK_DIV16  0x07  // 3MHz
 #define SPI_CLOCK_DIV32  0x0F  //
 #define SPI_CLOCK_DIV64  0x1F
@@ -78,7 +79,7 @@
 
 #define SPI_MODE_MASK 0x0003  // PHA = bit 0, POL = 1
 #define SPI_BIT_MASK 0x0F00  //
-#endif //GRSAKURA
+#endif //__RX600__
 
 // define SPI_AVR_EIMSK for AVR boards with external interrupt pins
 #if defined(EIMSK)
@@ -107,7 +108,7 @@ private:
   }
   void init_AlwaysInline(uint32_t clock, uint8_t bitOrder, uint8_t dataMode)
     __attribute__((__always_inline__)) {
-#ifndef GRSAKURA
+#ifndef __RX600__
       // Clock settings are defined as follows. Note that this shows SPI2X
     // inverted, so the bits form increasing numbers. Also note that
     // fosc/64 appears twice
@@ -174,6 +175,8 @@ private:
       spbr = SPI_CLOCK_DIV4;
     } else if (clock >= PCLK / 8) {
       spbr = SPI_CLOCK_DIV8;
+    } else if (clock >= PCLK / 12) {
+      spbr = SPI_CLOCK_DIV12;
     } else if (clock >= PCLK / 16) {
       spbr = SPI_CLOCK_DIV16;
     } else if (clock >= PCLK / 32) {
@@ -196,7 +199,7 @@ private:
 
 #endif
   }
-#ifndef GRSAKURA
+#ifndef __RX600__
   uint8_t spcr;
   uint8_t spsr;
 #else
@@ -231,7 +234,7 @@ public:
   // and configure the correct settings.
   inline static void beginTransaction(SPISettings settings) {
     if (interruptMode > 0) {
-#ifndef GRSAKURA
+#ifndef __RX600__
       uint8_t sreg = SREG;
 #else
       uint8_t sreg = isNoInterrupts();
@@ -258,7 +261,7 @@ public:
     inTransactionFlag = 1;
     #endif
 
-#ifndef GRSAKURA
+#ifndef __RX600__
     SPCR = settings.spcr;
     SPSR = settings.spsr;
 #else
@@ -271,7 +274,7 @@ public:
 
   // Write to the SPI bus (MOSI pin) and also receive (MISO pin)
   inline static uint8_t transfer(uint8_t data) {
-#ifndef GRSAKURA
+#ifndef __RX600__
     SPDR = data;
     /*
      * The following NOP introduces a small delay that can prevent the wait
@@ -297,9 +300,9 @@ public:
     while(ICU.IR[39].BIT.IR == 0);
     ICU.IR[39].BIT.IR = 0;
     return (byte)RSPI0.SPDR.LONG;
-#endif //GRSAKURA
+#endif //__RX600__
   }
-#ifndef GRSAKURA
+#ifndef __RX600__
   inline static uint16_t transfer16(uint16_t data) {
     union { uint16_t val; struct { uint8_t lsb; uint8_t msb; }; } in, out;
     in.val = data;
@@ -338,7 +341,7 @@ public:
     while (!(SPSR & _BV(SPIF))) ;
     *p = SPDR;
   }
-#endif //GRSAKURA
+#endif //__RX600__
   // After performing a group of transfers and releasing the chip select
   // signal, this function allows others to access the SPI bus
   inline static void endTransaction(void) {
@@ -362,7 +365,7 @@ public:
       } else
       #endif
       {
-#ifndef GRSAKURA
+#ifndef __RX600__
         SREG = interruptSave;
 #else
         if (!interruptSave) {
@@ -379,7 +382,7 @@ public:
   // This function is deprecated.  New applications should use
   // beginTransaction() to configure SPI settings.
   inline static void setBitOrder(uint8_t bitOrder) {
-#ifndef GRSAKURA
+#ifndef __RX600__
     if (bitOrder == LSBFIRST) SPCR |= _BV(DORD);
     else SPCR &= ~(_BV(DORD));
 #else
@@ -396,7 +399,7 @@ public:
   // This function is deprecated.  New applications should use
   // beginTransaction() to configure SPI settings.
   inline static void setDataMode(uint8_t dataMode) {
-#ifndef GRSAKURA
+#ifndef __RX600__
     SPCR = (SPCR & ~SPI_MODE_MASK) | dataMode;
 #else
     RSPI0.SPCR.BIT.SPE = 0; //Stop SPI
@@ -407,7 +410,7 @@ public:
   // This function is deprecated.  New applications should use
   // beginTransaction() to configure SPI settings.
   inline static void setClockDivider(uint8_t clockDiv) {
-#ifndef GRSAKURA
+#ifndef __RX600__
     SPCR = (SPCR & ~SPI_CLOCK_MASK) | (clockDiv & SPI_CLOCK_MASK);
     SPSR = (SPSR & ~SPI_2XCLOCK_MASK) | ((clockDiv >> 2) & SPI_2XCLOCK_MASK);
 #else
@@ -419,7 +422,7 @@ public:
   // These undocumented functions should not be used.  SPI.transfer()
   // polls the hardware flag which is automatically cleared as the
   // AVR responds to SPI's interrupt
-#ifndef GRSAKURA
+#ifndef __RX600__
   inline static void attachInterrupt() { SPCR |= _BV(SPIE); }
   inline static void detachInterrupt() { SPCR &= ~_BV(SPIE); }
 #endif

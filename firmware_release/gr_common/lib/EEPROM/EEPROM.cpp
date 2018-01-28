@@ -22,7 +22,7 @@
  * Includes
  ******************************************************************************/
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 #include <avr/eeprom.h>
 #else
 #include "utility/r_flash_api_rx600.h"
@@ -47,20 +47,20 @@ EEPROMClass::EEPROMClass(){
 }
 uint8_t EEPROMClass::read(int address)
 {
-#ifndef GRSAKURA
+#ifndef __RX600__
 	return eeprom_read_byte((unsigned char *) address);
 #else
 	if(flash_datarom_blankcheck(DF_ADDRESS + (address & 0xfffffffe)) == 0)
 	    //blank
 	    return 0xff;
 	return *(volatile unsigned char *)(address + DF_ADDRESS);
-#endif //GRSAKURA
+#endif //__RX600__
 }
 
 uint8_t EEPROMClass::write(int address, uint8_t value)
 {
 uint8_t result = FLASH_SUCCESS;
-#ifndef GRSAKURA
+#ifndef __RX600__
 	eeprom_write_byte((unsigned char *) address, value);
 #else
 	uint8_t wbuf[DF_ALIGN];
@@ -110,7 +110,7 @@ uint8_t result = FLASH_SUCCESS;
 	    result = flash_datarom_WriteData(DF_ADDRESS + w_addr, wbuf, DF_ALIGN);
 	}
 
-#endif //GRSAKURA
+#endif //__RX600__
 	return result;
 }
 

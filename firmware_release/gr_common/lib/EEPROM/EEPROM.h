@@ -26,7 +26,7 @@
 class EEPROMClass
 {
   public:
-#ifdef GRSAKURA
+#ifdef __RX600__
         EEPROMClass();
 #endif
         uint8_t read(int);

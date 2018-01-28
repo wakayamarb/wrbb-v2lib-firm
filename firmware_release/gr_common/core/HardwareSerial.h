@@ -29,24 +29,27 @@
 
 #include "Stream.h"
 
-#ifdef GRSAKURA
+#ifdef __RX600__
 #include "rx63n/util.h"
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
 // Define constants and variables for buffering incoming serial data.  We're
 // using a ring buffer (I think), in which head is the index of the location
 // to which to write the next incoming character and tail is the index of the
 // location from which to read.
-#ifndef GRSAKURA
+#ifndef __RX600__
 #if (RAMEND < 1000)
   #define SERIAL_BUFFER_SIZE 16
 #else
   #define SERIAL_BUFFER_SIZE 64
 #endif
-#else /*GRSAKURA*/
+#else /*__RX600__*/
+#ifdef GRCITRUS
   #define SERIAL_BUFFER_SIZE 1024
-  //#define SERIAL_BUFFER_SIZE 256
-#endif/*GRSAKURA*/
+#else
+  #define SERIAL_BUFFER_SIZE 256
+#endif //GRCITRUS
+#endif/*__RX600__*/
 
 // Define config for Serial.begin(baud, config);
 #define SERIAL_5N1 0x00
@@ -77,7 +80,7 @@
 class HardwareSerial : public Stream
 {
   protected:
-#ifndef GRSAKURA
+#ifndef __RX600__
     volatile uint8_t * const _ubrrh;
     volatile uint8_t * const _ubrrl;
     volatile uint8_t * const _ucsra;
@@ -86,15 +89,15 @@ class HardwareSerial : public Stream
     volatile uint8_t * const _udr;
     // Has any byte been written to the UART since begin()
     bool _written;
-#else /*GRSAKURA*/
+#else /*__RX600__*/
     volatile st_sci0* _sci;
     MstpId _module;
     uint8_t _txpin;
     uint8_t _rxpin;
     int8_t _serial_channel;
     volatile bool _sending;
-    volatile bool _begin;
-#endif/*GRSAKURA*/
+    volatile bool _begin = false;
+#endif/*__RX600__*/
 
 #if SERIAL_BUFFER_SIZE < 256
     volatile uint8_t _rx_buffer_head;
@@ -115,22 +118,26 @@ class HardwareSerial : public Stream
     unsigned char _tx_buffer[SERIAL_BUFFER_SIZE];
 
   public:
-#ifndef GRSAKURA
+#ifndef __RX600__
      inline HardwareSerial(
       volatile uint8_t *ubrrh, volatile uint8_t *ubrrl,
       volatile uint8_t *ucsra, volatile uint8_t *ucsrb,
       volatile uint8_t *ucsrc, volatile uint8_t *udr);
-#else /*GRSAKURA*/
+#else /*__RX600__*/
      HardwareSerial(
       int serial_channel,
       volatile st_sci0* sci,
       MstpId module,
       int txpin, int rxpin);
-     virtual ~HardwareSerial(){};// added to remove warning in GRSAKURA
-#endif/*GRSAKURA*/
+     virtual ~HardwareSerial(){};// added to remove warning in __RX600__
+#endif/*__RX600__*/
     void begin(unsigned long baud) { begin(baud, SERIAL_8N1); }
-    void begin(unsigned long, uint8_t);
-    void end();
+#ifndef __RX600__
+	void begin(unsigned long, uint8_t);
+#else /*__RX600__*/
+	bool begin(unsigned long, uint8_t);
+#endif/*__RX600__*/
+	void end();
     virtual int available(void);
     virtual int peek(void);
     virtual int read(void);
@@ -144,18 +151,18 @@ class HardwareSerial : public Stream
     operator bool() { return true; }
 
     // Interrupt handlers - Not intended to be called externally
-#ifndef GRSAKURA
+#ifndef __RX600__
     inline void _rx_complete_irq(void);
-#else /*GRSAKURA*/
+#else /*__RX600__*/
     void _rx_complete_irq(void);
-    inline bool _store_char(unsigned char c);
+    inline int _store_char(unsigned char c);
     inline unsigned char _extract_char();
     bool _buffer_available();
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
     void _tx_udr_empty_irq(void);
 };
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 
 #if defined(UBRRH) || defined(UBRR0H)
   extern HardwareSerial Serial;
@@ -174,7 +181,7 @@ class HardwareSerial : public Stream
   #define HAVE_HWSERIAL3
 #endif
 
-#else /*GRSAKURA*/
+#else /*__RX600__*/
 
 #define HAVE_HWSERIAL0
 #define HAVE_HWSERIAL1
@@ -182,7 +189,7 @@ class HardwareSerial : public Stream
 #define HAVE_HWSERIAL3
 #define HAVE_HWSERIAL4
 #define HAVE_HWSERIAL5
-#if 0 // GR-CITRUS doesn't have following serial
+#ifndef GRCITRUS
 #define HAVE_HWSERIAL6
 #define HAVE_HWSERIAL7
 #endif
@@ -212,7 +219,7 @@ class HardwareSerial : public Stream
   extern HardwareSerial Serial7;
 #endif
 
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
 extern void serialEventRun(void) __attribute__((weak));
 

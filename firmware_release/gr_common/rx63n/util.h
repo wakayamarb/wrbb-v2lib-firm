@@ -187,15 +187,32 @@ void resetPinModeSoftwarePWM(int pin);
 #define MaxSoftwarePwmChannels 15
 #define HardwarePWMFreq (PCLK / 16)
 #define SoftwarePWMFreq (125 * 1000)
+#ifdef GRSAKURA
 #define isHardwarePWMPin(pin) \
 ( \
 	   ((pin) == PIN_IO0) \
 	|| ((pin) == PIN_IO1) \
+	|| ((pin) == PIN_IO2) \
+	|| ((pin) == PIN_IO3) \
+	|| ((pin) == PIN_IO4) \
 	|| ((pin) == PIN_IO5) \
+	|| ((pin) == PIN_IO6) \
 	|| ((pin) == PIN_IO7) \
-	|| ((pin) == PIN_IO8) \
 	|| ((pin) == PIN_IO11) \
 )
+#elif defined(GRCITRUS)
+#define isHardwarePWMPin(pin) \
+( \
+       ((pin) == PIN_IO0) \
+    || ((pin) == PIN_IO1) \
+    || ((pin) == PIN_IO5) \
+    || ((pin) == PIN_IO7) \
+    || ((pin) == PIN_IO8) \
+    || ((pin) == PIN_IO11) \
+)
+#endif
+void setAnalogWriteClock(int pin, uint32_t clock);
+float getPWMClockMultiple(int pin);
 
 #ifdef __cplusplus
 };

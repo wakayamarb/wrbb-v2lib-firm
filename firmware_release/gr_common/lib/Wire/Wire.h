@@ -21,6 +21,7 @@
   Modified 2014 by Yuuki Okamiya for add setFrequency for Hardware Wire
   Modified 10 Jun 2014 by Nozomu Fujita : Wire への TwoWire::setFrequency(int) 対応
   Modified 10 Jun 2014 by Nozomu Fujita : Wire3、Wire7 対応
+  Modified 4th June 2016 by yuuki.okamiya : support slave function
 */
 
 #ifndef TwoWire_h
@@ -43,21 +44,21 @@ class TwoWire : public Stream
 {
   private:
 //    uint8_t rxBuffer[BUFFER_LENGTH];
-    uint8_t rxBufferIndex;
-    uint8_t rxBufferLength;
+      uint8_t rxBufferIndex;
+      uint8_t rxBufferLength;
 
-    uint8_t txAddress;
+      uint8_t txAddress;
 //    uint8_t txBuffer[BUFFER_LENGTH];
-    uint8_t txBufferIndex;
-    uint8_t txBufferLength;
+      uint8_t txBufferIndex;
+      uint8_t txBufferLength;
 
-    uint8_t transmitting;
-    uint8_t wire_channel;
+      uint8_t transmitting;
+      uint8_t wire_channel;
     int wire_frequency;
- //   void (*user_onRequest)(void);
- //   void (*user_onReceive)(int);
- //   void onRequestService(void);
- //   void onReceiveService(uint8_t*, int);
+    static void (*user_onRequest)(void);
+    static void (*user_onReceive)(int);
+    static void onRequestService(void);
+    static void onReceiveService(uint8_t*, int);
 
   public:
     TwoWire(uint8_t channel);
@@ -80,8 +81,8 @@ class TwoWire : public Stream
     virtual int peek(void);
     virtual void flush(void);
     void setFrequency(int freq);
-//    void onReceive( void (*)(int) );
-//    void onRequest( void (*)(void) );
+    void onReceive( void (*)(int) );
+    void onRequest( void (*)(void) );
 
     inline size_t write(unsigned long n) { return write((uint8_t)n); }
     inline size_t write(long n) { return write((uint8_t)n); }
@@ -98,6 +99,7 @@ extern TwoWire Wire4;
 extern TwoWire Wire5;
 extern TwoWire Wire6;
 extern TwoWire Wire7;
+extern TwoWire Wire8;
 
 #endif
 

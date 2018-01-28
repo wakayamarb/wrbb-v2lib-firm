@@ -40,18 +40,18 @@ Modified 11 August 2014 by Nozomu Fujita for GR-SAKURA
 // 
 // Includes
 // 
-#ifndef GRSAKURA
+#ifndef __RX600__
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
-#else /*GRSAKURA*/
+#else /*__RX600__*/
 #include "Arduino.h"
 #include "iodefine.h"
 #include "interrupt_handlers.h"
 #define UseCmt2 1
 #define UseTpu5 0
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 #include <SoftwareSerial.h>
-#ifndef GRSAKURA
+#ifndef __RX600__
 //
 // Lookup table
 //
@@ -138,19 +138,19 @@ const int XMIT_START_ADJUSTMENT = 6;
 #error This version of SoftwareSerial supports only 20, 16 and 8MHz processors
 
 #endif
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
 //
 // Statics
 //
 SoftwareSerial *SoftwareSerial::active_object = 0;
-#ifndef GRSAKURA
+#ifndef __RX600__
 char SoftwareSerial::_receive_buffer[_SS_MAX_RX_BUFF]; 
 volatile uint8_t SoftwareSerial::_receive_buffer_tail = 0;
 volatile uint8_t SoftwareSerial::_receive_buffer_head = 0;
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 //
 // Debugging
 //
@@ -169,14 +169,14 @@ inline void DebugPulse(uint8_t pin, uint8_t count)
   }
 #endif
 }
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
 //
 // Private methods
 //
 
 /* static */ 
-#ifndef GRSAKURA
+#ifndef __RX600__
 inline void SoftwareSerial::tunedDelay(uint16_t delay) { 
   uint8_t tmp=0;
 
@@ -189,13 +189,13 @@ inline void SoftwareSerial::tunedDelay(uint16_t delay) {
     : "0" (delay)
     );
 }
-#else /*GRSAKURA*/
+#else /*__RX600__*/
 /*
 inline void SoftwareSerial::tunedDelay(uint16_t delay)
 {
 }
 */
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
 // This function sets the current object as the "listening"
 // one and returns true if it replaces another 
@@ -203,14 +203,14 @@ bool SoftwareSerial::listen()
 {
   if (active_object != this)
   {
-#ifndef GRSAKURA
+#ifndef __RX600__
     _buffer_overflow = false;
     uint8_t oldSREG = SREG;
     cli();
     _receive_buffer_head = _receive_buffer_tail = 0;
     active_object = this;
     SREG = oldSREG;
-#else /*GRSAKURA*/
+#else /*__RX600__*/
     _transmit_buffer_head = _transmit_buffer_tail = 0;
     _receive_buffer_head = _receive_buffer_tail = 0;
     active_object = this;
@@ -218,14 +218,14 @@ bool SoftwareSerial::listen()
     _transmit_bit_length_count = 0;
     _receive_bit_pos = -1;
     _receive_bit_length_count = 0;
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
     return true;
   }
 
   return false;
 }
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 //
 // The receive routine called by the interrupt handler
 //
@@ -308,7 +308,7 @@ void SoftwareSerial::recv()
     ::);
 #endif
 }
-#else /*GRSAKURA*/
+#else /*__RX600__*/
 #if UseCmt2
 static const int SamplingMultiples = 4;
 #elif UseTpu5
@@ -418,22 +418,22 @@ void SoftwareSerial::send()
 
     _transmit_bit = _inverse_logic ? !transmit_value : transmit_value;
 }
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
 void SoftwareSerial::tx_pin_write(uint8_t pin_state)
 {
   if (pin_state == LOW)
-#ifndef GRSAKURA
+#ifndef __RX600__
     *_transmitPortRegister &= ~_transmitBitMask;
-#else /*GRSAKURA*/
+#else /*__RX600__*/
     BCLR(_transmitPortRegister, _transmitBit);
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
   else
-#ifndef GRSAKURA
+#ifndef __RX600__
     *_transmitPortRegister |= _transmitBitMask;
-#else /*GRSAKURA*/
+#else /*__RX600__*/
     BSET(_transmitPortRegister, _transmitBit);
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 }
 
 uint8_t SoftwareSerial::rx_pin_read()
@@ -450,18 +450,18 @@ inline void SoftwareSerial::handle_interrupt()
 {
   if (active_object)
   {
-#ifndef GRSAKURA
+#ifndef __RX600__
     active_object->recv();
-#else /*GRSAKURA*/
+#else /*__RX600__*/
     active_object->_receive_bit = active_object->rx_pin_read() ? HIGH : LOW;
     active_object->tx_pin_write(active_object->_transmit_bit);
     active_object->recv();
     active_object->send();
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
   }
 }
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 #if defined(PCINT0_vect)
 ISR(PCINT0_vect)
 {
@@ -489,7 +489,7 @@ ISR(PCINT3_vect)
   SoftwareSerial::handle_interrupt();
 }
 #endif
-#else /*GRSAKURA*/
+#else /*__RX600__*/
 #if UseCmt2
 void INT_Excep_CMT2_CMI2(void)
 #elif UseTpu5
@@ -498,12 +498,12 @@ void INT_Excep_TPU5_TGI5A(void)
 {
   SoftwareSerial::handle_interrupt();
 }
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
 //
 // Constructor
 //
-#ifndef GRSAKURA
+#ifndef __RX600__
 SoftwareSerial::SoftwareSerial(uint8_t receivePin, uint8_t transmitPin, bool inverse_logic /* = false */) : 
   _rx_delay_centering(0),
   _rx_delay_intrabit(0),
@@ -515,7 +515,7 @@ SoftwareSerial::SoftwareSerial(uint8_t receivePin, uint8_t transmitPin, bool inv
   setTX(transmitPin);
   setRX(receivePin);
 }
-#else /*GRSAKURA*/
+#else /*__RX600__*/
 SoftwareSerial::SoftwareSerial(uint8_t receivePin, uint8_t transmitPin, bool inverse_logic)
 {
     setTX(transmitPin);
@@ -526,7 +526,7 @@ SoftwareSerial::SoftwareSerial(uint8_t receivePin, uint8_t transmitPin, bool inv
     _transmit_byte = 0;
     _transmit_bit = _inverse_logic ? LOW : HIGH;
 }
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
 //
 // Destructor
@@ -540,11 +540,11 @@ void SoftwareSerial::setTX(uint8_t tx)
 {
   pinMode(tx, OUTPUT);
   digitalWrite(tx, HIGH);
-#ifndef GRSAKURA
+#ifndef __RX600__
   _transmitBitMask = digitalPinToBitMask(tx);
-#else /*GRSAKURA*/
+#else /*__RX600__*/
   _transmitBit = digitalPinToBit(tx);
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
   uint8_t port = digitalPinToPort(tx);
   _transmitPortRegister = portOutputRegister(port);
 }
@@ -564,7 +564,7 @@ void SoftwareSerial::setRX(uint8_t rx)
 // Public methods
 //
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 void SoftwareSerial::begin(long speed)
 {
   _rx_delay_centering = _rx_delay_intrabit = _rx_delay_stopbit = _tx_delay = 0;
@@ -600,7 +600,7 @@ void SoftwareSerial::begin(long speed)
 
   listen();
 }
-#else /*GRSAKURA*/
+#else /*__RX600__*/
 void SoftwareSerial::begin(uint32_t speed, uint8_t config)
 {
   #define SERIAL_DM  0b0001
@@ -727,15 +727,15 @@ void SoftwareSerial::begin(uint32_t speed, uint8_t config)
 
   listen();
 }
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 void SoftwareSerial::end()
 {
   if (digitalPinToPCMSK(_receivePin))
     *digitalPinToPCMSK(_receivePin) &= ~_BV(digitalPinToPCMSKbit(_receivePin));
 }
-#else /*GRSAKURA*/
+#else /*__RX600__*/
 void SoftwareSerial::end()
 {
 #if UseCmt2
@@ -756,7 +756,7 @@ void SoftwareSerial::end()
   stopModule(MstpIdTPU5);
 #endif
 }
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
 
 // Read data from buffer
@@ -785,7 +785,7 @@ int SoftwareSerial::available()
 
 size_t SoftwareSerial::write(uint8_t b)
 {
-#ifndef GRSAKURA
+#ifndef __RX600__
   if (_tx_delay == 0) {
     setWriteError();
     return 0;
@@ -830,13 +830,13 @@ size_t SoftwareSerial::write(uint8_t b)
 
   SREG = oldSREG; // turn interrupts back on
   tunedDelay(_tx_delay);
-#else /*GRSAKURA*/
+#else /*__RX600__*/
   uint8_t _transmit_buffer_tail_next = (_transmit_buffer_tail + 1) % _SS_MAX_TX_BUFF;
   while (_transmit_buffer_tail_next == _transmit_buffer_head)
     ;
   _transmit_buffer[_transmit_buffer_tail] = b;
   _transmit_buffer_tail = _transmit_buffer_tail_next;
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
   
   return 1;
 }
@@ -846,7 +846,7 @@ void SoftwareSerial::flush()
   if (!isListening())
     return;
 
-#ifndef GRSAKURA
+#ifndef __RX600__
   uint8_t oldSREG = SREG;
   cli();
   _receive_buffer_head = _receive_buffer_tail = 0;

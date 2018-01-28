@@ -24,7 +24,7 @@
   Modified 10 Jun 2014 by Nozomu Fujita : Wire3、Wire7 対応
 */
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 extern "C" {
   #include <stdlib.h>
   #include <string.h>
@@ -34,11 +34,16 @@ extern "C" {
 
 #include "Wire.h"
 #else
-#include "Wire.h"
 #include "rx63n/iodefine.h"
+extern "C" {
+#include <stdlib.h>
+#include <string.h>
+#include "utility/twi_rx.h"
+}
+#include "Wire.h"
 #endif
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 // Initialize Class Variables //////////////////////////////////////////////////
 
 uint8_t TwoWire::rxBuffer[BUFFER_LENGTH];
@@ -55,16 +60,24 @@ void (*TwoWire::user_onRequest)(void);
 void (*TwoWire::user_onReceive)(int);
 
 #else
-// Initialize Class Variables //////////////////////////////////////////////////
-static uint8_t i2c_rxBuffer[8][BUFFER_LENGTH];
-static uint8_t i2c_txBuffer[8][BUFFER_LENGTH];
+static uint8_t i2c_rxBuffer[9][BUFFER_LENGTH];
+static uint8_t i2c_txBuffer[9][BUFFER_LENGTH];
 
+#ifdef GRSAKURA
+static SoftI2cMaster wire(A4, A5);
+static const uint8_t g_sci_i2c_channel_table[9] = {0, 0, 6, 2, 3, 5, 8, 1, 0x10};
+static bool g_sci_i2c_channel_inRepStart[9] = { false };
+#elif defined(GRCITRUS)
 static SoftI2cMaster wire(18, 19);
-static const uint8_t g_sci_i2c_channel_table[8] = {0, 0, 2, 6, 8, 1, 3, 5};
-static bool g_sci_i2c_channel_inRepStart[8] = { false };
+static const uint8_t g_sci_i2c_channel_table[9] = {0, 0, 2, 6, 8, 1, 3, 5, 0x10};
+static bool g_sci_i2c_channel_inRepStart[9] = { false };
 #endif
 
-#ifndef GRSAKURA
+void (*TwoWire::user_onRequest)(void);
+void (*TwoWire::user_onReceive)(int);
+#endif
+
+#ifndef __RX600__
 // Constructors ////////////////////////////////////////////////////////////////
 
 TwoWire::TwoWire()
@@ -99,7 +112,7 @@ void TwoWire::begin(void)
   txBufferIndex = 0;
   txBufferLength = 0;
 
-#ifndef GRSAKURA
+#ifndef __RX600__
   twi_init();
 #else
   if(wire_channel == 0){ // if Software I2C
@@ -112,23 +125,15 @@ void TwoWire::begin(void)
 
 void TwoWire::begin(uint8_t address)
 {
-#ifndef GRSAKURA
-/* no implementation for slave
-  twi_setAddress(address);
+  twi_rx_setAddress(address);
   twi_attachSlaveTxEvent(onRequestService);
   twi_attachSlaveRxEvent(onReceiveService);
   begin();
-*/
-#endif
 }
 
 void TwoWire::begin(int address)
 {
-#ifndef GRSAKURA
-/* no implementation for slave
   begin((uint8_t)address);
-*/
-#endif
 }
 
 uint8_t TwoWire::requestFrom(uint8_t address, uint8_t quantity, uint8_t sendStop)
@@ -138,7 +143,7 @@ uint8_t TwoWire::requestFrom(uint8_t address, uint8_t quantity, uint8_t sendStop
     quantity = BUFFER_LENGTH;
   }
   // perform blocking read into buffer
-#ifndef GRSAKURA
+#ifndef __RX600__
   uint8_t read = twi_readFrom(address, rxBuffer, quantity, sendStop);
 #else
   uint8_t read = 0;
@@ -172,6 +177,10 @@ uint8_t TwoWire::requestFrom(uint8_t address, uint8_t quantity, uint8_t sendStop
           twi_rx_restart(g_sci_i2c_channel_table[wire_channel], address);
       }
       for (int i = 0; i < quantity; i++) {
+          if((wire_channel == 8) && (i == 0)){
+              while(!RIIC0.ICSR2.BIT.RDRF);
+              char b = RIIC0.ICDRR; // dummy read
+          }
           i2c_rxBuffer[wire_channel][i] = twi_rx_read(
                   g_sci_i2c_channel_table[wire_channel], i == (quantity - 1));
           read++;
@@ -320,9 +329,7 @@ size_t TwoWire::write(uint8_t data)
   }else{
   // in slave send mode
     // reply to master
-/*no implementation for slave
-    twi_transmit(&data, 1);
-*/
+      twi_rx_write(g_sci_i2c_channel_table[wire_channel], data);
   }
   return 1;
 }
@@ -339,10 +346,12 @@ size_t TwoWire::write(const uint8_t *data, size_t quantity)
     }
   }else{
   // in slave send mode
-    // reply to master
-/*no implementation for slave
-    twi_transmit(data, quantity);
-*/
+  // reply to master
+      for (uint8_t i = 0; i < quantity; i++) {
+          twi_rx_write(g_sci_i2c_channel_table[wire_channel],
+                  data[i]);
+      }
+
   }
   return quantity;
 }
@@ -403,8 +412,8 @@ void TwoWire::setFrequency(int freq){
 }
 
 
-/* no implement about slave for GR-SAKURA
- *
+/* static member function for Wire8
+ */
 // behind the scenes function that is called when data is received
 void TwoWire::onReceiveService(uint8_t* inBytes, int numBytes)
 {
@@ -415,59 +424,57 @@ void TwoWire::onReceiveService(uint8_t* inBytes, int numBytes)
   // don't bother if rx buffer is in use by a master requestFrom() op
   // i know this drops data, but it allows for slight stupidity
   // meaning, they may not have read all the master requestFrom() data yet
-  if(rxBufferIndex < rxBufferLength){
+  if(Wire8.rxBufferIndex < Wire8.rxBufferLength){
     return;
   }
   // copy twi rx buffer into local read buffer
   // this enables new reads to happen in parallel
   for(uint8_t i = 0; i < numBytes; ++i){
-    rxBuffer[i] = inBytes[i];
+      i2c_rxBuffer[Wire8.wire_channel][i] = inBytes[i];
   }
   // set rx iterator vars
-  rxBufferIndex = 0;
-  rxBufferLength = numBytes;
+  Wire8.rxBufferIndex = 0;
+  Wire8.rxBufferLength = numBytes;
   // alert user program
   user_onReceive(numBytes);
 }
-*/
 
-/* no implement about slave for GR-SAKURA
- *
+
+/* static member function for Wire8
+ */
 // behind the scenes function that is called when data is requested
 void TwoWire::onRequestService(void)
 {
+
   // don't bother if user hasn't registered a callback
   if(!user_onRequest){
     return;
   }
   // reset tx buffer iterator vars
   // !!! this will kill any pending pre-master sendTo() activity
-  txBufferIndex = 0;
-  txBufferLength = 0;
+  Wire8.txBufferIndex = 0;
+  Wire8.txBufferLength = 0;
   // alert user program
   user_onRequest();
 }
-*/
 
-/* no implement about slave for GR-SAKURA
- *
+
 // sets function called on slave write
 void TwoWire::onReceive( void (*function)(int) )
 {
   user_onReceive = function;
 }
-*/
+
 
 /* no implement about slave for GR-SAKURA
- *
+ */
 // sets function called on slave read
 void TwoWire::onRequest( void (*function)(void) )
 {
   user_onRequest = function;
 }
-*/
-// Preinstantiate Objects //////////////////////////////////////////////////////
 
+// Preinstantiate Objects //////////////////////////////////////////////////////
 TwoWire Wire = TwoWire(0);
 TwoWire Wire1 = TwoWire(1);
 TwoWire Wire2 = TwoWire(2);
@@ -476,4 +483,5 @@ TwoWire Wire4 = TwoWire(4);
 TwoWire Wire5 = TwoWire(5);
 TwoWire Wire6 = TwoWire(6);
 TwoWire Wire7 = TwoWire(7);
+TwoWire Wire8 = TwoWire(8);
 

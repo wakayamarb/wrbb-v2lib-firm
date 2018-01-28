@@ -17,6 +17,9 @@
  * along with the RX63N Hardware I2cMaster Library.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
+/*
+ * modified by yuuki.okamiya 4th June 2016
+ */
 #ifndef TWI_RX_H
 #define TWI_RX_H
 /**
@@ -28,6 +31,9 @@
 
 #ifndef TWI_FREQ
 #define TWI_FREQ 100000L
+#endif
+#ifndef TWI_BUFFER_LENGTH
+#define TWI_BUFFER_LENGTH 32
 #endif
 
 /**
@@ -57,11 +63,14 @@
 
 //------------------------------------------------------------------------------
 void twi_rx_init(uint8_t channel, int freq);
+void twi_rx_setAddress(uint8_t address);
 uint8_t twi_rx_read(uint8_t channel, uint8_t last);
 bool twi_rx_restart(uint8_t channel, uint8_t addressRW);
 bool twi_rx_start(uint8_t channel, uint8_t addressRW);
 void twi_rx_stop(uint8_t channel);
 bool twi_rx_write(uint8_t channel, uint8_t b);
 void twi_rx_setFrequency(uint8_t channel, int freq);
+void twi_attachSlaveRxEvent( void (*)(uint8_t*, int) );
+void twi_attachSlaveTxEvent( void (*)(void) );
 
 #endif  // HARDWARE_I2C_MASTER_H

@@ -36,18 +36,18 @@ Modified 11 August 2014 by Nozomu Fujita for GR-SAKURA
 
 #include <inttypes.h>
 #include <Stream.h>
-#ifdef GRSAKURA
+#ifdef __RX600__
 #include "HardwareSerial.h"
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
 /******************************************************************************
 * Definitions
 ******************************************************************************/
 
 #define _SS_MAX_RX_BUFF 64 // RX buffer size
-#ifdef GRSAKURA
+#ifdef __RX600__
 #define _SS_MAX_TX_BUFF 64 // TX buffer size
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 #ifndef GCC_VERSION
 #define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 #endif
@@ -59,29 +59,29 @@ private:
   uint8_t _receivePin;
   uint8_t _receiveBitMask;
   volatile uint8_t *_receivePortRegister;
-#ifndef GRSAKURA
+#ifndef __RX600__
   uint8_t _transmitBitMask;
-#else /*GRSAKURA*/
+#else /*__RX600__*/
   uint8_t _transmitBit;
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
   volatile uint8_t *_transmitPortRegister;
 
-#ifndef GRSAKURA
+#ifndef __RX600__
   uint16_t _rx_delay_centering;
   uint16_t _rx_delay_intrabit;
   uint16_t _rx_delay_stopbit;
   uint16_t _tx_delay;
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
   uint16_t _buffer_overflow:1;
   uint16_t _inverse_logic:1;
 
   // static data
-#ifndef GRSAKURA
+#ifndef __RX600__
   static char _receive_buffer[_SS_MAX_RX_BUFF]; 
   static volatile uint8_t _receive_buffer_tail;
   static volatile uint8_t _receive_buffer_head;
-#else /*GRSAKURA*/
+#else /*__RX600__*/
   uint8_t _format_data_bits;
   enum {
     _format_parity_none,
@@ -105,33 +105,33 @@ private:
   uint8_t _transmit_buffer[_SS_MAX_TX_BUFF];
   volatile uint8_t _transmit_buffer_tail;
   volatile uint8_t _transmit_buffer_head;
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
   static SoftwareSerial *active_object;
 
   // private methods
   void recv();
-#ifdef GRSAKURA
+#ifdef __RX600__
   void send();
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
   uint8_t rx_pin_read();
   void tx_pin_write(uint8_t pin_state);
   void setTX(uint8_t transmitPin);
   void setRX(uint8_t receivePin);
 
-#ifndef GRSAKURA
+#ifndef __RX600__
   // private static method for timing
   static inline void tunedDelay(uint16_t delay);
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
 public:
   // public methods
   SoftwareSerial(uint8_t receivePin, uint8_t transmitPin, bool inverse_logic = false);
   virtual ~SoftwareSerial();
-#ifndef GRSAKURA
+#ifndef __RX600__
   void begin(long speed);
-#else /*GRSAKURA*/
+#else /*__RX600__*/
   void begin(uint32_t speed, uint8_t config = SERIAL_8N1);
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
   bool listen();
   void end();
   bool isListening() { return this == active_object; }

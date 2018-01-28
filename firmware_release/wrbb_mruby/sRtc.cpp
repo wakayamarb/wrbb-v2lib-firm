@@ -150,7 +150,9 @@ mrb_value mrb_rtc_deinit(mrb_state *mrb, mrb_value self)
 //**************************************************
 mrb_value mrb_rtc_init(mrb_state *mrb, mrb_value self)
 {
-	return mrb_fixnum_value( rtc_init() );
+	int ret = rtc_init();
+	delay(100);
+	return mrb_fixnum_value(ret);
 }
 
 //**************************************************

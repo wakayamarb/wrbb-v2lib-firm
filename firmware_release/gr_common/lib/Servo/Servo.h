@@ -56,7 +56,7 @@
  *
  */
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 
 // Say which 16 bit timers can be used and in what order
 #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
@@ -85,8 +85,8 @@ typedef enum { _timer3, _timer1, _Nbr_16timers } timer16_Sequence_t ;
 typedef enum { _timer1, _Nbr_16timers } timer16_Sequence_t ;                  
 #endif
 
-#else /*GRSAKURA*/
-#endif/*GRSAKURA*/
+#else /*__RX600__*/
+#endif/*__RX600__*/
 
 #define Servo_VERSION           2      // software version of this library
 
@@ -96,12 +96,12 @@ typedef enum { _timer1, _Nbr_16timers } timer16_Sequence_t ;
 #define REFRESH_INTERVAL    20000     // minumim time to refresh servos in microseconds 
 
 #define SERVOS_PER_TIMER       12     // the maximum number of servos controlled by one timer 
-#ifndef GRSAKURA
+#ifndef __RX600__
 #define MAX_SERVOS   (_Nbr_16timers  * SERVOS_PER_TIMER)
-#else /*GRSAKURA*/
+#else /*__RX600__*/
 #include <rx63n/util.h>
 #define MAX_SERVOS   MaxSoftwarePwmChannels
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
 #define INVALID_SERVO         255     // flag indicating an invalid servo index
 

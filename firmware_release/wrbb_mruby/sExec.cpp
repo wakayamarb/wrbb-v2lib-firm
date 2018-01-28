@@ -157,7 +157,7 @@ bool RubyRun(void)
 #endif
 	{
 		char az[50];
-		sprintf(az, "%s is not mrb file!!", ExeFilename);
+		sprintf(az, "%s is not supported mrb file.", ExeFilename);
 		Serial.println(az);
 
 		EEP.fclose(fp);

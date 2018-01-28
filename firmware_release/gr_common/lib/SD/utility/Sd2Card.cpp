@@ -247,7 +247,7 @@ uint8_t Sd2Card::init(uint8_t sckRateID, uint8_t chipSelectPin) {
   uint32_t arg;
 
   // set pin modes
-#if defined(GRSAKURA)
+#if defined(__RX600__)
   if (chipSelectPin_ != SS){
       RSPI0.SPCR.BIT.SPMS = 1; // 3-line mode
   }
@@ -382,7 +382,7 @@ uint8_t Sd2Card::readBlock(uint32_t block, uint8_t* dst) {
  */
 uint8_t Sd2Card::readData(uint32_t block,
         uint16_t offset, uint16_t count, uint8_t* dst) {
-//  uint16_t n; // n is unused in GRSAKURA
+//  uint16_t n; // n is unused in __RX600__
   if (count == 0) return true;
   if ((count + offset) > 512) {
     goto fail;

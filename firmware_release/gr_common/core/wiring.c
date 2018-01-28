@@ -26,13 +26,13 @@
 */
 
 #include "wiring_private.h"
-#ifdef GRSAKURA
+#ifdef __RX600__
 #include <stdint.h>
 #include "rx63n/interrupt_handlers.h"
 #include "rx63n/util.h"
-#endif /*GRSAKURA*/
+#endif /*__RX600__*/
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 // the prescaler is set so that timer0 ticks every 64 clock cycles, and the
 // the overflow handler is called every 256 ticks.
 #define MICROSECONDS_PER_TIMER0_OVERFLOW (clockCyclesToMicroseconds(64 * 256))
@@ -45,11 +45,11 @@
 // about - 8 and 16 MHz - this doesn't lose precision.)
 #define FRACT_INC ((MICROSECONDS_PER_TIMER0_OVERFLOW % 1000) >> 3)
 #define FRACT_MAX (1000 >> 3)
-#else  /*GRSAKURA*/
+#else  /*__RX600__*/
 #define TicksForMillis (PCLK / 8 / 1000)
-#endif /*GRSAKURA*/
+#endif /*__RX600__*/
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 volatile unsigned long timer0_overflow_count = 0;
 volatile unsigned long timer0_millis = 0;
 static unsigned char timer0_fract = 0;
@@ -76,7 +76,7 @@ ISR(TIMER0_OVF_vect)
 	timer0_millis = m;
 	timer0_overflow_count++;
 }
-#else /*GRSAKURA*/
+#else /*__RX600__*/
 volatile unsigned long timer0_millis = 0;
 
 void INT_Excep_CMT0_CMI0(void)
@@ -126,11 +126,11 @@ static void delayTicks(unsigned long ticks)
 		}
 	}
 }
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
 unsigned long millis()
 {
-#ifndef GRSAKURA
+#ifndef __RX600__
 	unsigned long m;
 	uint8_t oldSREG = SREG;
 
@@ -141,13 +141,13 @@ unsigned long millis()
 	SREG = oldSREG;
 
 	return m;
-#else /*GRSAKURA*/
+#else /*__RX600__*/
 	return timer0_millis;
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 }
 
 unsigned long micros() {
-#ifndef GRSAKURA
+#ifndef __RX600__
 	unsigned long m;
 	uint8_t oldSREG = SREG, t;
 	
@@ -173,7 +173,7 @@ unsigned long micros() {
 	SREG = oldSREG;
 	
 	return ((m << 8) + t) * (64 / clockCyclesPerMicrosecond());
-#else /*GRSAKURA*/
+#else /*__RX600__*/
 	bool di = isNoInterrupts();
 	noInterrupts();
 	unsigned long ms = timer0_millis;
@@ -186,12 +186,12 @@ unsigned long micros() {
 		ms++;
 	}
 	return 1000 * ms + cmcnt / (TicksForMillis / 1000);
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 }
 
 void delay(unsigned long ms)
 {
-#ifndef GRSAKURA
+#ifndef __RX600__
 	uint16_t start = (uint16_t)micros();
 
 	while (ms > 0) {
@@ -201,7 +201,7 @@ void delay(unsigned long ms)
 			start += 1000;
 		}
 	}
-#else /*GRSAKURA*/
+#else /*__RX600__*/
 	while (ms > 0) {
 		const unsigned long msmax = UINT32_MAX / TicksForMillis;
 		unsigned long ticks;
@@ -214,13 +214,13 @@ void delay(unsigned long ms)
 		}
 		delayTicks(ticks);
 	}
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 }
 
 /* Delay for the given number of microseconds.  Assumes a 8 or 16 MHz clock. */
 void delayMicroseconds(unsigned int us)
 {
-#ifndef GRSAKURA
+#ifndef __RX600__
 	// calling avrlib's delay_us() function with low values (e.g. 1 or
 	// 2 microseconds) gives delays longer than desired.
 	//delay_us(us);
@@ -284,7 +284,7 @@ void delayMicroseconds(unsigned int us)
 		"1: sbiw %0,1" "\n\t" // 2 cycles
 		"brne 1b" : "=w" (us) : "0" (us) // 2 cycles
 	);
-#else /*GRSAKURA*/
+#else /*__RX600__*/
 	while (us > 0) {
 		const unsigned long TicksForMicros = TicksForMillis / 1000;
 		const unsigned long usmax = UINT32_MAX / TicksForMicros;
@@ -298,12 +298,12 @@ void delayMicroseconds(unsigned int us)
 		}
 		delayTicks(ticks);
 	}
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 }
 
 void init()
 {
-#ifndef GRSAKURA
+#ifndef __RX600__
 	// this needs to be called before setup() or some functions won't
 	// work there
 	sei();
@@ -437,7 +437,7 @@ void init()
 #elif defined(UCSR0B)
 	UCSR0B = 0;
 #endif
-#else /*GRSAKURA*/
+#else /*__RX600__*/
 	startModule(MstpIdCMT0);
 
 	CMT.CMSTR0.BIT.STR0 = 0;
@@ -571,5 +571,5 @@ void init()
 
 #endif  //#if defined(__T4__)
 
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 }

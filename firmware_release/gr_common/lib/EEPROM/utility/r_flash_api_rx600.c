@@ -37,7 +37,7 @@
 /******************************************************************************
 Includes   <System Includes> , "Project Includes"
 ******************************************************************************/
-#ifndef GRSAKURA
+#ifndef __RX600__
 /* Intrinsic functions of MCU */
 #include <machine.h>
 
@@ -201,10 +201,10 @@ uint8_t flash_Initialize( void )
 End of function  flash_Initialize
 ******************************************************************************/
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 #pragma section FRAM
 #else
-#endif //GRSAKURA
+#endif //__RX600__
 
 /******************************************************************************
 * Function Name	:	flash_coderom_EraseBlock
@@ -218,13 +218,13 @@ uint8_t flash_coderom_EraseBlock( const uint32_t addr )
 	FCU_BYTE_PTR	fcubpOpe = (FCU_BYTE_PTR)(addr & 0x00FFFFFF);
 	uint8_t			result;
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 	const uint32_t	pswSaved = get_psw();
 	set_psw( pswSaved & ~0x10000 );	// Disable interrupt
 #else
     bool di = isNoInterrupts();
     noInterrupts();
-#endif //GRSAKURA
+#endif //__RX600__
 
 	/* Enter ROM PE mode, check if operation successful */
 	result = flash_enter_pe_mode( fcubpOpe );
@@ -253,7 +253,7 @@ uint8_t flash_coderom_EraseBlock( const uint32_t addr )
 	/* Leave Program/Erase Mode */
 	flash_exit_pe_mode( fcubpOpe );
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 	set_psw( pswSaved );
 #else
     if (!di) {
@@ -277,13 +277,13 @@ uint8_t flash_datarom_EraseBlock( const uint32_t addr )
     FCU_BYTE_PTR    fcubpOpe = (FCU_BYTE_PTR)(addr & 0x00FFFFFF);
     uint8_t         result;
 
-#ifndef GRSAKURA
+#ifndef __RX600__
     const uint32_t  pswSaved = get_psw();
     set_psw( pswSaved & ~0x10000 ); // Disable interrupt
 #else
     bool di = isNoInterrupts();
     noInterrupts();
-#endif //GRSAKURA
+#endif //__RX600__
 
     /* Enter ROM PE mode, check if operation successful */
     result = dflash_enter_pe_mode( fcubpOpe );
@@ -313,7 +313,7 @@ uint8_t flash_datarom_EraseBlock( const uint32_t addr )
     /* Leave Program/Erase Mode */
     flash_exit_pe_mode( fcubpOpe );
 
-#ifndef GRSAKURA
+#ifndef __RX600__
     set_psw( pswSaved );
 #else
     if (!di) {
@@ -343,13 +343,13 @@ uint8_t flash_coderom_WriteData( const uint32_t addr, void* pData, const uint16_
 	FCU_WORD_PTR	fcuwpWrite = (FCU_WORD_PTR)fcubpOpe;
 	uint8_t			result;
 
-#ifndef GRSAKURA
+#ifndef __RX600__
     const uint32_t  pswSaved = get_psw();
     set_psw( pswSaved & ~0x10000 ); // Disable interrupt
 #else
     bool di = isNoInterrupts();
     noInterrupts();
-#endif //GRSAKURA
+#endif //__RX600__
 
 	/* Enter PE mode, check if operation is successful */
 	result = flash_enter_pe_mode( fcubpOpe );
@@ -404,7 +404,7 @@ uint8_t flash_coderom_WriteData( const uint32_t addr, void* pData, const uint16_
 	/* Leave Program/Erase Mode */
 	flash_exit_pe_mode( fcubpOpe );
 
-#ifndef GRSAKURA
+#ifndef __RX600__
     set_psw( pswSaved );
 #else
     if (!di) {
@@ -435,13 +435,13 @@ uint8_t flash_datarom_WriteData( const uint32_t addr, void* pData, const uint16_
     FCU_WORD_PTR    fcuwpWrite = (FCU_WORD_PTR)fcubpOpe;
     uint8_t         result;
 
-#ifndef GRSAKURA
+#ifndef __RX600__
     const uint32_t  pswSaved = get_psw();
     set_psw( pswSaved & ~0x10000 ); // Disable interrupt
 #else
     bool di = isNoInterrupts();
     noInterrupts();
-#endif //GRSAKURA
+#endif //__RX600__
 
     /* Enter PE mode, check if operation is successful */
     result = dflash_enter_pe_mode( fcubpOpe );
@@ -497,7 +497,7 @@ uint8_t flash_datarom_WriteData( const uint32_t addr, void* pData, const uint16_
     /* Leave Program/Erase Mode */
     flash_exit_pe_mode( fcubpOpe );
 
-#ifndef GRSAKURA
+#ifndef __RX600__
     set_psw( pswSaved );
 #else
     if (!di) {
@@ -524,13 +524,13 @@ bool flash_datarom_blankcheck( const uint32_t addr )
 
     uint8_t         result;
 
-#ifndef GRSAKURA
+#ifndef __RX600__
     const uint32_t  pswSaved = get_psw();
     set_psw( pswSaved & ~0x10000 ); // Disable interrupt
 #else
     bool di = isNoInterrupts();
     noInterrupts();
-#endif //GRSAKURA
+#endif //__RX600__
     FLASH.FMODR.BIT.FRDMD = 1;
 
     /* Enter PE mode, check if operation is successful */
@@ -559,7 +559,7 @@ bool flash_datarom_blankcheck( const uint32_t addr )
     /* Leave Program/Erase Mode */
     flash_exit_pe_mode( fcubpOpe );
 
-#ifndef GRSAKURA
+#ifndef __RX600__
     set_psw( pswSaved );
 #else
     if (!di) {

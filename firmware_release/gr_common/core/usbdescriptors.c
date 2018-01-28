@@ -46,16 +46,20 @@ User Includes
 ***********************************************************************************/
 #include "usb_hal.h"
 #include "usb_core.h"
-#include "usbdescriptors.h"
+#include "USBDescriptors.h"
 
 /***********************************************************************************
 Defines
 ***********************************************************************************/
 /*Vendor and Product ID*/
 /*NOTE Please use your company Vendor ID when developing a new product.*/
+#ifdef GRSAKURA
+#define VID 0x045B
+#define PID 0x0234
+#elif defined(GRCITRUS)
 #define VID 0x2A50
 #define PID 0x0277
-
+#endif
 /***********************************************************************************
 Variables
 ***********************************************************************************/
@@ -286,12 +290,21 @@ static const uint8_t gStringDescriptorProductData[STRING_PRODUCT_SIZE] =
     /* Descriptor Type = STRING */
     0x03,
     /* Descriptor Text (unicode) */
+#ifdef GRSAKURA
+    'G', 0x00, 'a', 0x00, 'd', 0x00, 'g', 0x00,
+    'e', 0x00, 't', 0x00, ' ', 0x00, 'R', 0x00,
+    'e', 0x00, 'n', 0x00, 'e', 0x00, 's', 0x00,
+    'a', 0x00, 's', 0x00, ' ', 0x00, 'S', 0x00,
+    'A', 0x00, 'K', 0x00, 'U', 0x00, 'R', 0x00,
+    'A', 0x00
+#elif defined GRCITRUS
     'G', 0x00, 'a', 0x00, 'd', 0x00, 'g', 0x00,
     'e', 0x00, 't', 0x00, ' ', 0x00, 'R', 0x00,
     'e', 0x00, 'n', 0x00, 'e', 0x00, 's', 0x00,
     'a', 0x00, 's', 0x00, ' ', 0x00, 'C', 0x00,
     'I', 0x00, 'T', 0x00, 'R', 0x00, 'U', 0x00,
     'S', 0x00
+#endif
 };
 
 const DESCRIPTOR gStringDescriptorProduct =

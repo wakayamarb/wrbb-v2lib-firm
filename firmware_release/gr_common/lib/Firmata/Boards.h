@@ -335,7 +335,7 @@ writePort(port, value, bitmask):  Write an 8 bit port.
 #define PIN_TO_SERVO(p)         ((p) - 2)
 
 // GR-SAKURA
-#elif defined(GRSAKURA)
+#elif defined(__RX600__)
 #define TOTAL_ANALOG_PINS       6
 #define TOTAL_PINS              20 //Actual # of pins are 66, but pins 32 and 34 are used for USB.
 #define VERSION_BLINK_PIN       PIN_LED0

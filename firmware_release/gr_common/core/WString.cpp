@@ -20,9 +20,9 @@
 */
 
 #include "WString.h"
-#ifdef GRSAKURA
+#ifdef __RX600__
 #include <avr/avrlib.h>
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
 /*********************************************/
 /*  Constructors                             */

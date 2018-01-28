@@ -42,32 +42,32 @@
  
 */
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 #include <avr/interrupt.h>
-#else /*GRSAKURA*/
-#endif/*GRSAKURA*/
+#else /*__RX600__*/
+#endif/*__RX600__*/
 #include <Arduino.h> 
 
 #include "Servo.h"
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 #define usToTicks(_us)    (( clockCyclesPerMicrosecond()* _us) / 8)     // converts microseconds to tick (assumes prescale of 8)  // 12 Aug 2009
 #define ticksToUs(_ticks) (( (unsigned)_ticks * 8)/ clockCyclesPerMicrosecond() ) // converts from ticks back to microseconds
 
 
 #define TRIM_DURATION       2                               // compensation ticks to trim adjust for digitalWrite delays // 12 August 2009
-#else /*GRSAKURA*/
+#else /*__RX600__*/
 #define usToTicks(_us)    ((_us) / 1)
 #define ticksToUs(_ticks) ((_ticks) * 1)
 #define TRIM_DURATION       0
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
 //#define NBR_TIMERS        (MAX_SERVOS / SERVOS_PER_TIMER)
 
 static servo_t servos[MAX_SERVOS];                          // static array of servo structures
-#ifndef GRSAKURA
+#ifndef __RX600__
 static volatile int8_t Channel[_Nbr_16timers ];             // counter for the servo being pulsed for each timer (or -1 if refresh interval)
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
 uint8_t ServoCount = 0;                                     // the total number of attached servos
 
@@ -83,7 +83,7 @@ uint8_t ServoCount = 0;                                     // the total number 
 
 /************ static functions common to all instances ***********************/
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 static inline void handle_interrupts(timer16_Sequence_t timer, volatile uint16_t *TCNTn, volatile uint16_t* OCRnA)
 {
   if( Channel[timer] < 0 )
@@ -252,7 +252,7 @@ static boolean isTimerActive(timer16_Sequence_t timer)
 }
 
 
-#else /*GRSAKURA*/
+#else /*__RX600__*/
 /*
 void setPinModeServo(int pin)
 {
@@ -267,7 +267,7 @@ void resetPinModeServo(int pin)
     resetPinModeSoftwarePWM(pin);
   }
 }
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 /****************** end of static functions ******************************/
 
 Servo::Servo()
@@ -294,11 +294,11 @@ uint8_t Servo::attach(int pin, int min, int max)
     this->min  = (MIN_PULSE_WIDTH - min)/4; //resolution of min/max is 4 uS
     this->max  = (MAX_PULSE_WIDTH - max)/4; 
     // initialize the timer if it has not already been initialized 
-#ifndef GRSAKURA
+#ifndef __RX600__
     timer16_Sequence_t timer = SERVO_INDEX_TO_TIMER(servoIndex);
     if(isTimerActive(timer) == false)
       initISR(timer);    
-#else /*GRSAKURA*/
+#else /*__RX600__*/
     setPinMode(pin, PinModeTone);
     if (isHardwarePWMPin(pin)) {
       int period = HardwarePWMFreq * (long long)REFRESH_INTERVAL / (1000 * 1000);
@@ -309,7 +309,7 @@ uint8_t Servo::attach(int pin, int min, int max)
       int term = SoftwarePWMFreq * (long long)servos[this->servoIndex].ticks / (1000 * 1000);
       setPinModeSoftwarePWM(pin, period, term, 0);
     }
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
     servos[this->servoIndex].Pin.isActive = true;  // this must be set after the check for isTimerActive
   } 
   return this->servoIndex ;
@@ -317,14 +317,14 @@ uint8_t Servo::attach(int pin, int min, int max)
 
 void Servo::detach()  
 {
-#ifndef GRSAKURA
+#ifndef __RX600__
   servos[this->servoIndex].Pin.isActive = false;  
   timer16_Sequence_t timer = SERVO_INDEX_TO_TIMER(servoIndex);
   if(isTimerActive(timer) == false) {
     finISR(timer);
   }
-#else /*GRSAKURA*/
-#endif/*GRSAKURA*/
+#else /*__RX600__*/
+#endif/*__RX600__*/
 }
 
 void Servo::write(int value)
@@ -352,12 +352,12 @@ void Servo::writeMicroseconds(int value)
   	value = value - TRIM_DURATION;
     value = usToTicks(value);  // convert to ticks after compensating for interrupt overhead - 12 Aug 2009
 
-#ifndef GRSAKURA
+#ifndef __RX600__
     uint8_t oldSREG = SREG;
     cli();
     servos[channel].ticks = value;  
     SREG = oldSREG;   
-#else /*GRSAKURA*/
+#else /*__RX600__*/
     servos[channel].ticks = value;
     int pin = servos[this->servoIndex].Pin.nbr;
     if (isHardwarePWMPin(pin)) {
@@ -369,7 +369,7 @@ void Servo::writeMicroseconds(int value)
       int term = SoftwarePWMFreq * (long long)servos[this->servoIndex].ticks / (1000 * 1000);
       changePinModeSoftwarePWM(pin, period, term, 0);
     }
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
   } 
 }
 

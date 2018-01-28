@@ -28,10 +28,10 @@
 #ifndef WiringPrivate_h
 #define WiringPrivate_h
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 #include <stdio.h>
 #include <stdarg.h>
 
@@ -41,7 +41,7 @@
 extern "C"{
 #endif
 
-#ifndef GRSAKURA
+#ifndef __RX600__
 #ifndef cbi
 #define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~_BV(bit))
 #endif
@@ -97,7 +97,7 @@ extern "C"{
 /** Default interrupt priority. Must be > 0, otherwise CPU won't accept. */
 #define DEFAULT_INT_PRIORITY    0x05
 
-#endif/*GRSAKURA*/
+#endif/*__RX600__*/
 
 typedef void (*voidFuncPtr)(void);
 

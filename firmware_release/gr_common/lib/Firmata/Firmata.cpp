@@ -31,7 +31,7 @@ extern "C" {
 
 void FirmataClass::sendValueAsTwo7bitBytes(int value)
 {
-#ifndef GRSAKURA
+#ifndef __RX600__
   FirmataSerial->write(value & B01111111); // LSB
   FirmataSerial->write(value >> 7 & B01111111); // MSB
 #else

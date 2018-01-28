@@ -34,7 +34,7 @@
 #define PgmPrintln(x) SerialPrintln_P(PSTR(x))
 /** Defined so doxygen works for function definitions. */
 #endif
-#ifdef GRSAKURA
+#ifdef __RX600__
 #include <avr/pgmspace.h>
 /** Store and print a string in flash memory.*/
 #define PgmPrint(x) SerialPrint_P(PSTR(x))
@@ -44,7 +44,7 @@
 #endif
 #define NOINLINE __attribute__((noinline,unused))
 #define UNUSEDOK __attribute__((unused))
-#ifndef GRSAKURA
+#ifndef __RX600__
 //------------------------------------------------------------------------------
 /** Return the number of bytes currently free in RAM. */
 static UNUSEDOK int FreeRam(void) {
