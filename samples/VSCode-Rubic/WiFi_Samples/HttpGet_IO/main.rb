@@ -6,6 +6,7 @@ pinMode(5,1)
 digitalWrite(5,0)   # LOW:Disable
 delay 500
 digitalWrite(5,1)   # LOW:Disable
+delay 500
 
 pinMode(9,0)
 

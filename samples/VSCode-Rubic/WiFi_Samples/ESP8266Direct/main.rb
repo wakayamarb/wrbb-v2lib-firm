@@ -2,6 +2,7 @@
 #GR-CITRUS Version 2.15
 pinMode(5,1)
 digitalWrite(5,1)   # LOW:Disable
+delay 500
 
 Usb = Serial.new(0,115200)
 

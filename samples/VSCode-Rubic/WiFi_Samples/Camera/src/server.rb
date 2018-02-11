@@ -5,6 +5,7 @@ pinMode(5, OUTPUT)
 digitalWrite(5, LOW)   # LOW:Disable
 delay 500
 digitalWrite(5, HIGH)   # LOW:Disable
+delay 500
 
 Usb = Serial.new(0,115200)
 

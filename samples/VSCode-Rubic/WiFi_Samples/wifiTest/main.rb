@@ -3,6 +3,7 @@
 
 #pinMode(5,1)
 #digitalWrite(5,1)   # LOW:Disable
+#delay 500
 
 Usb = Serial.new(0,115200)
 Esp = Serial.new(3,115200)

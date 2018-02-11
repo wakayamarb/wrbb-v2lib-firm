@@ -1,10 +1,10 @@
 #!mruby
-#GR-CITRUS Version 2.36
+#GR-CITRUS Version 2.41
 tm = Rtc.getTime
 if(tm[0] < 2010)then
   puts 'RTC Initialized'
   Rtc.init
-  Rtc.setTime([2017,11,27,1,15,0])
+  Rtc.setTime([2018,2,12,3,0,0])
 end
 
 30.times do
@@ -23,5 +23,5 @@ end
   body += min[min.length-2..min.length] + ":"
   body += sec[sec.length-2..sec.length]
   puts body
-  delay 1000
+  delay 999
 end

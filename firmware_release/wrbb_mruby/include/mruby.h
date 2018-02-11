@@ -1,7 +1,7 @@
 /*
 ** mruby - An embeddable Ruby implementation
 **
-** Copyright (c) mruby developers 2010-2017
+** Copyright (c) mruby developers 2010-2018
 **
 ** Permission is hereby granted, free of charge, to any person obtaining
 ** a copy of this software and associated documentation files (the
@@ -186,7 +186,7 @@ typedef struct {
 
 #ifdef MRB_METHOD_CACHE
 struct mrb_cache_entry {
-  struct RClass *c;
+  struct RClass *c, *c0;
   mrb_sym mid;
   mrb_method_t m;
 };
@@ -999,8 +999,8 @@ char* mrb_locale_from_utf8(const char *p, int len);
 #define mrb_locale_free(p) free(p)
 #define mrb_utf8_free(p) free(p)
 #else
-#define mrb_utf8_from_locale(p, l) (p)
-#define mrb_locale_from_utf8(p, l) (p)
+#define mrb_utf8_from_locale(p, l) ((char*)p)
+#define mrb_locale_from_utf8(p, l) ((char*)p)
 #define mrb_locale_free(p)
 #define mrb_utf8_free(p)
 #endif
@@ -1164,6 +1164,7 @@ MRB_API void mrb_print_error(mrb_state *mrb);
 #define E_SYNTAX_ERROR              (mrb_exc_get(mrb, "SyntaxError"))
 #define E_LOCALJUMP_ERROR           (mrb_exc_get(mrb, "LocalJumpError"))
 #define E_REGEXP_ERROR              (mrb_exc_get(mrb, "RegexpError"))
+#define E_FROZEN_ERROR              (mrb_exc_get(mrb, "FrozenError"))
 
 #define E_NOTIMP_ERROR              (mrb_exc_get(mrb, "NotImplementedError"))
 #ifndef MRB_WITHOUT_FLOAT

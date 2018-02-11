@@ -218,17 +218,19 @@ MRuby::CrossBuild.new("RX630") do |conf|
   #conf.gem :core => "mruby-class-ext"
   #conf.gem :core => "mruby-compar-ext"
   #conf.gem :core => "mruby-compiler"
+  #conf.gem :core => "mruby-enumerator"
   #conf.gem :core => "mruby-enum-ext"
   #conf.gem :core => "mruby-enum-lazy"
-  #conf.gem :core => "mruby-enumerator"
   #conf.gem :core => "mruby-error"
   #conf.gem :core => "mruby-eval"
   #conf.gem :core => "mruby-exit"
   #conf.gem :core => "mruby-fiber"
   #conf.gem :core => "mruby-hash-ext"
   #conf.gem :core => "mruby-inline-struct"
+  #conf.gem :core => "mruby-io"
   #conf.gem :core => "mruby-kernel-ext"
   conf.gem :core => "mruby-math"
+  #conf.gem :core => "mruby-method"
   conf.gem :core => "mruby-numeric-ext"
   #conf.gem :core => "mruby-object-ext"
   #conf.gem :core => "mruby-objectspace"
@@ -236,6 +238,7 @@ MRuby::CrossBuild.new("RX630") do |conf|
   #conf.gem :core => "mruby-proc-ext"
   #conf.gem :core => "mruby-random"
   #conf.gem :core => "mruby-range-ext"
+  #conf.gem :core => "mruby-socket"
   #conf.gem :core => "mruby-sprintf"
   #conf.gem :core => "mruby-string-ext"
   #conf.gem :core => "mruby-struct"
@@ -246,5 +249,4 @@ MRuby::CrossBuild.new("RX630") do |conf|
 
   #light-weight regular expression
   #conf.gem :github => "masamitsu-murase/mruby-hs-regexp", :branch => "master"
-
 end

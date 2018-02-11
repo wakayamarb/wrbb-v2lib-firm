@@ -1,8 +1,14 @@
 {
-    "rubicVersion": "0.99.8",
-    "boardClass": "GrCitrusBoard",
-    "repositoryUuid": "809d1206-8cd8-46f6-a657-2f60c050d7c9",
-    "releaseTag": "v2.30",
-    "variationPath": "citrus_sketch.bin",
-    "boardPath": "COM3"
+    "transfer": {},
+    "hardware": {
+        "boardClass": "GrCitrusBoard",
+        "repositoryUuid": "809d1206-8cd8-46f6-a657-2f60c050d7c9",
+        "releaseTag": "v2.39",
+        "variationPath": "00/citrus_sketch.bin",
+        "boardPath": "COM3"
+    },
+    "rubicVersion": {
+        "last": "0.99.15",
+        "min": "0.99.8"
+    }
 }

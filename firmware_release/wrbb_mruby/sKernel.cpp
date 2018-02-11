@@ -420,6 +420,54 @@ mrb_value mrb_kernel_puts(mrb_state *mrb, mrb_value self)
 }
 
 //**************************************************
+// パルスの長さを測ります: pulseIn
+//	pulseIn(pin, val[,timeout])
+//  pin: ピン番号
+//  val: 測定するパルスの種類。HIGHまたはLOW
+//  timeout : タイムアウトまでの時間(単位・マイクロ秒)。デフォルトは1秒
+//
+//戻り値
+//  パルスの長さ[us](unsigned long)。パルスがスタートする前にタイムアウトとなった場合は0。
+//**************************************************
+mrb_value mrb_kernel_pulseIn(mrb_state *mrb, mrb_value self)
+{
+	int pin;
+	int val;
+	unsigned long timeouttime;
+	unsigned long pw = 0;
+
+	int n = mrb_get_args(mrb, "ii|i", &pin, &val, &timeouttime);
+
+	if (pin >= 20){
+		return mrb_fixnum_value(0);
+	}
+
+	if (n < 3){
+		pw = pulseIn(pin, val);
+	}
+	else{
+		pw = pulseIn(pin, val, timeouttime);
+	}
+	return mrb_fixnum_value(pw);
+}
+
+//**************************************************
+// 指定した時間の一時停止: delayMicroseconds
+//  delayMicroseconds(us)
+//  us : 一時停止する時間(単位・マイクロ秒)
+//**************************************************
+mrb_value mrb_kernel_delayMicroseconds(mrb_state *mrb, mrb_value self)
+{
+unsigned long us;
+
+	mrb_get_args(mrb, "i", &us);
+
+	delayMicroseconds(us);
+
+	return mrb_nil_value();			//戻り値は無しですよ。
+}
+
+//**************************************************
 // 隠しコマンドです:  El_Psy.Congroo
 //	El_Psy.Congroo()
 //**************************************************
@@ -454,11 +502,14 @@ void kernel_Init(mrb_state *mrb)
 	mrb_define_method(mrb, mrb->kernel_module, "delay", mrb_kernel_delay, MRB_ARGS_REQ(1));
 	mrb_define_method(mrb, mrb->kernel_module, "millis", mrb_kernel_millis, MRB_ARGS_NONE());
 	mrb_define_method(mrb, mrb->kernel_module, "micros", mrb_kernel_micros, MRB_ARGS_NONE());
+	mrb_define_method(mrb, mrb->kernel_module, "delayMicroseconds", mrb_kernel_delayMicroseconds, MRB_ARGS_REQ(1));
 
 	mrb_define_method(mrb, mrb->kernel_module, "led", mrb_kernel_led, MRB_ARGS_OPT(1));
 
 	mrb_define_method(mrb, mrb->kernel_module, "randomSeed", mrb_kernel_randomSeed, MRB_ARGS_REQ(1));
 	mrb_define_method(mrb, mrb->kernel_module, "random", mrb_kernel_random, MRB_ARGS_REQ(1)|MRB_ARGS_OPT(1));
+
+	mrb_define_method(mrb, mrb->kernel_module, "pulseIn", mrb_kernel_pulseIn, MRB_ARGS_REQ(2) | MRB_ARGS_OPT(1));
 
 	mrb_define_method(mrb, mrb->kernel_module, "puts", mrb_kernel_puts, MRB_ARGS_OPT(1));
 

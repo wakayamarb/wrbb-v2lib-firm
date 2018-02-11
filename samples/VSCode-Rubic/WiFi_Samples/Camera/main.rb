@@ -5,8 +5,9 @@
 #ESP8266を一度停止させる(リセットと同じ)
 pinMode(5, OUTPUT)
 digitalWrite(5, LOW)   # LOW:Disable
-#delay 500
+delay 500
 #digitalWrite(5, HIGH)   # LOW:Disable
+#delay 500
 
 Usb = Serial.new(0,115200)
 Cam = Serial.new(1,115200)
