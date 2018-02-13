@@ -16,6 +16,10 @@
 
 #include "../wrbb.h"
 
+#ifndef ABORT_DELAY_POLLING_MS
+#define ABORT_DELAY_POLLING_MS	100
+#endif
+
 extern HardwareSerial *USB_Serial;
 
 //**************************************************
@@ -77,8 +81,18 @@ int value;
 	//試しに強制gcを入れて見る
 	mrb_full_gc(mrb);
 
-	if(value >0 ){
-		delay( value );
+	while(value > 0){
+		if(value > ABORT_DELAY_POLLING_MS){
+			delay( ABORT_DELAY_POLLING_MS );
+			value -= ABORT_DELAY_POLLING_MS;
+		} else {
+			delay( value );
+			value = 0;
+		}
+		if(Serial.isBreakState()){
+			// 長いdelayの途中に強制終了指示があった場合、delayを中断する
+			mrb_raise(mrb, E_RUNTIME_ERROR, "delay aborted");
+		}
 	}
 
 	return mrb_nil_value();			//戻り値は無しですよ。
