@@ -769,6 +769,16 @@ void WriteBulkINPacket(void)
 
 } // extern C
 
+bool HardwareSerial::isBreakState(void)
+{
+  return USBCDC_IsBreakState();
+}
+
+bool HardwareSerial::clearBreakState(void)
+{
+  return USBCDC_Clear_BreakState();
+}
+
 HardwareSerial Serial(0, NULL, MstpIdINVALID, INVALID_IO, INVALID_IO);
 #endif/*HAVE_HWSERIAL0*/
 
