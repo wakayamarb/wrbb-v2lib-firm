@@ -17,6 +17,7 @@
 #include <mruby/variable.h>
 #include <mruby/error.h>
 #include <mruby/array.h>
+#include <mruby/opcode.h>
 
 #include <eepfile.h>
 #include <eeploader.h>
@@ -60,6 +61,19 @@ extern bool SdClassFlag;
 //uint8_t RubyCode[RUBY_CODE_SIZE];	//静的にRubyコード領域を確保する
 uint8_t *RubyCode = NULL;					//動的にRubyコード領域を確保するため
 
+#ifdef MRB_BYTECODE_DECODE_OPTION
+//**************************************************
+//  mrubyプログラムの強制停止用フック
+//**************************************************
+static mrb_code forceVMStopHook(struct mrb_state* mrb, mrb_code code)
+{
+	if (Serial.isBreakState()) {
+		return OP_STOP;
+	}
+	return code;
+}
+#endif/*MRB_BYTECODE_DECODE_OPTION*/
+
 //**************************************************
 //  スクリプト言語を実行します
 //**************************************************
@@ -75,6 +89,11 @@ bool RubyRun(void)
 		Serial.println("Can not Open mrb!!");
 		return false;
 	}
+
+#ifdef MRB_BYTECODE_DECODE_OPTION
+	mrb->bytecode_decoder = forceVMStopHook;
+#endif
+	Serial.clearBreakState();
 
 	global_Init(mrb);	//グローバル変数の設定
 	kernel_Init(mrb);	//カーネル関連メソッドの設定
@@ -242,6 +261,10 @@ bool RubyRun(void)
 
 	SdClassFlag = false;
 
+	if (Serial.isBreakState()) {
+		notFinishFlag = true;
+	}
+
 	return notFinishFlag;
 }
 
@@ -320,3 +343,4 @@ bool getRubyCodeArea(unsigned short size)
 
 	return true;
 }
+
