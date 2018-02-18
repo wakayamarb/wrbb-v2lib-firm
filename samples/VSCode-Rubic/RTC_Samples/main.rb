@@ -1,15 +1,19 @@
 #!mruby
 #GR-CITRUS Version 2.41
-tm = Rtc.getTime
-if(tm[0] < 2010)then
+#Usb = Serial.new 0
+
+tm1 = Rtc.getTime
+delay 1100
+tm2 = Rtc.getTime
+if(tm1[5] == tm2[5] || tm1[0] < 2010)then
   puts 'RTC Initialized'
   Rtc.init
-  Rtc.setTime([2018,2,12,3,0,0])
+  Rtc.setTime([2018,2,13,20,39,00])
 end
 
-30.times do
+15.times do
   tm = Rtc.getTime
-  puts tm
+  #puts tm
   year = tm[0].to_s
   month = "00" + tm[1].to_s
   day = "00" + tm[2].to_s
@@ -23,5 +27,5 @@ end
   body += min[min.length-2..min.length] + ":"
   body += sec[sec.length-2..sec.length]
   puts body
-  delay 999
+  delay 1000
 end

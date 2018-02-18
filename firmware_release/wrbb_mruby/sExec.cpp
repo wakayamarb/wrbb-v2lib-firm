@@ -343,4 +343,3 @@ bool getRubyCodeArea(unsigned short size)
 
 	return true;
 }
-

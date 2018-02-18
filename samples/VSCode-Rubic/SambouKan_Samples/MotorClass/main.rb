@@ -1,11 +1,9 @@
 #!mruby
-#Ver.2.33
+#Ver.2.42
 MaxVero = 100
 RotVero = 100
 Rottime = 300
 RotPm = [RotVero, Rottime]
-
-Usb = Serial.new(0)
 
 #-------
 # タンク前進させます
@@ -52,7 +50,7 @@ end
 #-----------------------------------------
 
 
-Usb.println("System Start")
+puts "System Start"
 
 #mstart 0
 #delay 2000

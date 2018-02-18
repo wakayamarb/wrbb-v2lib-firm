@@ -130,7 +130,11 @@ void setup()
 
 	//Port 3-5がHIGH、またはUSBシリアルが未接続だったら、EEPROMファイルローダーに飛ぶ
 	if( FILE_LOAD == 1 && isUsbConnect){
-		fileloader((const char*)ProgVer,MRUBY_VERSION);
+		while (true){
+			if (fileloader((const char*)ProgVer, MRUBY_VERSION)){
+				break;
+			}
+		}
 	}
 }
 
@@ -142,6 +146,10 @@ void loop()
 	if( RubyRun()==false ){
 
 		DEBUG_PRINT("RubyRun", "FALSE");
-		fileloader((const char*)ProgVer,MRUBY_VERSION);
+		while (true){
+			if (fileloader((const char*)ProgVer, MRUBY_VERSION)){
+				break;
+			}
+		}
 	}
 }

@@ -1,5 +1,5 @@
 #!mruby
-#v2.32
+#v2.42
 
 Usb = Serial.new(0)
 8.times do |n|

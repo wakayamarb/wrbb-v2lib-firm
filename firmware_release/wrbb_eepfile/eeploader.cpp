@@ -107,6 +107,7 @@ int waitRcv(int msec){
 	unsigned long tm = millis() + msec;
 	int sa = 0;
 
+	USB_Serial->clearBreakState();		//ブレーク信号のクリア
 	USB_Serial->print("Waiting ");
 	while(tm > millis()){
 		if (USB_Serial->available() > 0){
@@ -116,6 +117,10 @@ int waitRcv(int msec){
 			sa = (int)(tm - millis()) / 1000;
 			USB_Serial->print(" ");
 			USB_Serial->print(sa, 10);
+		}
+		if (USB_Serial->isBreakState()){
+			USB_Serial->println("..Break!");
+			return 0;
 		}
 	}
 	USB_Serial->println("..Wait Error!");
@@ -229,6 +234,7 @@ bool writefile(const char *fname, int size, char code, char *readData)
 		return result;
 	}
 
+	USB_Serial->clearBreakState();		//ブレーク信号のクリア
 	result = true;
 	for(int i=0; i<binsize; i++){
 		//b2aFlgが 0 のときはバイナリ、1 のときはバイナリが2バイトテキストで送られてくる
@@ -249,11 +255,18 @@ bool writefile(const char *fname, int size, char code, char *readData)
 		if((i % 256) == 0){
 			USB_Serial->print(".");
 		}
+
+		if (USB_Serial->isBreakState()){
+			USB_Serial->println("..Break!");
+			result = false;
+			break;
+		}
 	}
 	EEP.fclose(fp);
 
-	USB_Serial->println(".");
-	
+	if (result){
+		USB_Serial->println(".");
+	}
 	return result;
 }
 
@@ -308,7 +321,8 @@ void readfile(const char *fname, char code)
 		return;
 	}
 
-	for(int i=0; i<binsize; i++){
+	USB_Serial->clearBreakState();		//ブレーク信号のクリア
+	for (int i = 0; i<binsize; i++){
 
 		if(code == 'G'){
 			USB_Serial->write((unsigned char)EEP.fread(fp));
@@ -319,6 +333,10 @@ void readfile(const char *fname, char code)
 				USB_Serial->print("0");
 			}
 			USB_Serial->print(bin, 16);
+		}
+
+		if (USB_Serial->isBreakState()){
+			break;
 		}
 	}
 	EEP.fclose(fp);
@@ -572,7 +590,7 @@ int fileloader(const char* str0, const char* str1)
 		}
 		else{
 			USB_Serial->println();
-			USB_Serial->println("EEPROM FileWriter Ver. 1.77.v2");
+			USB_Serial->println("EEPROM FileWriter Ver. 1.78.v2");
 			USB_Serial->println(" Command List");
 			USB_Serial->println(" L:List Filename..........>L [ENTER]");
 			USB_Serial->println(" W:Write File.............>W Filename Size [ENTER]");

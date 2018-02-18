@@ -1,11 +1,10 @@
 #!mruby
-#GR-CITRUS v2.31 mrbgem-Fiber
-Usb = Serial.new(0)
+#GR-CITRUS v2.42 mrbgem-Fiber
 
 fiber = Fiber.new do
-	Usb.println "First"
+	puts "First"
 	Fiber.yield
-	Usb.println "Second"
+	puts "Second"
 end
 
 fiber.resume # "Fisrt"
@@ -17,8 +16,8 @@ fiber = Fiber.new do |num|
 	end
 end
 
-Usb.println (fiber.resume 3).to_s # 0
-Usb.println fiber.resume.to_s   # 1
-Usb.println fiber.resume.to_s   # 2
-Usb.println fiber.resume.to_s   # 3
-Usb.println fiber.resume.to_s   # FiberError
+puts (fiber.resume 3) # 0
+puts fiber.resume   # 1
+puts fiber.resume   # 2
+puts fiber.resume   # 3
+puts fiber.resume   # FiberError

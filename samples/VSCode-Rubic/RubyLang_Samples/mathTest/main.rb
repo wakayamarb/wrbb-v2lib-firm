@@ -1,5 +1,5 @@
 #!mruby
-#GR-CITRUS v2.36
+#GR-CITRUS v2.41
 puts Math::PI
 puts Math::sqrt(2)
 deg = 30
