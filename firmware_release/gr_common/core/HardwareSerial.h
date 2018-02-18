@@ -160,6 +160,12 @@ class HardwareSerial : public Stream
     bool _buffer_available();
 #endif/*__RX600__*/
     void _tx_udr_empty_irq(void);
+
+#ifdef __RX600__
+    // Special terminal signals
+    bool isBreakState(void);
+    bool clearBreakState(void);
+#endif/*__RX600__*/
 };
 
 #ifndef __RX600__

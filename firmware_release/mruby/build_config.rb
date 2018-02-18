@@ -178,7 +178,7 @@ MRuby::CrossBuild.new("RX630") do |conf|
     cc.defines << %w(MRB_IVHASH_INIT_SIZE=3)  # initial size for IV khash; ignored when MRB_USE_IV_SEGLIST is set
     cc.defines << %w(KHASH_DEFAULT_SIZE=2)    # default size of khash table bucket
     cc.defines << %w(POOL_PAGE_SIZE=256)      # effective only for use with mruby-eval
-    cc.defines << %w(MRB_ENABLE_DEBUG_HOOK)   # hooks for debugger
+    cc.defines << %w(MRB_BYTECODE_DECODE_OPTION)  # hooks for bytecode decoder
   end
 
   conf.cxx do |cxx|

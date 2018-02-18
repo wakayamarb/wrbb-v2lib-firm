@@ -56,6 +56,7 @@
 #define SET_LINE_CODING                     0x20
 #define GET_LINE_CODING                     0x21
 #define SET_CONTROL_LINE_STATE              0x22
+#define SEND_BREAK                          0x23
 
 /*Size of GET_LINE_CODING response data*/
 #define LINE_CODING_DATA_SIZE               7
@@ -112,6 +113,9 @@ static SET_CONTROL_LINE_STATE_DATA g_SetControlLineData;
 
 /*Connected flag*/
 static volatile bool g_bConnected = false;
+
+/*Break flag*/
+static bool g_bBreakState = false;
 
 /*Bulk Out specific*/
 static BULK_OUT g_BulkOut = {
@@ -477,6 +481,36 @@ USB_ERR USBCDC_Cancel(void)
 ***********************************************************************************/
 
 /**********************************************************************
+* Outline       : USBCDC_IsBreakState
+* Description   : Read break (SEND_BREAK) state
+* Argument      : none
+* Return value  : current break state (true if CDC has received SEND_BREAK request)
+**********************************************************************/
+bool USBCDC_IsBreakState(void)
+{
+    return g_bBreakState;
+}
+/***********************************************************************************
+* End of function USBCDC_IsBreakState
+***********************************************************************************/
+
+/**********************************************************************
+* Outline       : USBCDC_Clear_BreakState
+* Description   : Clear break (SEND_BREAK) state
+* Argument      : none
+* Return value  : previous break state
+**********************************************************************/
+bool USBCDC_Clear_BreakState(void)
+{
+    bool bPreviousResult = g_bBreakState;
+    g_bBreakState = false;
+    return bPreviousResult;
+}
+/***********************************************************************************
+* End of function USBCDC_Clear_BreakState
+***********************************************************************************/
+
+/**********************************************************************
 * Outline       : CBCable
 * Description   : Callback when the USB cable is connected or disconnected.
 * Argument      : _bConnected: true = Connected, false = Disconnected.
@@ -709,6 +743,14 @@ static USB_ERR ProcessClassSetupPacket(SetupPacket* _pSetupPacket,
         {
             DEBUG_MSG_LOW(("USBCDC: SET_CONTROL_LINE_STATE\r\n"));
             /*No action required for this request.*/
+            /*No data response */
+            *_pNumBytes = 0;
+            break;
+        }
+        case SEND_BREAK:
+        {
+            DEBUG_MSG_LOW(("USBCDC: SEND_BREAK\r\n"));
+            g_bBreakState = true;
             /*No data response */
             *_pNumBytes = 0;
             break;
