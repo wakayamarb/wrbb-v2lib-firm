@@ -1,5 +1,5 @@
 #!mruby
-#v2.35
+#v2.42
 
 class NextTime
   attr_accessor :ntim # インスタンス変数に対応するゲッタとセッタを定義
@@ -30,7 +30,7 @@ class NextTime
 end
 #-----------------------------------------
 
-Nt = NextTime.new(24, [1, 0.5, 0.25, 0.125, 0.063])
+Nt = NextTime.new(100, [1, 0.5, 0.25, 0.125, 0.063])
 while(true) do
   if(Nt.update)then
     break
