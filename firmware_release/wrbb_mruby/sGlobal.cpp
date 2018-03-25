@@ -22,5 +22,6 @@ void global_Init(mrb_state *mrb)
 	mrb_define_global_const(mrb, "LOW", mrb_fixnum_value(0));
 	mrb_define_global_const(mrb, "INPUT", mrb_fixnum_value(0));
 	mrb_define_global_const(mrb, "OUTPUT", mrb_fixnum_value(1));
-	//mrb_define_global_const(mrb, "INPUT_PULLUP", mrb_fixnum_value(2));
+	mrb_define_global_const(mrb, "INPUT_PULLUP", mrb_fixnum_value(2));
+	mrb_define_global_const(mrb, "OUTPUT_OPENDRAIN", mrb_fixnum_value(3));
 }
