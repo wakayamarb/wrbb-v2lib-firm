@@ -521,6 +521,39 @@ mrb_value mrb_kernel_shiftOut(mrb_state *mrb, mrb_value self)
 }
 
 //**************************************************
+// 1バイト分のデータを1ビットずつ取り込みます: shiftIn
+//  shiftIn(dataPin, clockPin, bitOrder)
+//  dataPin : データ入力ピン
+//  clockPin : クロック出力ピン
+//  bitOrder : MSBFIRST(最上位ビットから出力) または
+//             LSBFIRST(最下位ビットから出力)
+//**************************************************
+mrb_value mrb_kernel_shiftIn(mrb_state *mrb, mrb_value self)
+{
+	mrb_int dataPin;
+	mrb_int clockPin;
+	mrb_int bitOrder;
+
+	mrb_get_args(mrb, "iii", &dataPin, &clockPin, &bitOrder);
+
+	if (dataPin < 0 || dataPin >20) {
+		mrb_raise(mrb, E_ARGUMENT_ERROR, "Invalid dataPin");
+	}
+
+	if (clockPin < 0 || clockPin >20) {
+		mrb_raise(mrb, E_ARGUMENT_ERROR, "Invalid dataPin");
+	}
+
+	if (bitOrder != MSBFIRST && bitOrder != LSBFIRST) {
+		mrb_raise(mrb, E_ARGUMENT_ERROR, "bitOrder is must be MSBFIRST or LSBFIRST");
+	}
+
+	uint8_t value = shiftIn(dataPin, clockPin, bitOrder);
+
+	return mrb_fixnum_value(value);
+}
+
+//**************************************************
 // 隠しコマンドです:  El_Psy.Congroo
 //	El_Psy.Congroo()
 //**************************************************
@@ -564,6 +597,7 @@ void kernel_Init(mrb_state *mrb)
 
 	mrb_define_method(mrb, mrb->kernel_module, "pulseIn", mrb_kernel_pulseIn, MRB_ARGS_REQ(2) | MRB_ARGS_OPT(1));
 	mrb_define_method(mrb, mrb->kernel_module, "shiftOut", mrb_kernel_shiftOut, MRB_ARGS_REQ(4));
+	mrb_define_method(mrb, mrb->kernel_module, "shiftIn", mrb_kernel_shiftIn, MRB_ARGS_REQ(3));
 
 	mrb_define_method(mrb, mrb->kernel_module, "puts", mrb_kernel_puts, MRB_ARGS_OPT(1));
 
