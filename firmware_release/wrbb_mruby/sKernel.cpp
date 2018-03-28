@@ -482,6 +482,45 @@ unsigned long us;
 }
 
 //**************************************************
+// 1バイト分のデータを1ビットずつ出力します: shiftOut
+//  shiftOut(dataPin, clockPin, bitOrder, value)
+//  dataPin : データ出力ピン
+//  clockPin : クロック出力ピン
+//  bitOrder : MSBFIRST(最上位ビットから出力) または
+//             LSBFIRST(最下位ビットから出力)
+//  value : 送信したいデータ(8bitデータ)
+//**************************************************
+mrb_value mrb_kernel_shiftOut(mrb_state *mrb, mrb_value self)
+{
+	mrb_int dataPin;
+	mrb_int clockPin;
+	mrb_int bitOrder;
+	mrb_int value;
+
+	mrb_get_args(mrb, "iiii", &dataPin, &clockPin, &bitOrder, &value);
+
+	if (dataPin < 0 || dataPin >20) {
+		mrb_raise(mrb, E_ARGUMENT_ERROR, "Invalid dataPin");
+	}
+
+	if (clockPin < 0 || clockPin >20) {
+		mrb_raise(mrb, E_ARGUMENT_ERROR, "Invalid dataPin");
+	}
+
+	if (bitOrder != MSBFIRST && bitOrder != LSBFIRST) {
+		mrb_raise(mrb, E_ARGUMENT_ERROR, "bitOrder is must be MSBFIRST or LSBFIRST");
+	}
+
+	if (value < 0 || value > 255) {
+		mrb_raise(mrb, E_ARGUMENT_ERROR, "value is must be in the range 0-255");
+	}
+
+	shiftOut(dataPin, clockPin, bitOrder, value);
+
+	return mrb_nil_value();
+}
+
+//**************************************************
 // 隠しコマンドです:  El_Psy.Congroo
 //	El_Psy.Congroo()
 //**************************************************
@@ -524,6 +563,7 @@ void kernel_Init(mrb_state *mrb)
 	mrb_define_method(mrb, mrb->kernel_module, "random", mrb_kernel_random, MRB_ARGS_REQ(1)|MRB_ARGS_OPT(1));
 
 	mrb_define_method(mrb, mrb->kernel_module, "pulseIn", mrb_kernel_pulseIn, MRB_ARGS_REQ(2) | MRB_ARGS_OPT(1));
+	mrb_define_method(mrb, mrb->kernel_module, "shiftOut", mrb_kernel_shiftOut, MRB_ARGS_REQ(4));
 
 	mrb_define_method(mrb, mrb->kernel_module, "puts", mrb_kernel_puts, MRB_ARGS_OPT(1));
 
