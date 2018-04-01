@@ -47,14 +47,14 @@ CFLAGS := -Wall -ffunction-sections -fno-function-cse -fsigned-char -fdata-secti
           -DMRB_USE_FLOAT -DMRB_FUNCALL_ARGC_MAX=6 -DMRB_HEAP_PAGE_SIZE=24 -DMRB_USE_IV_SEGLIST -DMRB_IVHASH_INIT_SIZE=3 -DKHASH_DEFAULT_SIZE=2 -DPOOL_PAGE_SIZE=256 -DMRB_BYTECODE_DECODE_OPTION # mruby/build_config.rbを参照のこと
 AFLAGS := -Wall -ffunction-sections -fno-function-cse -fsigned-char -fdata-sections -I. -I"$(GNU_PATH)rx-elf\include" -I"$(GNU_PATH)lib\gcc\rx-elf\$(GCC_VERSION)\include" -mno-balign -DGRCITRUS -DARDUINO=100 -DCPPAPP -D__RX_LITTLE_ENDIAN__=1 -O2 -g2 -g -flto -mlittle-endian-data -mcpu=rx600 -m64bit-doubles
 SFLAGS :=--gdwarf2
-CC  = rx-elf-gcc
-CPP = rx-elf-gcc
-AS  = rx-elf-as
-LNK = rx-elf-ld
-AR  = rx-elf-ar rcs
-CNVS = rx-elf-objcopy -O srec -I elf32-rx-be-ns
-CNVB = rx-elf-objcopy -O binary
-DMP = rx-elf-objdump
+CC  = $(GNU_PATH)bin/rx-elf-gcc
+CPP = $(GNU_PATH)bin/rx-elf-gcc
+AS  = $(GNU_PATH)bin/rx-elf-as
+LNK = $(GNU_PATH)bin/rx-elf-ld
+AR  = $(GNU_PATH)bin/rx-elf-ar rcs
+CNVS = $(GNU_PATH)bin/rx-elf-objcopy -O srec -I elf32-rx-be-ns
+CNVB = $(GNU_PATH)bin/rx-elf-objcopy -O binary
+DMP = $(GNU_PATH)bin/rx-elf-objdump
 OBJS = $(OBJFILES) $(LIBFILES)
 AOBJS = $(filter-out ./gr_sketch.o, $(OBJFILES))
 
