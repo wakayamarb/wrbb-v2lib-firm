@@ -51,7 +51,7 @@
 //#define SAMBOUKAN
 
 //バージョンと日付
-#define WRBB_VERSION	"-2.42(2018/2/18)"
+#define WRBB_VERSION	"-2.43(2018/3/30)"
 
 //バイトコードフォーマットの設定
 //#define BYTECODE	BYTE_CODE2
@@ -154,6 +154,12 @@
 
 #if BOARD == BOARD_GR || BOARD == BOARD_P02 || BOARD == BOARD_P03 || BOARD == BOARD_P04 || BOARD == BOARD_P05 || BOARD == BOARD_P06
 	#define REALTIMECLOCK	1
+
+	#if BOARD == BOARD_P06
+		#define RTC_CORRECT	-20
+	#else
+		#define RTC_CORRECT	0
+	#endif
 #endif
 
 #if BOARD == BOARD_GR

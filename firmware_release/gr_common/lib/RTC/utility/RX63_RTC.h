@@ -98,7 +98,7 @@ void rtc_attach_alarm_handler(void (*fFunction)(void));
 int rtc_set_alarm_time(int hour, int min, int week_flag = RTC_ALARM_EVERYDAY);
 void rtc_alarm_on();
 void rtc_alarm_off();
-void rtc_correct(int);
+void rtc_correct(int adj, int aadjp = 1);
 
 /***************************************************************************/
 /*    Global Variables                                                     */

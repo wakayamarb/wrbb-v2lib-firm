@@ -389,39 +389,42 @@ void rtc_alarm_off()
  * 時刻補正を設定します
  *
  * @parm [in] adj    補正するカウント値を指定します。(+進み、-遅れ、最大6bit) 補正を停止する場合は0を指定します。補正は10秒毎にadj/32768秒の増減を行います。
+ * @parm [in] aadjp  補正のタイミングを指定します。0: 1分毎に補正, 1: 10秒毎に補正を行います。
  *
  * @return なし
  *
  * @attention なし
  ***************************************************************************/
-void rtc_correct(int adj)
+void rtc_correct(int adj, int aadjp)
 {
-    int tmp_int;
-    if (adj == 0 ){
-        RTC0.RADJ.BYTE = 0x00;              // 補正を停止 PMADJ[1:0] = 00b
-        while (RTC0.RADJ.BYTE != 0x00) ;    // 設定が反映されるまで待機
-    } else if (adj > 0) {                   // adj > 0 の場合
-        RTC0.RADJ.BYTE = 0x00;              // 補正を停止 PMADJ[1:0] = 00b
-        while (RTC0.RADJ.BYTE != 0x00) ;    // 設定が反映されるまで待機
-        RTC0.RCR2.BIT.AADJE = 1;            // 0: 自動補正禁止, 1: 自動補正許可
-        while (RTC0.RCR2.BIT.AADJE != 1) ;  // AADJE ビットが変更されるまで待つ
-        RTC0.RCR2.BIT.AADJP = 1;            // 0: 1分毎に補正, 1: 10秒毎に補正
-        while (RTC0.RCR2.BIT.AADJP != 1) ;  // AADJP ビットが変更されるまで待つ
-        tmp_int = 0x40 | (0x3F & adj);      // RADJ.PMADJ[1:0] = 01b (進ませる)
-        RTC0.RADJ.BYTE = tmp_int;           // RADJ.ADJ[5:0] に補正値の絶対値を設定
-        while (RTC0.RADJ.BYTE != tmp_int) ; // 設定が反映されるまで待機
-        
-    } else {                                // adj < 0 の場合
-        RTC0.RADJ.BYTE = 0x00;              // 補正を停止 PMADJ[1:0] = 00b
-        while (RTC0.RADJ.BYTE != 0x00) ;    // 設定が反映されるまで待機
-        RTC0.RCR2.BIT.AADJE = 1;            // 0: 自動補正禁止, 1: 自動補正許可
-        while (RTC0.RCR2.BIT.AADJE != 1) ;  // AADJE ビットが変更されるまで待つ
-        RTC0.RCR2.BIT.AADJP = 1;            // 0: 1分毎に補正, 1: 10秒毎に補正
-        while (RTC0.RCR2.BIT.AADJP != 1) ;  // AADJP ビットが変更されるまで待つ
-        tmp_int = 0x80 | (0x3F & abs(adj)); // RADJ.PMADJ[1:0] = 10b (遅らせる)
-        RTC0.RADJ.BYTE = tmp_int;           // RADJ.ADJ[5:0] に補正値の絶対値を設定
-        while (RTC0.RADJ.BYTE != tmp_int) ; // 設定が反映されるまで待機
-    }
+	int tmp_int;
+	if (adj == 0) {
+		RTC0.RADJ.BYTE = 0x00;						// 補正を停止 PMADJ[1:0] = 00b
+		while (RTC0.RADJ.BYTE != 0x00);				// 設定が反映されるまで待機
+	}
+	else if (adj > 0) {								// adj > 0 の場合
+		RTC0.RADJ.BYTE = 0x00;						// 補正を停止 PMADJ[1:0] = 00b
+		while (RTC0.RADJ.BYTE != 0x00);				// 設定が反映されるまで待機
+		RTC0.RCR2.BIT.AADJE = 1;					// 0: 自動補正禁止, 1: 自動補正許可
+		while (RTC0.RCR2.BIT.AADJE != 1);			// AADJE ビットが変更されるまで待つ
+		RTC0.RCR2.BIT.AADJP = aadjp == 0 ? 0 : 1;	// 0: 1分毎に補正, 1: 10秒毎に補正
+		while (RTC0.RCR2.BIT.AADJP != 1);			// AADJP ビットが変更されるまで待つ
+		tmp_int = 0x40 | (0x3F & adj);				// RADJ.PMADJ[1:0] = 01b (進ませる)
+		RTC0.RADJ.BYTE = tmp_int;					// RADJ.ADJ[5:0] に補正値の絶対値を設定
+		while (RTC0.RADJ.BYTE != tmp_int);			// 設定が反映されるまで待機
+
+	}
+	else {											// adj < 0 の場合
+		RTC0.RADJ.BYTE = 0x00;						// 補正を停止 PMADJ[1:0] = 00b
+		while (RTC0.RADJ.BYTE != 0x00);				// 設定が反映されるまで待機
+		RTC0.RCR2.BIT.AADJE = 1;					// 0: 自動補正禁止, 1: 自動補正許可
+		while (RTC0.RCR2.BIT.AADJE != 1);			// AADJE ビットが変更されるまで待つ
+		RTC0.RCR2.BIT.AADJP = aadjp == 0 ? 0 : 1;   // 0: 1分毎に補正, 1: 10秒毎に補正
+		while (RTC0.RCR2.BIT.AADJP != 1);			// AADJP ビットが変更されるまで待つ
+		tmp_int = 0x80 | (0x3F & abs(adj));			// RADJ.PMADJ[1:0] = 10b (遅らせる)
+		RTC0.RADJ.BYTE = tmp_int;					// RADJ.ADJ[5:0] に補正値の絶対値を設定
+		while (RTC0.RADJ.BYTE != tmp_int);			// 設定が反映されるまで待機
+	}
 }
 
 /// @cond

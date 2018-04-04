@@ -141,9 +141,10 @@ mrb_value mrb_rtc_deinit(mrb_state *mrb, mrb_value self)
 
 //**************************************************
 // RTCを起動します: Rtc.init
-//  Rtc.init( adj )
+//  Rtc.init([adj])
 //  adj: 10秒毎の1/32768単位の補正カウント値
 //       最大6bit(±63) 、0の場合は補正を停止
+//  引数省略時はデフォルト値 RTC_CORRECT で補正
 //
 // 戻り値は以下のとおり
 //	0: 起動失敗
@@ -152,13 +153,20 @@ mrb_value mrb_rtc_deinit(mrb_state *mrb, mrb_value self)
 //**************************************************
 mrb_value mrb_rtc_init(mrb_state *mrb, mrb_value self)
 {
-int tmp;
-	int n = mrb_get_args(mrb,"|i", &tmp);   // 引数を符号付き整数としてtmpに得る。
+	int adj;
+
+	int n = mrb_get_args(mrb, "|i", &adj);   // 引数を符号付き整数としてadjに得る。
 	int ret = rtc_init();
-	if ( n>=1 ) {                           // 引数が１つ以上あれば
-		rtc_correct(tmp);                   // 引数分のクロック補正を設定する
+
+	if (n >= 1) {                           // 引数が１つ以上あれば
+		rtc_correct(adj);                   // 引数分のクロック補正を設定する
 	}
+	else {
+		rtc_correct(RTC_CORRECT);           // 引数分のクロック補正を設定する
+	}
+
 	delay(100);
+
 	return mrb_fixnum_value(ret);
 }
 
@@ -171,7 +179,7 @@ void rtc_Init(mrb_state *mrb)
 
 	//mrb_define_module_function(mrb, rtcModule, "init", mrb_rtc_init, MRB_ARGS_NONE());
 	mrb_define_module_function(mrb, rtcModule, "init", mrb_rtc_init, MRB_ARGS_OPT(1));
-	mrb_define_module_function(mrb, rtcModule, "begin", mrb_rtc_init, MRB_ARGS_NONE());
+	mrb_define_module_function(mrb, rtcModule, "begin", mrb_rtc_init, MRB_ARGS_OPT(1));
 	mrb_define_module_function(mrb, rtcModule, "deinit", mrb_rtc_deinit, MRB_ARGS_NONE());
 	mrb_define_module_function(mrb, rtcModule, "setTime", mrb_rtc_setTime, MRB_ARGS_REQ(6));
 	mrb_define_module_function(mrb, rtcModule, "getTime", mrb_rtc_getTime, MRB_ARGS_NONE());

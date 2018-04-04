@@ -1,8 +1,8 @@
 Usb = Serial.new(0,115200)
 
 readbuff = ""
-last_sec = 0    #‘O‚Ì•bƒJƒEƒ“ƒg’l
-command_get = 0 #ƒRƒ}ƒ“ƒhæ“¾ƒtƒ‰ƒO
+last_sec = 0    #å‰ã®ç§’ã‚«ã‚¦ãƒ³ãƒˆå€¤
+command_get = 0 #ã‚³ãƒãƒ³ãƒ‰å–å¾—ãƒ•ãƒ©ã‚°
 
     Usb.println "Input Date and time. Example:"
                 #0123456789012345678
@@ -10,7 +10,7 @@ command_get = 0 #ƒRƒ}ƒ“ƒhæ“¾ƒtƒ‰ƒO
     Usb.println "-------------------"
     while(true) do
         while(true) do
-            while(Usb.available()>0) do #‰½‚©óM‚ª‚ ‚Á‚½‚çreadbuff‚É’~‚¦‚é
+            while(Usb.available()>0) do #ä½•ã‹å—ä¿¡ãŒã‚ã£ãŸã‚‰readbuffã«è“„ãˆã‚‹
                 a = Usb.read()
                 readbuff += a
                 Usb.print a
@@ -35,7 +35,8 @@ command_get = 0 #ƒRƒ}ƒ“ƒhæ“¾ƒtƒ‰ƒO
                     min	 = readbuff[14,2].to_i
                     sec	 = readbuff[17,2].to_i
                     Rtc.deinit()
-                    Rtc.init(-20)	# RTC•â³F10 •b–ˆ‚É 20/32768 •b’x‚ç‚¹‚é
+                    #Rtc.init(-20)	# RTCè£œæ­£ï¼š10 ç§’æ¯ã« 20/32768 ç§’é…ã‚‰ã›ã‚‹
+                    Rtc.init()      # v2.83ä»¥é™ï¼šãƒ‡ãƒ•ã‚©ãƒ«ãƒˆå€¤(-20)ã§è£œæ­£ã‚’è¡Œã†
                     Rtc.setTime([year,mon,da,ho,min,sec])
                 end
                 year,mon,da,ho,min,sec = Rtc.getTime()
