@@ -157,13 +157,19 @@ end
 MRuby::CrossBuild.new("RX630") do |conf|
   toolchain :gcc
 
-  # Windows
-  BIN_PATH = "/cygdrive/c/Renesas/GNURXv14.03-ELF/rx-elf/rx-elf/bin"
-  LIB_PATH = "/cygdrive/c/Renesas/GNURXv14.03-ELF/rx-elf/rx-elf/rx-elf/lib"
-  # Linux
-  # BIN_PATH = "/usr/share/gnurx_v14.03_elf-1/bin"
-  # macOS
-  # BIN_PATH = "/Applications/IDE4GR.app/Contents/Java/hardware/tools/gcc-rx/rx-elf/rx-elf/bin/"
+  base_path = case RbConfig::CONFIG['host_os']
+                when /mswin|msys|mingw|cygwin|bccwin|wince|emc/
+                  # Windows
+                  "/cygdrive/c/Renesas/GNURXv14.03-ELF/rx-elf/rx-elf/"
+                when /darwin|mac os/
+                  # macOS
+                  "/Applications/IDE4GR.app/Contents/Java/hardware/tools/gcc-rx/rx-elf/rx-elf/"
+                when /linux/
+                  # Linux
+                  "/usr/share/gnurx_v14.03_elf-1/"
+              end
+  BIN_PATH = base_path + "bin"
+  LIB_PATH = base_path + "rx-elf/lib"
 
   conf.cc do |cc|
     cc.command = "#{BIN_PATH}/rx-elf-gcc"
