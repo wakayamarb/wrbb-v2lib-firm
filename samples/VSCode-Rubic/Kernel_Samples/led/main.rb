@@ -1,7 +1,7 @@
 #!mruby
-#GR-CITRUS v2.36
+#GR-CITRUS v2.44
 
-20.times do |n|
+120.times do |n|
   led
   puts "Hello Ruby World!:#{n}"
   delay 250

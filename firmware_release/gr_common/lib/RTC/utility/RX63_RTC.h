@@ -64,6 +64,8 @@
 #define RTC_ALARM_SATURDAY  0x06    //!< アラーム曜日設定（土曜日）
 #define RTC_ALARM_EVERYDAY  0x00    //!< 使用されない。アラームレジスタではENBに0が代入される
 
+#define RTC_PERIOD_MINUTE   0x00    //!< 1分周期で補正
+#define RTC_PERIOD_SECOND   0x01    //!< 1秒周期で補正
 
 /***************************************************************************/
 /*    Type  Definitions                                                    */

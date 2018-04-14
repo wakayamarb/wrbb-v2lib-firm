@@ -499,11 +499,11 @@ mrb_value mrb_kernel_shiftOut(mrb_state *mrb, mrb_value self)
 
 	mrb_get_args(mrb, "iiii", &dataPin, &clockPin, &bitOrder, &value);
 
-	if (dataPin < 0 || dataPin >20) {
+	if (dataPin < 0 || dataPin >=20) {
 		mrb_raise(mrb, E_ARGUMENT_ERROR, "Invalid dataPin");
 	}
 
-	if (clockPin < 0 || clockPin >20) {
+	if (clockPin < 0 || clockPin >=20) {
 		mrb_raise(mrb, E_ARGUMENT_ERROR, "Invalid dataPin");
 	}
 
@@ -536,11 +536,11 @@ mrb_value mrb_kernel_shiftIn(mrb_state *mrb, mrb_value self)
 
 	mrb_get_args(mrb, "iii", &dataPin, &clockPin, &bitOrder);
 
-	if (dataPin < 0 || dataPin >20) {
+	if (dataPin < 0 || dataPin >=20) {
 		mrb_raise(mrb, E_ARGUMENT_ERROR, "Invalid dataPin");
 	}
 
-	if (clockPin < 0 || clockPin >20) {
+	if (clockPin < 0 || clockPin >=20) {
 		mrb_raise(mrb, E_ARGUMENT_ERROR, "Invalid dataPin");
 	}
 
