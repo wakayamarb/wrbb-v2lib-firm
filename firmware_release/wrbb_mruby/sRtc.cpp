@@ -144,6 +144,7 @@ mrb_value mrb_rtc_deinit(mrb_state *mrb, mrb_value self)
 //  Rtc.init([adj])
 //  adj: 10秒毎の1/32768単位の補正カウント値
 //       最大6bit(±63) 、0の場合は補正を停止
+//  引数省略時はデフォルト値 RTC_CORRECT で補正
 //
 // 戻り値は以下のとおり
 //	0: 起動失敗
