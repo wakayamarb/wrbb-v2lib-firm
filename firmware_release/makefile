@@ -30,23 +30,31 @@ HEADERFILES = ./wrbb.h ./gr_common/core/Arduino.h ./gr_common/core/binary.h ./gr
 	./wrbb_eepfile/eepfile.h ./wrbb_eepfile/eeploader.h ./wrbb_mruby/sExec.h ./wrbb_mruby/sI2c.h ./wrbb_mruby/sKernel.h ./wrbb_mruby/sMem.h ./wrbb_mruby/sRtc.h ./wrbb_mruby/sSdCard.h ./wrbb_mruby/sSerial.h ./wrbb_mruby/sServo.h ./wrbb_mruby/sSys.h ./wrbb_mruby/sWiFi.h ./wrbb_mruby/sMp3.h ./wrbb_mruby/sGlobal.h \
 	./wrbb_mruby/include/mrbconf.h ./wrbb_mruby/include/mruby.h ./wrbb_mruby/include/mruby/array.h ./wrbb_mruby/include/mruby/boxing_nan.h ./wrbb_mruby/include/mruby/boxing_no.h ./wrbb_mruby/include/mruby/boxing_word.h ./wrbb_mruby/include/mruby/class.h ./wrbb_mruby/include/mruby/common.h ./wrbb_mruby/include/mruby/compile.h ./wrbb_mruby/include/mruby/data.h ./wrbb_mruby/include/mruby/debug.h ./wrbb_mruby/include/mruby/dump.h ./wrbb_mruby/include/mruby/error.h ./wrbb_mruby/include/mruby/gc.h ./wrbb_mruby/include/mruby/hash.h ./wrbb_mruby/include/mruby/irep.h ./wrbb_mruby/include/mruby/khash.h ./wrbb_mruby/include/mruby/numeric.h ./wrbb_mruby/include/mruby/object.h ./wrbb_mruby/include/mruby/opcode.h ./wrbb_mruby/include/mruby/proc.h ./wrbb_mruby/include/mruby/range.h ./wrbb_mruby/include/mruby/re.h ./wrbb_mruby/include/mruby/string.h ./wrbb_mruby/include/mruby/throw.h ./wrbb_mruby/include/mruby/value.h ./wrbb_mruby/include/mruby/variable.h ./wrbb_mruby/include/mruby/version.h \
 	./WavMp3p/WavMp3p.h ./WavMp3p/libmad-0.15.1b/bit.h ./WavMp3p/libmad-0.15.1b/config.h.in ./WavMp3p/libmad-0.15.1b/decoder.h ./WavMp3p/libmad-0.15.1b/fixed.h ./WavMp3p/libmad-0.15.1b/frame.h ./WavMp3p/libmad-0.15.1b/global.h ./WavMp3p/libmad-0.15.1b/huffman.h ./WavMp3p/libmad-0.15.1b/layer12.h ./WavMp3p/libmad-0.15.1b/layer3.h ./WavMp3p/libmad-0.15.1b/mad.h ./WavMp3p/libmad-0.15.1b/stream.h ./WavMp3p/libmad-0.15.1b/synth.h ./WavMp3p/libmad-0.15.1b/timer.h ./WavMp3p/libmad-0.15.1b/version.h ./WavMp3p/libmad-0.15.1b/msvc++/config.h ./WavMp3p/libmad-0.15.1b/msvc++/mad.h ./WavMp3p/utility/wavmp3p_audio.h ./WavMp3p/utility/wavmp3p_ctrl.h ./WavMp3p/utility/wavmp3p_dma.h ./WavMp3p/utility/wavmp3p_gpio.h ./WavMp3p/utility/wavmp3p_icu.h ./WavMp3p/utility/wavmp3p_init.h ./WavMp3p/utility/wavmp3p_play.h ./WavMp3p/utility/wavmp3p_play_mp3.h ./WavMp3p/utility/wavmp3p_play_wav.h ./WavMp3p/utility/wavmp3p_pwm.h
-GNU_PATH := c:/Renesas/GNURXv14.03-ELF/rx-elf/rx-elf/
-# GNU_PATH := /usr/share/gnurx_v14.03_elf-1/
-# GNU_PATH := /Applications/IDE4GR.app/Contents/Java/hardware/tools/gcc-rx/rx-elf/rx-elf/
+
+ifeq ($(OS),Windows_NT)
+	GNU_PATH := c:/Renesas/GNURXv14.03-ELF/rx-elf/rx-elf/
+else
+	OSNAME=${shell uname -s}
+	ifeq ($(OSNAME),Darwin)
+		GNU_PATH := /Applications/IDE4GR.app/Contents/Java/hardware/tools/gcc-rx/rx-elf/rx-elf/
+	else
+		GNU_PATH := /usr/share/gnurx_v14.03_elf-1/
+	endif
+endif
 GCC_VERSION := 4.8-GNURX_v14.03
 CCINC := $(filter-out -I./wrbb_mruby/include/mruby, $(CCINC)) #string.hの重複を避けるため
 CFLAGS := -Wall -ffunction-sections -fno-function-cse -fsigned-char -fdata-sections -I. -I"$(GNU_PATH)rx-elf\include" -I"$(GNU_PATH)lib\gcc\rx-elf\$(GCC_VERSION)\include" -mno-balign -DGRCITRUS -DARDUINO=100 -DCPPAPP -D__RX_LITTLE_ENDIAN__=1 -O2 -g2 -g -flto -mlittle-endian-data -mcpu=rx600 -m64bit-doubles \
           -DMRB_USE_FLOAT -DMRB_FUNCALL_ARGC_MAX=6 -DMRB_HEAP_PAGE_SIZE=24 -DMRB_USE_IV_SEGLIST -DMRB_IVHASH_INIT_SIZE=3 -DKHASH_DEFAULT_SIZE=2 -DPOOL_PAGE_SIZE=256 -DMRB_BYTECODE_DECODE_OPTION # mruby/build_config.rbを参照のこと
 AFLAGS := -Wall -ffunction-sections -fno-function-cse -fsigned-char -fdata-sections -I. -I"$(GNU_PATH)rx-elf\include" -I"$(GNU_PATH)lib\gcc\rx-elf\$(GCC_VERSION)\include" -mno-balign -DGRCITRUS -DARDUINO=100 -DCPPAPP -D__RX_LITTLE_ENDIAN__=1 -O2 -g2 -g -flto -mlittle-endian-data -mcpu=rx600 -m64bit-doubles
 SFLAGS :=--gdwarf2
-CC  = rx-elf-gcc
-CPP = rx-elf-gcc
-AS  = rx-elf-as
-LNK = rx-elf-ld
-AR  = rx-elf-ar rcs
-CNVS = rx-elf-objcopy -O srec -I elf32-rx-be-ns
-CNVB = rx-elf-objcopy -O binary
-DMP = rx-elf-objdump
+CC  = $(GNU_PATH)bin/rx-elf-gcc
+CPP = $(GNU_PATH)bin/rx-elf-gcc
+AS  = $(GNU_PATH)bin/rx-elf-as
+LNK = $(GNU_PATH)bin/rx-elf-ld
+AR  = $(GNU_PATH)bin/rx-elf-ar rcs
+CNVS = $(GNU_PATH)bin/rx-elf-objcopy -O srec -I elf32-rx-be-ns
+CNVB = $(GNU_PATH)bin/rx-elf-objcopy -O binary
+DMP = $(GNU_PATH)bin/rx-elf-objdump
 OBJS = $(OBJFILES) $(LIBFILES)
 AOBJS = $(filter-out ./gr_sketch.o, $(OBJFILES))
 
