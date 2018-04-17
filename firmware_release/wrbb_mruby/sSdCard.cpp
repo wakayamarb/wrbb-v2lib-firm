@@ -432,6 +432,9 @@ int sdcard_Init(mrb_state *mrb)
 	//日付と時刻を返す関数を登録
 	SdFile::dateTimeCallback( &SD_DateTime );
 
+	//クラスを作成する前には、強制gcを入れる
+	mrb_full_gc(mrb);
+
 	struct RClass *sdcardModule = mrb_define_module(mrb, SD_CLASS);
 
 	mrb_define_module_function(mrb, sdcardModule, "exists", mrb_sdcard_exists, MRB_ARGS_REQ(1));

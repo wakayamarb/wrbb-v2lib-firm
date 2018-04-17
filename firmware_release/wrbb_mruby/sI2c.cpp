@@ -137,6 +137,9 @@ static mrb_value mrb_i2c_initialize(mrb_state *mrb, mrb_value self) {
 
 mrb_int num;
 
+	//インスタンスを作成する前には、強制gcを入れる
+	mrb_full_gc(mrb);
+
 	mrb_get_args(mrb, "i", &num);
 
 	if (num < 0 && num >= WIRE_MAX)

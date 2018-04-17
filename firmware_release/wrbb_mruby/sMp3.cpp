@@ -197,6 +197,9 @@ int mp3_Init(mrb_state *mrb,int pausePin, int stopPin)
 		return 0;
 	}
 
+	//インスタンスを作成する前には、強制gcを入れる
+	mrb_full_gc(mrb);
+
 	//インスタンスを生成します。
 	if(Wavmp3p == 0){
 		Wavmp3p = new WavMp3p(44100);

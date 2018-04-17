@@ -2373,6 +2373,9 @@ int esp8266_Init(mrb_state *mrb)
 		}
 	}
 
+	//クラスを作成する前には、強制gcを入れる
+	mrb_full_gc(mrb);
+
 	struct RClass *wifiModule = mrb_define_module(mrb, WIFI_CLASS);
 
 	mrb_define_module_function(mrb, wifiModule, "at", mrb_wifi_at, MRB_ARGS_REQ(1) | MRB_ARGS_OPT(1));

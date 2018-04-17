@@ -108,6 +108,9 @@ static mrb_value mrb_serial_initialize(mrb_state *mrb, mrb_value self) {
 mrb_int num;
 mrb_int bps;
 
+	//インスタンスを作成する前には、強制gcを入れる
+	mrb_full_gc(mrb);
+
 	int n =  mrb_get_args(mrb, "i|i", &num,&bps);
 
 	if (num < 0 && num >= SERIAL_MAX)
