@@ -10,6 +10,7 @@
 #include <Arduino.h>
 #include <string.h>
 #include <SD.h>
+#include <time.h>
 
 #include <mruby.h>
 #include <mruby/string.h>
@@ -1076,6 +1077,20 @@ char sData[1024];
 }
 
 //**************************************************
+// TCP/UDP通信を閉じるサブプログラム
+//**************************************************
+void wifi_cClose(int num)
+{
+	RbSerial[WIFI_SERIAL]->print("AT+CIPCLOSE=");
+	RbSerial[WIFI_SERIAL]->println(num);
+
+	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読むか、指定されたシリアルポートに出力します
+	getData(WIFI_WAIT_MSEC);
+
+	return;
+}
+
+//**************************************************
 // TCP/UDP接続を閉じる: WiFi.cClose
 //  WiFi.cClose(number)
 //  number: 接続番号(1～4)
@@ -1085,14 +1100,44 @@ mrb_value mrb_wifi_cClose(mrb_state *mrb, mrb_value self)
 int	num;
 
 	mrb_get_args(mrb, "i", &num);
+	wifi_cClose(num);
+	return mrb_str_new_cstr(mrb, (const char*)WiFiData);
+}
 
-	RbSerial[WIFI_SERIAL]->print("AT+CIPCLOSE=");
-	RbSerial[WIFI_SERIAL]->println(num);
+static int chk_OK()
+{
+	char *p = (char *)WiFiData;
+	int n = strlen((const char *)WiFiData);
+	//DEBUG_PRINTLN1((const char *)WiFiData);
+	if (n >= 4) {
+		if ((p[n - 4] == 'O') && (p[n - 3] == 'K'))
+			return 1;
+	}
+	return 0;
+}
 
+//**************************************************
+// UDP通信開始のサブプログラム
+//**************************************************
+static int wifi_udpOpen(int num, char *strIpAdd, int sport, int rport)
+{
+	RbSerial[WIFI_SERIAL]->println("AT+CIPMUX=1");
 	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読むか、指定されたシリアルポートに出力します
 	getData(WIFI_WAIT_MSEC);
 
-	return mrb_str_new_cstr(mrb, (const char*)WiFiData);
+	//****** AT+CIPSTARTコマンド ******
+	RbSerial[WIFI_SERIAL]->print("AT+CIPSTART=");
+	RbSerial[WIFI_SERIAL]->print(num);
+	RbSerial[WIFI_SERIAL]->print(",\"UDP\",\"");
+	RbSerial[WIFI_SERIAL]->print((const char*)strIpAdd);
+	RbSerial[WIFI_SERIAL]->print("\",");
+	RbSerial[WIFI_SERIAL]->print(sport);
+	RbSerial[WIFI_SERIAL]->print(",");
+	RbSerial[WIFI_SERIAL]->println(rport);
+
+	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読むか、指定されたシリアルポートに出力します
+	getData(WIFI_WAIT_MSEC);
+	return chk_OK();
 }
 
 //**************************************************
@@ -1112,20 +1157,46 @@ int	num, sport, rport;
 	mrb_get_args(mrb, "iSii", &num, &vIpAdd, &sport, &rport);
 	strIpAdd = RSTRING_PTR(vIpAdd);
 
+	wifi_udpOpen(num, strIpAdd, sport, rport);
+
+	return mrb_str_new_cstr(mrb, (const char*)WiFiData);
+}
+
+//**************************************************
+// 送信のサブプログラム
+//**************************************************
+static int wifi_send(int num, char *strdata, int len)
+{
 	//****** AT+CIPSTARTコマンド ******
-	RbSerial[WIFI_SERIAL]->print("AT+CIPSTART=");
+	RbSerial[WIFI_SERIAL]->print("AT+CIPSEND=");
 	RbSerial[WIFI_SERIAL]->print(num);
-	RbSerial[WIFI_SERIAL]->print(",\"UDP\",\"");
-	RbSerial[WIFI_SERIAL]->print((const char*)strIpAdd);
-	RbSerial[WIFI_SERIAL]->print("\",");
-	RbSerial[WIFI_SERIAL]->print(sport);
 	RbSerial[WIFI_SERIAL]->print(",");
-	RbSerial[WIFI_SERIAL]->println(rport);
+	RbSerial[WIFI_SERIAL]->println(len);
 
 	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読むか、指定されたシリアルポートに出力します
 	getData(WIFI_WAIT_MSEC);
 
-	return mrb_str_new_cstr(mrb, (const char*)WiFiData);
+	if (!(WiFiData[strlen((const char*)WiFiData) - 2] == 'K' || WiFiData[strlen((const char*)WiFiData) - 3] == 'K')) {
+		return 0;
+	}
+
+	//RbSerial[WIFI_SERIAL]->print((const char*)strdata);
+	for (int i = 0; i < len; i++) {
+		RbSerial[WIFI_SERIAL]->print((char)strdata[i]);
+	}
+
+	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読むか、指定されたシリアルポートに出力します
+	getData(WIFI_WAIT_MSEC);
+
+	if (!(WiFiData[strlen((const char*)WiFiData) - 2] == 'K' || WiFiData[strlen((const char*)WiFiData) - 3] == 'K')) {
+
+		//タイムアウトと思われるので、強制的にデータサイズの不足分の0x0Dを送信する
+		for (int i = 0; i<len - (int)strlen(strdata); i++) {
+			RbSerial[WIFI_SERIAL]->print("\r");
+		}
+		return 0;
+	}
+	return len;
 }
 
 //**************************************************
@@ -1140,72 +1211,32 @@ int	num, sport, rport;
 //**************************************************
 mrb_value mrb_wifi_send(mrb_state *mrb, mrb_value self)
 {
-mrb_value vdata;
-char	*strdata;
-int	num, len;
+	mrb_value vdata;
+	char	*strdata;
+	int	num, len;
 
 	int n = mrb_get_args(mrb, "iS|i", &num, &vdata, &len);
 	strdata = RSTRING_PTR(vdata);
 
 	//送信データサイズが指定されていないとき
-	if(n < 3){
+	if (n < 3) {
 		len = RSTRING_LEN(vdata);
 	}
 
-	//****** AT+CIPSTARTコマンド ******
-	RbSerial[WIFI_SERIAL]->print("AT+CIPSEND=");
-	RbSerial[WIFI_SERIAL]->print(num);
-	RbSerial[WIFI_SERIAL]->print(",");
-	RbSerial[WIFI_SERIAL]->println(len);
-
-	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読むか、指定されたシリアルポートに出力します
-	getData(WIFI_WAIT_MSEC);
-
-	if( !(WiFiData[strlen((const char*)WiFiData)-2] == 'K' || WiFiData[strlen((const char*)WiFiData)-3] == 'K')){
-		return mrb_fixnum_value( 0 );
-	}
-
-	RbSerial[WIFI_SERIAL]->print((const char*)strdata);
-
-	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読むか、指定されたシリアルポートに出力します
-	getData(WIFI_WAIT_MSEC);
-
-	if( !(WiFiData[strlen((const char*)WiFiData)-2] == 'K' || WiFiData[strlen((const char*)WiFiData)-3] == 'K')){
-
-		//タイムアウトと思われるので、強制的にデータサイズの不足分の0x0Dを送信する
-		for(int i=0; i<len-strlen(strdata); i++){
-			RbSerial[WIFI_SERIAL]->print("\r");
-		}
-		return mrb_fixnum_value( 0 );
-	}
-
-	return mrb_fixnum_value( len );
+	len = wifi_send(num, strdata, len);
+	return mrb_fixnum_value(len);
 }
 
 //**************************************************
-// 指定接続番号からデータを受信します: WiFi.recv
-//  WiFi.recv( number )
-//　number: 接続番号(0～3) 
-//
-//  戻り値は
-//	  受信したデータの配列　ただし、256以下
+// 受信のサブプログラム
 //**************************************************
-mrb_value mrb_wifi_recv(mrb_state *mrb, mrb_value self)
+int wifi_recv(int num, char *recv_buf, int *recv_cnt)
 {
-int	num;
-unsigned char str[16];
-mrb_value arv[256];
-
-	mrb_get_args(mrb, "i", &num);
-
+	unsigned char str[16];
 	sprintf((char*)str, "\r\n+IPD,%d,", num);
-
-	//Serial.println((const char*)str);
-
-	if(RbSerial[WIFI_SERIAL]->available() == 0){
-		arv[0] = mrb_fixnum_value(-1);
-		return mrb_ary_new_from_values(mrb, 1, arv);
-	}
+	//if(RbSerial[WIFI_SERIAL]->available() == 0){
+	//	return -1;
+	//}
 
 	//****** 受信開始 ******
 	unsigned long times;
@@ -1215,26 +1246,26 @@ mrb_value arv[256];
 	int cnt = 0;
 	unsigned char c;
 
-	while(true){
+	while (true) {
 		//wait_msec 待つ
-		if(millis() - times > wait_msec){
+		if (millis() - times > wait_msec) {
 			break;
 		}
 
-		if(RbSerial[WIFI_SERIAL]->available())
+		if (RbSerial[WIFI_SERIAL]->available())
 		{
 			c = (unsigned char)RbSerial[WIFI_SERIAL]->read();
 
-			if(str[cnt] == c){
+			if (str[cnt] == c) {
 				cnt++;
-				if(cnt == len){
+				if (cnt == len) {
 					break;
 				}
 			}
-			else if(c == 0x0D){
+			else if (c == 0x0D) {
 				cnt = 1;
 			}
-			else{
+			else {
 				cnt = 0;
 			}
 			times = millis();
@@ -1245,23 +1276,23 @@ mrb_value arv[256];
 	//ここから後はバイト数が来ているはず
 	times = millis();
 	cnt = 0;
-	while(true){
+	while (true) {
 		//wait_msec 待つ
-		if(millis() - times > wait_msec){
+		if (millis() - times > wait_msec) {
 			str[cnt] = 0;
 			break;
 		}
 
-		if(RbSerial[WIFI_SERIAL]->available())
+		if (RbSerial[WIFI_SERIAL]->available())
 		{
 			c = (unsigned char)RbSerial[WIFI_SERIAL]->read();
 
 			str[cnt] = c;
-			if(c == ':'){
+			if (c == ':') {
 				str[cnt] = 0;
 				break;
 			}
-			else if(cnt >= 15){
+			else if (cnt >= 15) {
 				str[15] = 0;
 				break;
 			}
@@ -1277,25 +1308,56 @@ mrb_value arv[256];
 
 	//データを取りだします
 	times = millis();
-	cnt = 0;
-	while(true){
+	*recv_cnt = 0;
+	while (true) {
 		//wait_msec 待つ
-		if(millis() - times > wait_msec){
+		if (millis() - times > wait_msec) {
 			break;
 		}
 
-		if(RbSerial[WIFI_SERIAL]->available())
+		if (RbSerial[WIFI_SERIAL]->available())
 		{
-			arv[cnt] = mrb_fixnum_value(RbSerial[WIFI_SERIAL]->read());
-			cnt++;
+			recv_buf[*recv_cnt] = (char)RbSerial[WIFI_SERIAL]->read();
+			(*recv_cnt)++;
 
-			if(cnt >= len){
+			if (*recv_cnt >= len) {
 				break;
 			}
 			times = millis();
 		}
 	}
 	//****** 受信終了 ******
+
+	return 1;
+}
+
+//**************************************************
+// 指定接続番号からデータを受信します: WiFi.recv
+//  WiFi.recv( number )
+//　number: 接続番号(0～3) 
+//
+//  戻り値は
+//	  受信したデータの配列　ただし、256以下
+//**************************************************
+mrb_value mrb_wifi_recv(mrb_state *mrb, mrb_value self)
+{
+int	num;
+char wifi_recv_buf[256];
+mrb_value arv[256];
+int ret, i, cnt;
+
+	mrb_get_args(mrb, "i", &num);
+
+	ret = wifi_recv(num, (char *)wifi_recv_buf, &cnt);
+	if (ret == -1) {
+		arv[0] = mrb_fixnum_value(-1);
+		return mrb_ary_new_from_values(mrb, 1, arv);
+	}
+	else {
+		for (i = 0; i < cnt; i++) {
+			arv[i] = mrb_fixnum_value((int)wifi_recv_buf[i] & 0xff);
+		}
+	}
 
 	return mrb_ary_new_from_values(mrb, cnt, arv);
 }
@@ -2323,6 +2385,87 @@ int decode = 0;
 	return base64_decode(mrb, (char const*)fsour, (char const*)fdesc);
 }
 
+#define NTP_PACKT_SIZE	48
+static unsigned char ntp_send[NTP_PACKT_SIZE] =
+{
+	0xe3, 0x00, 0x06, 0xec, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+static unsigned char ntp_recv[60];
+#define NTP_SEND_PORT	123
+#define NTP_LOCAL_PORT	8788
+//**************************************************
+// ntpサーバからtransfer timeを取得します
+//  WiFi.ntp( IP, [diff] )
+//
+//  戻り値は以下の値が配列で返ります
+//  year: 年(2000-2099)
+//  mon: 月(1-12)
+//  day: 日(1-31)
+//  hour: 時(0-23)
+//  min: 分(0-59)
+//  second: 秒(0-59)
+//  weekday: 曜日(0-6)0:日,1:月,2:火,3:水,4:木,5:金,6:土
+//**************************************************
+mrb_value mrb_wifi_ntp(mrb_state *mrb, mrb_value self)
+{
+	mrb_value vts;
+	char *ts;
+	int n;
+	int local;
+	int cnt;
+	int ret;
+	int num = 1;
+	uint32_t time = 0;
+
+	n = mrb_get_args(mrb, "S|i", &vts, &local);
+	ts = RSTRING_PTR(vts);
+	ret = wifi_udpOpen(num, ts, NTP_SEND_PORT, NTP_LOCAL_PORT);
+	if (!ret) {
+		//DEBUG_PRINTLN1("wifi_udpOpen ERR")
+		return mrb_fixnum_value(-1);
+	}
+	ret = wifi_send(num, (char *)ntp_send, 48);
+	if (ret == 0) {
+		//DEBUG_PRINTLN1("wifi_send ERR")
+		return mrb_fixnum_value(-1);
+	}
+	ret = wifi_recv(num, (char *)ntp_recv, &cnt);
+	if (ret != 1) {
+		//DEBUG_PRINTLN1("wifi_recv ERR")
+		return mrb_fixnum_value(-1);
+	}
+	wifi_cClose(num);
+	time = ((uint32_t)ntp_recv[40] << 24) +
+		((uint32_t)ntp_recv[41] << 16) +
+		((uint32_t)ntp_recv[42] << 8) +
+		((uint32_t)ntp_recv[43] << 0);
+
+	time -= 2208988800;	// conversion to Unixtime
+		
+	if (n == 2) {
+		time += local * 3600;
+	}
+
+	struct tm *tm;
+	tm = localtime((const time_t*)&time);
+	mrb_value arv[7];
+
+	arv[0] = mrb_fixnum_value(tm->tm_year + 1900);
+	arv[1] = mrb_fixnum_value(tm->tm_mon + 1);
+	arv[2] = mrb_fixnum_value(tm->tm_mday);
+	arv[3] = mrb_fixnum_value(tm->tm_hour);
+	arv[4] = mrb_fixnum_value(tm->tm_min);
+	arv[5] = mrb_fixnum_value(tm->tm_sec);
+	arv[6] = mrb_fixnum_value(tm->tm_wday);
+
+	return mrb_ary_new_from_values(mrb, 7, arv);
+}
+
 //**************************************************
 // ライブラリを定義します
 //**************************************************
@@ -2417,6 +2560,7 @@ int esp8266_Init(mrb_state *mrb)
 	mrb_define_module_function(mrb, wifiModule, "disconnect", mrb_wifi_Disconnect, MRB_ARGS_NONE());
 
 	mrb_define_module_function(mrb, wifiModule, "base64", mrb_wifi_base64, MRB_ARGS_REQ(2) | MRB_ARGS_OPT(1));
+	mrb_define_module_function(mrb, wifiModule, "ntp", mrb_wifi_ntp, MRB_ARGS_REQ(1) | MRB_ARGS_OPT(1));
 
 	mrb_define_module_function(mrb, wifiModule, "bypass", mrb_wifi_bypass, MRB_ARGS_NONE());
 

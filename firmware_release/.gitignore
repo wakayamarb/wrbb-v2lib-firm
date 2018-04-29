@@ -1,3 +1,6 @@
 *.o
 *.mot
 *.map
+*.db
+*.sdf
+*.opendb
