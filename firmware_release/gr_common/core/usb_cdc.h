@@ -60,6 +60,8 @@ USB_ERR USBCDC_Read_Async(uint32_t _BufferSize, uint8_t* _Buffer, CB_DONE_OUT _c
 USB_ERR USBCDC_Cancel(void);
 bool USBCDC_IsBreakState(void);
 bool USBCDC_Clear_BreakState(void);
+bool USBCDC_DidDtrOffEvent(void);
+bool USBCDC_Clear_DtrOffEvent(void);
 
 #ifdef __cplusplus
 }

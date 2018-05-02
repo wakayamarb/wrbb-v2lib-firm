@@ -63,6 +63,9 @@
 /*Size of SET_CONTROL_LINE_STATE data*/
 #define SET_CONTROL_LINE_STATE_DATA_SIZE    7
 
+#define CONTROL_LINE_STATE_RTS              0x0002
+#define CONTROL_LINE_STATE_DTR              0x0001
+
 /***********************************************************************************
 * Local Types
 ***********************************************************************************/
@@ -116,6 +119,9 @@ static volatile bool g_bConnected = false;
 
 /*Break flag*/
 static bool g_bBreakState = false;
+
+/*DTR off flag*/
+static bool g_bDtrOffEvent = false;
 
 /*Bulk Out specific*/
 static BULK_OUT g_BulkOut = {
@@ -511,6 +517,36 @@ bool USBCDC_Clear_BreakState(void)
 ***********************************************************************************/
 
 /**********************************************************************
+* Outline       : USBCDC_DidDtrOffEvent
+* Description   : Read DTR off event flag
+* Argument      : none
+* Return value  : current DTR off flag (true if CDC has received DTR=off request)
+**********************************************************************/
+bool USBCDC_DidDtrOffEvent(void)
+{
+    return g_bDtrOffEvent;
+}
+/***********************************************************************************
+* End of function USBCDC_DidDtrOffEvent
+***********************************************************************************/
+
+/**********************************************************************
+* Outline       : USBCDC_Clear_DtrOffEvent
+* Description   : Clear DTR off event flag
+* Argument      : none
+* Return value  : previous event flag
+**********************************************************************/
+bool USBCDC_Clear_DtrOffEvent(void)
+{
+    bool bPreviousResult = g_bDtrOffEvent;
+    g_bDtrOffEvent = false;
+    return bPreviousResult;
+}
+/***********************************************************************************
+* End of function USBCDC_Clear_DtrOffEvent
+***********************************************************************************/
+
+/**********************************************************************
 * Outline       : CBCable
 * Description   : Callback when the USB cable is connected or disconnected.
 * Argument      : _bConnected: true = Connected, false = Disconnected.
@@ -744,6 +780,9 @@ static USB_ERR ProcessClassSetupPacket(SetupPacket* _pSetupPacket,
             DEBUG_MSG_LOW(("USBCDC: SET_CONTROL_LINE_STATE\r\n"));
             /*No action required for this request.*/
             /*No data response */
+            if ((_pSetupPacket->wValue & CONTROL_LINE_STATE_DTR) == 0) {
+                g_bDtrOffEvent = true;
+            }
             *_pNumBytes = 0;
             break;
         }

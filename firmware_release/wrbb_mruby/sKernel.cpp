@@ -89,7 +89,7 @@ int value;
 			delay( value );
 			value = 0;
 		}
-		if (USB_Serial->isBreakState()){
+		if (USB_Serial->isBreakState() || USB_Serial->didDtrOffEvent()){
 			// 長いdelayの途中に強制終了指示があった場合、delayを中断する
 			mrb_raise(mrb, E_RUNTIME_ERROR, "delay aborted");
 		}

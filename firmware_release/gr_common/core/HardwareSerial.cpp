@@ -779,6 +779,16 @@ bool HardwareSerial::clearBreakState(void)
   return USBCDC_Clear_BreakState();
 }
 
+bool HardwareSerial::didDtrOffEvent(void)
+{
+  return USBCDC_DidDtrOffEvent();
+}
+
+bool HardwareSerial::clearDtrOffEvent(void)
+{
+  return USBCDC_Clear_DtrOffEvent();
+}
+
 HardwareSerial Serial(0, NULL, MstpIdINVALID, INVALID_IO, INVALID_IO);
 #endif/*HAVE_HWSERIAL0*/
 

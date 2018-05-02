@@ -165,6 +165,8 @@ class HardwareSerial : public Stream
     // Special terminal signals
     bool isBreakState(void);
     bool clearBreakState(void);
+    bool didDtrOffEvent(void);
+    bool clearDtrOffEvent(void);
 #endif/*__RX600__*/
 };
 

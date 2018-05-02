@@ -108,6 +108,7 @@ int waitRcv(int msec){
 	int sa = 0;
 
 	USB_Serial->clearBreakState();		//ブレーク信号のクリア
+	USB_Serial->clearDtrOffEvent();
 	USB_Serial->print("Waiting ");
 	while(tm > millis()){
 		if (USB_Serial->available() > 0){
@@ -118,7 +119,7 @@ int waitRcv(int msec){
 			USB_Serial->print(" ");
 			USB_Serial->print(sa, 10);
 		}
-		if (USB_Serial->isBreakState()){
+		if (USB_Serial->isBreakState() || USB_Serial->didDtrOffEvent()){
 			USB_Serial->println("..Break!");
 			return 0;
 		}
@@ -235,6 +236,7 @@ bool writefile(const char *fname, int size, char code, char *readData)
 	}
 
 	USB_Serial->clearBreakState();		//ブレーク信号のクリア
+	USB_Serial->clearDtrOffEvent();
 	result = true;
 	for(int i=0; i<binsize; i++){
 		//b2aFlgが 0 のときはバイナリ、1 のときはバイナリが2バイトテキストで送られてくる
@@ -256,7 +258,7 @@ bool writefile(const char *fname, int size, char code, char *readData)
 			USB_Serial->print(".");
 		}
 
-		if (USB_Serial->isBreakState()){
+		if (USB_Serial->isBreakState() || USB_Serial->didDtrOffEvent()){
 			USB_Serial->println("..Break!");
 			result = false;
 			break;
@@ -322,6 +324,7 @@ void readfile(const char *fname, char code)
 	}
 
 	USB_Serial->clearBreakState();		//ブレーク信号のクリア
+	USB_Serial->clearDtrOffEvent();
 	for (int i = 0; i<binsize; i++){
 
 		if(code == 'G'){
@@ -335,7 +338,7 @@ void readfile(const char *fname, char code)
 			USB_Serial->print(bin, 16);
 		}
 
-		if (USB_Serial->isBreakState()){
+		if (USB_Serial->isBreakState() || USB_Serial->didDtrOffEvent()) {
 			break;
 		}
 	}
