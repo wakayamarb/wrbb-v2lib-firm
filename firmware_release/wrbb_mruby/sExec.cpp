@@ -67,7 +67,7 @@ uint8_t *RubyCode = NULL;					//動的にRubyコード領域を確保するた�
 //**************************************************
 static mrb_code forceVMStopHook(struct mrb_state* mrb, mrb_code code)
 {
-	if (Serial.isBreakState()) {
+	if (Serial.isBreakState() || Serial.didDtrOffEvent()) {
 		return OP_STOP;
 	}
 	return code;
@@ -94,6 +94,7 @@ bool RubyRun(void)
 	mrb->bytecode_decoder = forceVMStopHook;
 #endif
 	Serial.clearBreakState();
+	Serial.clearDtrOffEvent();
 
 	global_Init(mrb);	//グローバル変数の設定
 	kernel_Init(mrb);	//カーネル関連メソッドの設定
@@ -261,7 +262,7 @@ bool RubyRun(void)
 
 	SdClassFlag = false;
 
-	if (Serial.isBreakState()) {
+	if (Serial.isBreakState() || Serial.didDtrOffEvent()) {
 		notFinishFlag = true;
 	}
 
