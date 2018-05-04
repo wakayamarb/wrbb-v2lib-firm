@@ -29,6 +29,11 @@ end
 SD.write(fn, doc, doc.length)
 SD.close(fn)
 
+#ファイルが存在していたら削除する
+if(SD.exists('abc.txt')
+  SD.remove('abc.txt')
+end
+
 #保存したhtmlファイルの読込み
 fn = SD.open(0, 'song.txt')
 if(fn < 0)then

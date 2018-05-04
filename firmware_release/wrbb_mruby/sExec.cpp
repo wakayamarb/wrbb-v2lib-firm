@@ -61,13 +61,15 @@ extern bool SdClassFlag;
 //uint8_t RubyCode[RUBY_CODE_SIZE];	//静的にRubyコード領域を確保する
 uint8_t *RubyCode = NULL;					//動的にRubyコード領域を確保するため
 
+bool IgnoreOP_STOP = false;
+
 #ifdef MRB_BYTECODE_DECODE_OPTION
 //**************************************************
 //  mrubyプログラムの強制停止用フック
 //**************************************************
 static mrb_code forceVMStopHook(struct mrb_state* mrb, mrb_code code)
 {
-	if (Serial.isBreakState() || Serial.didDtrOffEvent()) {
+	if (!IgnoreOP_STOP && (Serial.isBreakState() || Serial.didDtrOffEvent())) {
 		return OP_STOP;
 	}
 	return code;
@@ -85,7 +87,7 @@ bool RubyRun(void)
 	mrb_state *mrb = mrb_open();
 	DEBUG_PRINT("mrb_open", "After");
 
-	if (mrb == NULL){
+	if (mrb == NULL) {
 		Serial.println("Can not Open mrb!!");
 		return false;
 	}
@@ -123,7 +125,7 @@ bool RubyRun(void)
 
 	RubyFilename[0] = 0;						//Rubyファイル名をクリアする。System.setRun()やFileloaderでセットされ無い限り何も入っていない
 
-	if (ExeFilename[0] == 0){
+	if (ExeFilename[0] == 0) {
 		mrb_close(mrb);
 
 		DEBUG_PRINT("ExeFilename", "NULL");
@@ -132,27 +134,27 @@ bool RubyRun(void)
 
 	FILEEEP fpj;
 	FILEEEP *fp = &fpj;
-	if (EEP.fopen(fp, ExeFilename, EEP_READ) == -1){
+	if (EEP.fopen(fp, ExeFilename, EEP_READ) == -1) {
 		char az[50];
 		sprintf(az, "%s is not Open!!", ExeFilename);
 
 		//SD用ボードがマウントしていればSDカードにmrbファイルが無いかチェックします
-		if (SD_init(ExeFilename) == 1){
+		if (SD_init(ExeFilename) == 1) {
 			//見つけたので、SDカードからフラッシュメモリにコピーします
-			if (SD2EEPROM(ExeFilename, ExeFilename) == 0){
+			if (SD2EEPROM(ExeFilename, ExeFilename) == 0) {
 				Serial.println(az);
 				mrb_close(mrb);
 				return false;
 			}
 
 			//コピーしたので、再度オープンします
-			if (EEP.fopen(fp, ExeFilename, EEP_READ) == -1){
+			if (EEP.fopen(fp, ExeFilename, EEP_READ) == -1) {
 				Serial.println(az);
 				mrb_close(mrb);
 				return false;
 			}
 		}
-		else{
+		else {
 			Serial.println(az);
 			mrb_close(mrb);
 			return false;
@@ -162,7 +164,7 @@ bool RubyRun(void)
 	//mrbファイルチェックを行う
 	//int mrbFlag = 0;
 	char he[8];
-	for (int i = 0; i < 8; i++){ he[i] = EEP.fread(fp); }
+	for (int i = 0; i < 8; i++) { he[i] = EEP.fread(fp); }
 
 #if BYTECODE == BYTE_CODE2
 	if (!(he[0] == 'R' && he[1] == 'I' && he[2] == 'T' && he[3] == 'E' && he[4] == '0' && he[5] == '0' && he[6] == '0' && he[7] == '2')
@@ -191,16 +193,16 @@ bool RubyRun(void)
 	//ファイルサイズを取得する
 	unsigned long tsize = EEP.ffilesize(ExeFilename);
 
-	if (tsize > RUBY_CODE_SIZE){
+	if (tsize > RUBY_CODE_SIZE) {
 		//指定のバイト数を超えている場合、ヒープ領域から再取得します。
-		if (!getRubyCodeArea(tsize)){
+		if (!getRubyCodeArea(tsize)) {
 			char az[50];
 			sprintf(az, "%s size is greater than remaining memory.", ExeFilename);
 			Serial.println(az);
 			mrb_close(mrb);
 
 			//RUBY_CODE_SIZEサイズのメモリ領域を再度確保します
-			if (!getRubyCodeArea(RUBY_CODE_SIZE)){
+			if (!getRubyCodeArea(RUBY_CODE_SIZE)) {
 				//この確保もできなかったら、リセットします
 				system_reboot(REBOOT_USERAPP);
 			}
@@ -210,7 +212,7 @@ bool RubyRun(void)
 
 	RubyCode[0] = 0;
 	unsigned long pos = 0;
-	while (!EEP.fEof(fp)){
+	while (!EEP.fEof(fp)) {
 		RubyCode[pos] = EEP.fread(fp);
 		pos++;
 	}
@@ -223,7 +225,7 @@ bool RubyRun(void)
 	//mrubyを実行します
 	mrb_load_irep(mrb, (const uint8_t *)RubyCode);
 
-	if (mrb->exc){
+	if (mrb->exc) {
 		//struct RString *str;
 		char *s;
 		int len;
@@ -237,17 +239,17 @@ bool RubyRun(void)
 			const char *e = "Sys#exit";	//Sys#exitだったら正常終了ということ。
 			int k = 8;		// ↑が8文字なので。
 			int j = 0;
-			for (int i = 0; i < len; i++){
-				if (*(s + i) == *(e + j)){
+			for (int i = 0; i < len; i++) {
+				if (*(s + i) == *(e + j)) {
 					j++;
-					if (j == k){ break; }
+					if (j == k) { break; }
 				}
-				else{
+				else {
 					j = 0;
 				}
 			}
 
-			if (j < 8){
+			if (j < 8) {
 				Serial_print_error(mrb, obj);
 				notFinishFlag = false;
 			}
@@ -262,7 +264,7 @@ bool RubyRun(void)
 
 	SdClassFlag = false;
 
-	if (Serial.isBreakState() || Serial.didDtrOffEvent()) {
+	if (!IgnoreOP_STOP && (Serial.isBreakState() || Serial.didDtrOffEvent())) {
 		notFinishFlag = true;
 	}
 
@@ -278,7 +280,7 @@ void Serial_print_error(mrb_state *mrb, mrb_value obj)
 	Serial.println();
 
 	mrb_value backtrace = mrb_get_backtrace(mrb);
-	for (int i = 0; i < RARRAY_LEN(backtrace); i++){
+	for (int i = 0; i < RARRAY_LEN(backtrace); i++) {
 		mrb_value v = mrb_ary_ref(mrb, backtrace, i);
 		Serial.write((const unsigned char *)RSTRING_PTR(v), RSTRING_LEN(v));
 		Serial.println();
@@ -290,39 +292,39 @@ void Serial_print_error(mrb_state *mrb, mrb_value obj)
 //**************************************************
 void pinModeInit()
 {
-    pinMode(RB_LED, OUTPUT);
+	pinMode(RB_LED, OUTPUT);
 
-    pinMode(RB_PIN0, INPUT);
-    pinMode(RB_PIN1, INPUT);
-    pinMode(RB_PIN2, INPUT);
-    pinMode(RB_PIN3, INPUT);
-    pinMode(RB_PIN4, INPUT);
-    pinMode(RB_PIN5, INPUT);
-    pinMode(RB_PIN6, INPUT);
-    pinMode(RB_PIN7, INPUT);
-    pinMode(RB_PIN8, INPUT);
-    pinMode(RB_PIN9, INPUT);
-    pinMode(RB_PIN10, INPUT);
-    pinMode(RB_PIN11, INPUT);
-    pinMode(RB_PIN12, INPUT);
-    pinMode(RB_PIN13, INPUT);
-    pinMode(RB_PIN14, INPUT);
-    pinMode(RB_PIN15, INPUT);
-    pinMode(RB_PIN16, INPUT);
-    pinMode(RB_PIN17, INPUT);
-    pinMode(RB_PIN18, INPUT);
-    pinMode(RB_PIN19, INPUT);
+	pinMode(RB_PIN0, INPUT);
+	pinMode(RB_PIN1, INPUT);
+	pinMode(RB_PIN2, INPUT);
+	pinMode(RB_PIN3, INPUT);
+	pinMode(RB_PIN4, INPUT);
+	pinMode(RB_PIN5, INPUT);
+	pinMode(RB_PIN6, INPUT);
+	pinMode(RB_PIN7, INPUT);
+	pinMode(RB_PIN8, INPUT);
+	pinMode(RB_PIN9, INPUT);
+	pinMode(RB_PIN10, INPUT);
+	pinMode(RB_PIN11, INPUT);
+	pinMode(RB_PIN12, INPUT);
+	pinMode(RB_PIN13, INPUT);
+	pinMode(RB_PIN14, INPUT);
+	pinMode(RB_PIN15, INPUT);
+	pinMode(RB_PIN16, INPUT);
+	pinMode(RB_PIN17, INPUT);
+	pinMode(RB_PIN18, INPUT);
+	pinMode(RB_PIN19, INPUT);
 
 	pinMode(RB_PIN20, INPUT);
-    pinMode(RB_PIN21, INPUT);
-    pinMode(RB_PIN22, INPUT);
-    pinMode(RB_PIN23, INPUT);
-    pinMode(RB_PIN24, INPUT);
+	pinMode(RB_PIN21, INPUT);
+	pinMode(RB_PIN22, INPUT);
+	pinMode(RB_PIN23, INPUT);
+	pinMode(RB_PIN24, INPUT);
 	pinMode(RB_PIN25, INPUT);
-    pinMode(RB_PIN26, INPUT);
-    pinMode(RB_PIN27, INPUT);
-    pinMode(RB_PIN30, INPUT);
-    pinMode(RB_PIN31, INPUT);
+	pinMode(RB_PIN26, INPUT);
+	pinMode(RB_PIN27, INPUT);
+	pinMode(RB_PIN30, INPUT);
+	pinMode(RB_PIN31, INPUT);
 }
 
 //**************************************************
@@ -330,14 +332,14 @@ void pinModeInit()
 //**************************************************
 bool getRubyCodeArea(unsigned short size)
 {
-	if (RubyCode != NULL){
+	if (RubyCode != NULL) {
 		free(RubyCode);
 		RubyCode = NULL;
 	}
 
 	RubyCode = (uint8_t*)malloc(size);
 
-	if (RubyCode == NULL){
+	if (RubyCode == NULL) {
 		Serial.println("..Out of Memory!");
 		return false;
 	}

@@ -21,6 +21,7 @@
 #endif
 
 extern HardwareSerial *USB_Serial;
+extern bool IgnoreOP_STOP;
 
 //**************************************************
 // デジタルライト
@@ -33,15 +34,15 @@ extern HardwareSerial *USB_Serial;
 //**************************************************
 mrb_value mrb_kernel_digitalWrite(mrb_state *mrb, mrb_value self)
 {
-int pin, value;
+	int pin, value;
 
 	mrb_get_args(mrb, "ii", &pin, &value);
 
 
-	if(pin >=20 && pin <= 30){
+	if (pin >= 20 && pin <= 30) {
 		return mrb_nil_value();			//戻り値は無しですよ。
 	}
-	digitalWrite( pin, value );
+	digitalWrite(pin, value);
 
 	return mrb_nil_value();	//戻り値は無しですよ。
 }
@@ -57,11 +58,11 @@ int pin, value;
 //**************************************************
 mrb_value mrb_kernel_pinMode(mrb_state *mrb, mrb_value self)
 {
-int pin, value;
+	int pin, value;
 
 	mrb_get_args(mrb, "ii", &pin, &value);
 
-	pinMode( pin, value );
+	pinMode(pin, value);
 
 	return mrb_nil_value();			//戻り値は無しですよ。
 }
@@ -74,22 +75,23 @@ int pin, value;
 //**************************************************
 mrb_value mrb_kernel_delay(mrb_state *mrb, mrb_value self)
 {
-int value;
+	int value;
 
 	mrb_get_args(mrb, "i", &value);
 
 	//試しに強制gcを入れて見る
 	mrb_full_gc(mrb);
 
-	while(value > 0){
-		if(value > ABORT_DELAY_POLLING_MS){
-			delay( ABORT_DELAY_POLLING_MS );
+	while (value > 0) {
+		if (value > ABORT_DELAY_POLLING_MS) {
+			delay(ABORT_DELAY_POLLING_MS);
 			value -= ABORT_DELAY_POLLING_MS;
-		} else {
-			delay( value );
+		}
+		else {
+			delay(value);
 			value = 0;
 		}
-		if (USB_Serial->isBreakState() || USB_Serial->didDtrOffEvent()){
+		if (!IgnoreOP_STOP && (USB_Serial->isBreakState() || USB_Serial->didDtrOffEvent())) {
 			// 長いdelayの途中に強制終了指示があった場合、delayを中断する
 			mrb_raise(mrb, E_RUNTIME_ERROR, "delay aborted");
 		}
@@ -106,8 +108,8 @@ int value;
 //	起動してからのミリ秒数
 //**************************************************
 mrb_value mrb_kernel_millis(mrb_state *mrb, mrb_value self)
-{	
-	return mrb_fixnum_value( (mrb_int)millis() );
+{
+	return mrb_fixnum_value((mrb_int)millis());
 }
 
 //**************************************************
@@ -118,7 +120,7 @@ mrb_value mrb_kernel_millis(mrb_state *mrb, mrb_value self)
 //**************************************************
 mrb_value mrb_kernel_micros(mrb_state *mrb, mrb_value self)
 {
-	return mrb_fixnum_value( (mrb_int)micros() );
+	return mrb_fixnum_value((mrb_int)micros());
 }
 
 //**************************************************
@@ -131,13 +133,13 @@ mrb_value mrb_kernel_micros(mrb_state *mrb, mrb_value self)
 //**************************************************
 mrb_value mrb_kernel_digitalRead(mrb_state *mrb, mrb_value self)
 {
-int pin, value;
+	int pin, value;
 
 	mrb_get_args(mrb, "i", &pin);
 
 	value = digitalRead(pin);
 
-	return mrb_fixnum_value( value );
+	return mrb_fixnum_value(value);
 }
 
 
@@ -149,11 +151,11 @@ int pin, value;
 //**************************************************
 mrb_value mrb_kernel_analogReference(mrb_state *mrb, mrb_value self)
 {
-int mode;
+	int mode;
 
 	mrb_get_args(mrb, "i", &mode);
 
-	switch(mode){
+	switch (mode) {
 	case DEFAULT:
 		analogReference(DEFAULT);
 		break;
@@ -179,13 +181,13 @@ int mode;
 //**************************************************
 mrb_value mrb_kernel_analogRead(mrb_state *mrb, mrb_value self)
 {
-int anapin, value;
+	int anapin, value;
 
 	mrb_get_args(mrb, "i", &anapin);
 
-	value = analogRead( anapin );
+	value = analogRead(anapin);
 
-	return mrb_fixnum_value( value );
+	return mrb_fixnum_value(value);
 }
 
 
@@ -214,15 +216,15 @@ int anapin, value;
 //**************************************************
 mrb_value mrb_kernel_pwm(mrb_state *mrb, mrb_value self)
 {
-int pin, value;
+	int pin, value;
 
 	mrb_get_args(mrb, "ii", &pin, &value);
 
-	if(pin >= 20){
+	if (pin >= 20) {
 		return mrb_nil_value();			//戻り値は無しですよ。
 	}
 
-	analogWrite(pin, value );
+	analogWrite(pin, value);
 
 	return mrb_nil_value();			//戻り値は無しですよ。
 }
@@ -252,11 +254,11 @@ int pin, value;
 //**************************************************
 mrb_value mrb_kernel_noTone(mrb_state *mrb, mrb_value self)
 {
-int pin;
+	int pin;
 
 	mrb_get_args(mrb, "i", &pin);
 
-	if(pin >= 20){
+	if (pin >= 20) {
 		return mrb_nil_value();			//戻り値は無しですよ。
 	}
 
@@ -274,19 +276,19 @@ int pin;
 //**************************************************
 mrb_value mrb_kernel_tone(mrb_state *mrb, mrb_value self)
 {
-int pin;
-int freq;
-unsigned long dura;
+	int pin;
+	int freq;
+	unsigned long dura;
 
 	int n = mrb_get_args(mrb, "ii|i", &pin, &freq, &dura);
 
-	if(pin >= 20){
+	if (pin >= 20) {
 		return mrb_nil_value();			//戻り値は無しですよ。
 	}
 
 	dura = n < 3 ? 0 : dura;
 
-	if( freq>=2 && freq<=62500 ){
+	if (freq >= 2 && freq <= 62500) {
 		tone(pin, freq, dura);
 	}
 	return mrb_nil_value();			//戻り値は無しですよ。
@@ -309,12 +311,12 @@ mrb_value mrb_kernel_initDac(mrb_state *mrb, mrb_value self)
 //**************************************************
 mrb_value mrb_kernel_analogDac(mrb_state *mrb, mrb_value self)
 {
-int value;
+	int value;
 
 	mrb_get_args(mrb, "i", &value);
 
-	if( value>=0 && value<4096 ){
-		analogWriteDAC( RB_PIN9, value );
+	if (value >= 0 && value < 4096) {
+		analogWriteDAC(RB_PIN9, value);
 	}
 
 	return mrb_nil_value();			//戻り値は無しですよ。
@@ -326,21 +328,21 @@ int value;
 //**************************************************
 mrb_value mrb_kernel_led(mrb_state *mrb, mrb_value self)
 {
-int value;
+	int value;
 
 	int n = mrb_get_args(mrb, "|i", &value);
-	
+
 	if (n == 0) {
 		value = 1 - digitalRead(RB_LED);
 	}
 
 #if BOARD == BOARD_GR
-	digitalWrite( PIN_LED0, value & 1 );
-	digitalWrite( PIN_LED1, (value>>1) & 1 );
-	digitalWrite( PIN_LED2, (value>>2) & 1 );
-	digitalWrite( PIN_LED3, (value>>3) & 1 );
+	digitalWrite(PIN_LED0, value & 1);
+	digitalWrite(PIN_LED1, (value >> 1) & 1);
+	digitalWrite(PIN_LED2, (value >> 2) & 1);
+	digitalWrite(PIN_LED3, (value >> 3) & 1);
 #else
-	digitalWrite( RB_LED, value & 1 );
+	digitalWrite(RB_LED, value & 1);
 #endif
 
 	return mrb_nil_value();			//戻り値は無しですよ。
@@ -353,7 +355,7 @@ int value;
 //**************************************************
 mrb_value mrb_kernel_randomSeed(mrb_state *mrb, mrb_value self)
 {
-unsigned int value;
+	unsigned int value;
 
 	mrb_get_args(mrb, "i", &value);
 
@@ -370,15 +372,15 @@ unsigned int value;
 //**************************************************
 mrb_value mrb_kernel_random(mrb_state *mrb, mrb_value self)
 {
-long value1,value2;
+	long value1, value2;
 
 	int n = mrb_get_args(mrb, "i|i", &value1, &value2);
 
-	if(n == 1){
-		return mrb_fixnum_value( random(value1) );
+	if (n == 1) {
+		return mrb_fixnum_value(random(value1));
 	}
 
-	return mrb_fixnum_value( random(value1, value2) );
+	return mrb_fixnum_value(random(value1, value2));
 }
 
 //**************************************************
@@ -386,28 +388,28 @@ long value1,value2;
 //**************************************************
 void putsRecursible(mrb_state *mrb, mrb_value value)
 {
-	if (mrb_array_p(value)){
+	if (mrb_array_p(value)) {
 		int len = RARRAY_LEN(value);
-		for (int i = 0; i < len; i++){
+		for (int i = 0; i < len; i++) {
 			putsRecursible(mrb, mrb_ary_ref(mrb, value, i));
 		}
 	}
-	else if (mrb_fixnum_p(value)){
+	else if (mrb_fixnum_p(value)) {
 		USB_Serial->println(mrb_fixnum(value));
 	}
-	else if (mrb_float_p(value)){
+	else if (mrb_float_p(value)) {
 		USB_Serial->println(mrb_float(value), 7);
 	}
-	else if (mrb_string_p(value)){
+	else if (mrb_string_p(value)) {
 		USB_Serial->println(RSTRING_PTR(value));
 	}
-	else if (mrb_nil_p(value)){
+	else if (mrb_nil_p(value)) {
 		USB_Serial->println("nil");
 	}
-	else if (mrb_bool(value)){
+	else if (mrb_bool(value)) {
 		USB_Serial->println(mrb_bool(value));
 	}
-	else{
+	else {
 		USB_Serial->println(0);
 	}
 }
@@ -452,14 +454,14 @@ mrb_value mrb_kernel_pulseIn(mrb_state *mrb, mrb_value self)
 
 	int n = mrb_get_args(mrb, "ii|i", &pin, &val, &timeouttime);
 
-	if (pin >= 20){
+	if (pin >= 20) {
 		return mrb_fixnum_value(0);
 	}
 
-	if (n < 3){
+	if (n < 3) {
 		pw = pulseIn(pin, val);
 	}
-	else{
+	else {
 		pw = pulseIn(pin, val, timeouttime);
 	}
 	return mrb_fixnum_value(pw);
@@ -472,7 +474,7 @@ mrb_value mrb_kernel_pulseIn(mrb_state *mrb, mrb_value self)
 //**************************************************
 mrb_value mrb_kernel_delayMicroseconds(mrb_state *mrb, mrb_value self)
 {
-unsigned long us;
+	unsigned long us;
 
 	mrb_get_args(mrb, "i", &us);
 
@@ -499,11 +501,11 @@ mrb_value mrb_kernel_shiftOut(mrb_state *mrb, mrb_value self)
 
 	mrb_get_args(mrb, "iiii", &dataPin, &clockPin, &bitOrder, &value);
 
-	if (dataPin < 0 || dataPin >=20) {
+	if (dataPin < 0 || dataPin >= 20) {
 		mrb_raise(mrb, E_ARGUMENT_ERROR, "Invalid dataPin");
 	}
 
-	if (clockPin < 0 || clockPin >=20) {
+	if (clockPin < 0 || clockPin >= 20) {
 		mrb_raise(mrb, E_ARGUMENT_ERROR, "Invalid dataPin");
 	}
 
@@ -536,11 +538,11 @@ mrb_value mrb_kernel_shiftIn(mrb_state *mrb, mrb_value self)
 
 	mrb_get_args(mrb, "iii", &dataPin, &clockPin, &bitOrder);
 
-	if (dataPin < 0 || dataPin >=20) {
+	if (dataPin < 0 || dataPin >= 20) {
 		mrb_raise(mrb, E_ARGUMENT_ERROR, "Invalid dataPin");
 	}
 
-	if (clockPin < 0 || clockPin >=20) {
+	if (clockPin < 0 || clockPin >= 20) {
 		mrb_raise(mrb, E_ARGUMENT_ERROR, "Invalid dataPin");
 	}
 
@@ -578,7 +580,7 @@ void kernel_Init(mrb_state *mrb)
 	mrb_define_method(mrb, mrb->kernel_module, "analogReference", mrb_kernel_analogReference, MRB_ARGS_REQ(1));
 	mrb_define_method(mrb, mrb->kernel_module, "analogRead", mrb_kernel_analogRead, MRB_ARGS_REQ(1));
 
-	mrb_define_method(mrb, mrb->kernel_module, "tone", mrb_kernel_tone, MRB_ARGS_REQ(2)|MRB_ARGS_OPT(1));
+	mrb_define_method(mrb, mrb->kernel_module, "tone", mrb_kernel_tone, MRB_ARGS_REQ(2) | MRB_ARGS_OPT(1));
 	mrb_define_method(mrb, mrb->kernel_module, "noTone", mrb_kernel_noTone, MRB_ARGS_REQ(1));
 
 	//mrb_define_method(mrb, mrb->kernel_module, "pwmHz", mrb_kernel_pwmHz, MRB_ARGS_REQ(1));
@@ -593,7 +595,7 @@ void kernel_Init(mrb_state *mrb)
 	mrb_define_method(mrb, mrb->kernel_module, "led", mrb_kernel_led, MRB_ARGS_OPT(1));
 
 	mrb_define_method(mrb, mrb->kernel_module, "randomSeed", mrb_kernel_randomSeed, MRB_ARGS_REQ(1));
-	mrb_define_method(mrb, mrb->kernel_module, "random", mrb_kernel_random, MRB_ARGS_REQ(1)|MRB_ARGS_OPT(1));
+	mrb_define_method(mrb, mrb->kernel_module, "random", mrb_kernel_random, MRB_ARGS_REQ(1) | MRB_ARGS_OPT(1));
 
 	mrb_define_method(mrb, mrb->kernel_module, "pulseIn", mrb_kernel_pulseIn, MRB_ARGS_REQ(2) | MRB_ARGS_OPT(1));
 	mrb_define_method(mrb, mrb->kernel_module, "shiftOut", mrb_kernel_shiftOut, MRB_ARGS_REQ(4));

@@ -1,5 +1,5 @@
 #!mruby
-#GR-CITRUS Version 2.42
+#GR-CITRUS Version 2.46
 
 tm1 = Rtc.getTime
 delay 1100
@@ -7,24 +7,19 @@ tm2 = Rtc.getTime
 if(tm1[5] == tm2[5] || tm1[0] < 2010)then
   puts 'RTC Initialized'
   Rtc.init
-  Rtc.setTime([2018,2,19,12,59,31])
+  Rtc.setTime([2018,5,1,16,15,0])
 end
 
+def zeroAdd(num)
+  str = "00" + num.to_s
+  str[str.length-2..str.length]
+end
+
+#loop do
 60.times do
   tm = Rtc.getTime
-  #puts tm
-  year = tm[0].to_s
-  month = "00" + tm[1].to_s
-  day = "00" + tm[2].to_s
-  hour = "00" + tm[3].to_s
-  min = "00" + tm[4].to_s
-  sec = "00" + tm[5].to_s
-  body = year + "/"
-  body += month[month.length-2..month.length] + "/"
-  body += day[day.length-2..day.length] + " "
-  body += hour[hour.length-2..hour.length] + ":"
-  body += min[min.length-2..min.length] + ":"
-  body += sec[sec.length-2..sec.length]
+  body = tm[0].to_s + "/" + zeroAdd(tm[1]) + "/" + zeroAdd(tm[2])
+  body += " " + zeroAdd(tm[3]) + ":" +zeroAdd(tm[4]) + ":" +zeroAdd(tm[5])
   puts body
   delay 1000
 end

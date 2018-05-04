@@ -1,16 +1,17 @@
 #!mruby
-#GR-CITRUS Version 2.15
-pinMode(5,1)
-digitalWrite(5,1)   # LOW:Disable
+#GR-CITRUS Version 2.46
+#ESP8266を一度停止させる(リセットと同じ)
+pinMode(5,OUTPUT)
+digitalWrite(5,LOW)   # LOW:Disable
+delay 500
+digitalWrite(5,HIGH)   # HIGH:Enable
 delay 500
 
-Usb = Serial.new(0,115200)
-
-if( System.useWiFi() == 0)then
-    Usb.println "WiFi Card can't use."
-   System.exit() 
+if(!System.use?("WiFi"))
+	puts "WA-MIKAN can't use."
+  System.exit
 end
-Usb.println "WiFi Ready"
-Usb.println "GR-CITRUS[bypass]"
+  
+puts "GR-CITRUS[bypass]"
 
-WiFi.bypass()
+WiFi.bypass

@@ -43,7 +43,6 @@ int WiFiRecvOutlNum = -1;	//ESP8266からの受信を出力するシリアル番
 #  define DEBUG_PRINT(m,v)    // do nothing
 #endif
 
-
 //**************************************************
 // OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読むか、
 // 指定されたシリアルポートに出力します
@@ -52,35 +51,35 @@ int WiFiRecvOutlNum = -1;	//ESP8266からの受信を出力するシリアル番
 //**************************************************
 int getData(unsigned int wait_msec)
 {
-unsigned long times;
-int c;
-int okt = 0;
-int ert = 0;
-int len = 0;
-int n = 0;
+	unsigned long times;
+	int c;
+	int okt = 0;
+	int ert = 0;
+	int len = 0;
+	int n = 0;
 
 	WiFiData[0] = 0;
 	times = millis();
-	while(n < 256){
+	while (n < 256) {
 		//digitalWrite(wrb2sakura(WIFI_CTS), 0);	//送信許可
 
 		//wait_msec 待つ
-		if(millis() - times > wait_msec){
-			DEBUG_PRINT("WiFi get Data","Time OUT");
+		if (millis() - times > wait_msec) {
+			DEBUG_PRINT("WiFi get Data", "Time OUT");
 			WiFiData[n] = 0;
 			return 0;
 		}
 
-		while(len = RbSerial[WIFI_SERIAL]->available())
+		while (len = RbSerial[WIFI_SERIAL]->available())
 		{
 			//DEBUG_PRINT("len=",len);
 			//DEBUG_PRINT("n=",n);
 
-			for(int i=0; i<len; i++){
+			for (int i = 0; i < len; i++) {
 				c = RbSerial[WIFI_SERIAL]->read();
 
 				//指定のシリアルポートに出す設定であれば、受信値を出力します
-				if(WiFiRecvOutlNum >= 0){
+				if (WiFiRecvOutlNum >= 0) {
 					RbSerial[WiFiRecvOutlNum]->write((unsigned char)c);
 				}
 				//DEBUG_PRINT("c=",c);
@@ -88,36 +87,36 @@ int n = 0;
 				WiFiData[n] = c;
 				n++;
 
-				if(c == 'O'){
+				if (c == 'O') {
 					okt++;
 					ert++;
 				}
-				else if(c == 'K'){
+				else if (c == 'K') {
 					okt++;
 				}
-				else if(c == 0x0d){
+				else if (c == 0x0d) {
 					ert++;
 					okt++;
 				}
-				else if(c == 0x0a){
+				else if (c == 0x0a) {
 					ert++;
 					okt++;
-					if(okt == 4 || ert == 7){
+					if (okt == 4 || ert == 7) {
 
 						// OK 0d0a || ERROR 0d0a
 						WiFiData[n] = 0;
 						return 1;
 						//n = 256;
 					}
-					else{
+					else {
 						ert = 0;
 						okt = 0;
 					}
 				}
-				else if(c == 'E' || c == 'R'){
+				else if (c == 'E' || c == 'R') {
 					ert++;
 				}
-				else{
+				else {
 					okt = 0;
 					ert = 0;
 				}
@@ -139,7 +138,7 @@ int n = 0;
 //**************************************************
 mrb_value mrb_wifi_Cwmode(mrb_state *mrb, mrb_value self)
 {
-int	mode;
+	int	mode;
 
 	mrb_get_args(mrb, "i", &mode);
 
@@ -160,17 +159,17 @@ int	mode;
 //**************************************************
 mrb_value mrb_wifi_Sout(mrb_state *mrb, mrb_value self)
 {
-int mode;
-int num = -1;
+	int mode;
+	int num = -1;
 
 	int n = mrb_get_args(mrb, "i|i", &mode, &num);
 
-	if(mode == 0){
+	if (mode == 0) {
 		WiFiRecvOutlNum = -1;
 	}
-	else{
-		if(n >= 2){
-			if(num >= 0){
+	else {
+		if (n >= 2) {
+			if (num >= 0) {
 				WiFiRecvOutlNum = num;
 			}
 		}
@@ -186,20 +185,20 @@ int num = -1;
 //**************************************************
 mrb_value mrb_wifi_at(mrb_state *mrb, mrb_value self)
 {
-mrb_value text;
-int mode = 0;
+	mrb_value text;
+	int mode = 0;
 
 	int n = mrb_get_args(mrb, "S|i", &text, &mode);
 
 	char *s = RSTRING_PTR(text);
 	int len = RSTRING_LEN(text);
 
-	if(n <= 1 || mode == 0){
+	if (n <= 1 || mode == 0) {
 		RbSerial[WIFI_SERIAL]->print("AT+");
 	}
 
-	for(int i=0; i<254; i++){
-		if( i >= len){ break; }
+	for (int i = 0; i < 254; i++) {
+		if (i >= len) { break; }
 		WiFiData[i] = s[i];
 	}
 	WiFiData[len] = 0;
@@ -222,8 +221,8 @@ int mode = 0;
 //**************************************************
 mrb_value mrb_wifi_Cwjap(mrb_state *mrb, mrb_value self)
 {
-mrb_value ssid;
-mrb_value passwd;
+	mrb_value ssid;
+	mrb_value passwd;
 
 	mrb_get_args(mrb, "SS", &ssid, &passwd);
 
@@ -238,8 +237,8 @@ mrb_value passwd;
 	WiFiData[1] = 0;
 	RbSerial[WIFI_SERIAL]->print((const char*)WiFiData);
 
-	for(int i=0; i<254; i++){
-		if( i >= slen){ break; }
+	for (int i = 0; i < 254; i++) {
+		if (i >= slen) { break; }
 		WiFiData[i] = s[i];
 	}
 	WiFiData[slen] = 0;
@@ -251,8 +250,8 @@ mrb_value passwd;
 	WiFiData[3] = 0;
 	RbSerial[WIFI_SERIAL]->print((const char*)WiFiData);
 
-	for(int i=0; i<254; i++){
-		if( i >= plen){ break; }
+	for (int i = 0; i < 254; i++) {
+		if (i >= plen) { break; }
 		WiFiData[i] = p[i];
 	}
 	WiFiData[plen] = 0;
@@ -268,7 +267,6 @@ mrb_value passwd;
 	return mrb_str_new_cstr(mrb, (const char*)WiFiData);
 }
 
-
 //**************************************************
 // WiFiアクセスポイントになります: WiFi.softAP
 //  WiFi.softAP(SSID,Passwd,Channel,Encrypt)
@@ -279,10 +277,10 @@ mrb_value passwd;
 //**************************************************
 mrb_value mrb_wifi_softAP(mrb_state *mrb, mrb_value self)
 {
-mrb_value ssid;
-mrb_value passwd;
-int ch = 1;
-int enc = 0;
+	mrb_value ssid;
+	mrb_value passwd;
+	int ch = 1;
+	int enc = 0;
 
 	mrb_get_args(mrb, "SSii", &ssid, &passwd, &ch, &enc);
 
@@ -292,7 +290,7 @@ int enc = 0;
 	char *p = RSTRING_PTR(passwd);
 	int plen = RSTRING_LEN(passwd);
 
-	if (enc < 0 || enc>4){
+	if (enc < 0 || enc>4) {
 		enc = 0;
 	}
 
@@ -301,8 +299,8 @@ int enc = 0;
 	WiFiData[1] = 0;
 	RbSerial[WIFI_SERIAL]->print((const char*)WiFiData);
 
-	for (int i = 0; i<254; i++){
-		if (i >= slen){ break; }
+	for (int i = 0; i < 254; i++) {
+		if (i >= slen) { break; }
 		WiFiData[i] = s[i];
 	}
 	WiFiData[slen] = 0;
@@ -314,8 +312,8 @@ int enc = 0;
 	WiFiData[3] = 0;
 	RbSerial[WIFI_SERIAL]->print((const char*)WiFiData);
 
-	for (int i = 0; i<254; i++){
-		if (i >= plen){ break; }
+	for (int i = 0; i < 254; i++) {
+		if (i >= plen) { break; }
 		WiFiData[i] = p[i];
 	}
 	WiFiData[plen] = 0;
@@ -358,8 +356,8 @@ mrb_value mrb_wifi_connectedIP(mrb_state *mrb, mrb_value self)
 //**************************************************
 mrb_value mrb_wifi_dhcp(mrb_state *mrb, mrb_value self)
 {
-int	mode;
-int bl = 0;
+	int	mode;
+	int bl = 0;
 
 	mrb_get_args(mrb, "ii", &mode, &bl);
 
@@ -396,29 +394,29 @@ mrb_value mrb_wifi_Cifsr(mrb_state *mrb, mrb_value self)
 //**************************************************
 mrb_value mrb_wifi_bypass(mrb_state *mrb, mrb_value self)
 {
-	int len0, len1,len;
+	int len0, len1, len;
 	//int retCnt = 0;
 
-	while(true){
+	while (true) {
 		len0 = RbSerial[0]->available();
 		len1 = RbSerial[WIFI_SERIAL]->available();
 
-		if(len0 > 0){
-			len = len0<256 ? len0 : 256;
+		if (len0 > 0) {
+			len = len0 < 256 ? len0 : 256;
 
-			for(int i=0; i<len; i++){
+			for (int i = 0; i < len; i++) {
 				WiFiData[i] = (unsigned char)RbSerial[0]->read();
 			}
-			RbSerial[WIFI_SERIAL]->write( WiFiData, len );
+			RbSerial[WIFI_SERIAL]->write(WiFiData, len);
 		}
 
-		if(len1 > 0){
-			len = len1<256 ? len1 : 256;
-			
-			for(int i=0; i<len; i++){
+		if (len1 > 0) {
+			len = len1 < 256 ? len1 : 256;
+
+			for (int i = 0; i < len; i++) {
 				WiFiData[i] = (unsigned char)RbSerial[WIFI_SERIAL]->read();
 			}
-	        RbSerial[0]->write( WiFiData, len );
+			RbSerial[0]->write(WiFiData, len);
 		}
 	}
 	return mrb_nil_value();			//戻り値は無しですよ。
@@ -459,7 +457,7 @@ mrb_value mrb_wifi_Disconnect(mrb_state *mrb, mrb_value self)
 //**************************************************
 mrb_value mrb_wifi_multiConnect(mrb_state *mrb, mrb_value self)
 {
-int	mode;
+	int	mode;
 
 	mrb_get_args(mrb, "i", &mode);
 
@@ -480,23 +478,23 @@ int	mode;
 //**************************************************
 int CutGarbageData(const char *ipd, const char *strFname1, const char *strFname2)
 {
-File fp, fd;
+	File fp, fd;
 
 #if BOARD == BOARD_GR
-	int led = digitalRead(PIN_LED0) | ( digitalRead(PIN_LED1)<<1) | (digitalRead(PIN_LED2)<<2)| (digitalRead(PIN_LED3)<<3);
+	int led = digitalRead(PIN_LED0) | (digitalRead(PIN_LED1) << 1) | (digitalRead(PIN_LED2) << 2) | (digitalRead(PIN_LED3) << 3);
 #else
 	int led = digitalRead(RB_LED);
 #endif
 
-	if( SD.exists(strFname2)){
+	if (SD.exists(strFname2)) {
 		SD.remove(strFname2);
 	}
 
-	if( !(fp = SD.open(strFname1, FILE_READ)) ){
+	if (!(fp = SD.open(strFname1, FILE_READ))) {
 		return 2;
 	}
 
-	if( !(fd = SD.open(strFname2, FILE_WRITE)) ){
+	if (!(fd = SD.open(strFname2, FILE_WRITE))) {
 		return 3;
 	}
 
@@ -509,7 +507,7 @@ File fp, fd;
 	unsigned char str[16];
 	int dLen;
 	unsigned long seekCnt = 0;
-	while(true){
+	while (true) {
 
 		//LEDを点滅させる
 #if BOARD == BOARD_GR
@@ -524,26 +522,26 @@ File fp, fd;
 
 		//+IPD文字列を探します
 		cnt = 0;
-		while(true){
+		while (true) {
 			rc = fp.read();
 
-			if(rc < 0){
+			if (rc < 0) {
 				findFlg = false;
 				break;
 			}
 
 			c = (unsigned char)rc;
-			if(ipd[cnt] == c){
+			if (ipd[cnt] == c) {
 				cnt++;
-				if(cnt == ipdLen){
+				if (cnt == ipdLen) {
 					seekCnt += cnt;
 					break;
 				}
 			}
-			else if(c == 0x0D){
+			else if (c == 0x0D) {
 				cnt = 1;
 			}
-			else{
+			else {
 				cnt = 0;
 			}
 		}
@@ -551,15 +549,15 @@ File fp, fd;
 		//Serial.print("findFlg= ");
 		//Serial.println(findFlg);
 
-		if(findFlg == false){	break;	}
+		if (findFlg == false) { break; }
 
 		//ここから後はバイト数が来ているはず
 		cnt = 0;
-		while(true){
+		while (true) {
 
 			rc = fp.read();
 
-			if(rc < 0){
+			if (rc < 0) {
 				findFlg = false;
 				break;
 			}
@@ -567,12 +565,12 @@ File fp, fd;
 
 			str[cnt] = c;
 
-			if(c == ':'){
+			if (c == ':') {
 				str[cnt] = 0;
 				seekCnt += cnt + 1;
 				break;
 			}
-			else if(cnt >= 15){
+			else if (cnt >= 15) {
 				str[15] = 0;
 				findFlg = false;
 				break;
@@ -580,8 +578,8 @@ File fp, fd;
 			cnt++;
 		}
 
-		if(findFlg == false){	break;	}
-	
+		if (findFlg == false) { break; }
+
 		//読み込むバイト数を求めます
 		dLen = atoi((const char*)str);
 
@@ -590,30 +588,30 @@ File fp, fd;
 		//Serial.print("dLen= ");
 		//Serial.println((const char*)str);
 
-		while(dLen > 0){
-			if(dLen >= 256){
-				 fp.read(WiFiData, 256);
+		while (dLen > 0) {
+			if (dLen >= 256) {
+				fp.read(WiFiData, 256);
 
-				 fd.write( WiFiData, 256);
-				 dLen -= 256;
+				fd.write(WiFiData, 256);
+				dLen -= 256;
 			}
-			else{
-				 fp.read(WiFiData, dLen);
-				 fd.write( WiFiData, dLen);
+			else {
+				fp.read(WiFiData, dLen);
+				fd.write(WiFiData, dLen);
 
-				 dLen = 0;
+				dLen = 0;
 			}
 		}
 	}
 
-	if(findFlg == false){
+	if (findFlg == false) {
 		//処理していないところは、そのまま書きます
 		fp.seek(seekCnt);
 
-		while(true){
+		while (true) {
 			dLen = fp.read(WiFiData, 256);
 			fd.write(WiFiData, dLen);
-			if(dLen < 256){
+			if (dLen < 256) {
 				break;
 			}
 		}
@@ -637,32 +635,19 @@ File fp, fd;
 	return 1;
 }
 
-//**************************************************
-// http GETをSDカードに保存します: WiFi.httpGetSD
-//  WiFi.httpGetSD( Filename, URL[,Headers] )
-//	Filename: 保存するファイル名
-//	URL: URL
-//	Headers: ヘッダに追記する文字列の配列
-//
-//  戻り値は以下のとおり
-//		0: 失敗
-//		1: 成功
-//		2: SDカードが使えない
-//		... 各種エラー
-//**************************************************
-mrb_value mrb_wifi_getSD(mrb_state *mrb, mrb_value self)
+mrb_value mrb_wifi_getSD_sub(mrb_state *mrb, mrb_value self, int ssl)
 {
-mrb_value vFname, vURL, vHeaders;
-const char *tmpFilename = "wifitmp.tmp";
-const char *hedFilename = "hedrfile.tmp";
-char	*strFname, *strURL;
-int len = 0;
-File fp, fd;
-int sla, koron;
+	mrb_value vFname, vURL, vHeaders;
+	const char *tmpFilename = "wifitmp.tmp";
+	const char *hedFilename = "hedrfile.tmp";
+	char	*strFname, *strURL;
+	int len = 0;
+	File fp, fd;
+	int sla, koron;
 
 	//SDカードが利用可能か確かめます
-	if(!sdcard_Init(mrb)){
-		return mrb_fixnum_value( 2 );
+	if (!sdcard_Init(mrb)) {
+		return mrb_fixnum_value(2);
 	}
 
 	int n = mrb_get_args(mrb, "SS|A", &vFname, &vURL, &vHeaders);
@@ -670,66 +655,77 @@ int sla, koron;
 	strFname = RSTRING_PTR(vFname);
 	strURL = RSTRING_PTR(vURL);
 
+	//****** AT+CIPMUXコマンド ******
+	RbSerial[WIFI_SERIAL]->println("AT+CIPMUX=1");
+	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読むか、指定されたシリアルポートに出力します
+	getData(WIFI_WAIT_MSEC);
+
 	//httpサーバに送信するデータを、strFname ファイルに生成します。
 
 	//既にファイルがあれば消す
-	if( SD.exists(hedFilename)){
+	if (SD.exists(hedFilename)) {
 		SD.remove(hedFilename);
 	}
 	//ファイルオープン
-	if( !(fp = SD.open(hedFilename, FILE_WRITE)) ){
-		return mrb_fixnum_value( 3 );
+	if (!(fp = SD.open(hedFilename, FILE_WRITE))) {
+		return mrb_fixnum_value(3);
 	}
 
 	//1行目を生成
 	{
-		fp.write( (unsigned char*)"GET /", 5);
+		fp.write((unsigned char*)"GET /", 5);
 
+		//httpsかチェック
+		if (ssl) {
+			//DEBUG_PRINTLN1("AT+CIPSSLSIZE=4096");
+			RbSerial[WIFI_SERIAL]->println("AT+CIPSSLSIZE=4096");
+			getData(WIFI_WAIT_MSEC);
+		}
 		//URLからドメインを分割する
 		len = strlen(strURL);
 		sla = len;
 		koron = 0;
-		for(int i=0; i<len; i++){
-			if(strURL[i] == '/'){
+		for (int i = 0; i < len; i++) {
+			if (strURL[i] == '/') {
 				sla = i;
 				break;
 			}
-			if(strURL[i] == ':'){
+			if (strURL[i] == ':') {
 				koron = i;
 			}
 		}
 
-		for(int i=sla + 1; i<len; i++){
+		for (int i = sla + 1; i < len; i++) {
 			fp.write(strURL[i]);
 		}
 
-		fp.write( (unsigned char*)" HTTP/1.1", 9);
+		fp.write((unsigned char*)" HTTP/1.1", 9);
 		fp.write(0x0D);	fp.write(0x0A);
 	}
 
 	//Hostヘッダを生成
 	{
-		fp.write( (unsigned char*)"Host: ", 6);
-	
-		if(koron == 0){
+		fp.write((unsigned char*)"Host: ", 6);
+
+		if (koron == 0) {
 			koron = sla;
 		}
 
-		for(int i=0; i<koron; i++){
+		for (int i = 0; i < koron; i++) {
 			fp.write(strURL[i]);
 		}
 		fp.write(0x0D);	fp.write(0x0A);
 	}
 
 	//ヘッダ情報が追加されているとき
-	if(n >= 3){
-		n = RARRAY_LEN( vHeaders );
+	if (n >= 3) {
+		n = RARRAY_LEN(vHeaders);
 		mrb_value hes;
-		for (int i=0; i<n; i++) {
-	
+		for (int i = 0; i < n; i++) {
+
 			hes = mrb_ary_ref(mrb, vHeaders, i);
 			len = strlen(RSTRING_PTR(hes));
-			
+
 			//ヘッダの追記
 			fp.write(RSTRING_PTR(hes), len);
 			fp.write(0x0D);	fp.write(0x0A);
@@ -746,29 +742,39 @@ int sla, koron;
 	//****** AT+CIPSTARTコマンド ******
 
 	//WiFiData[]に、ドメインとポート番号を取得
-	for(int i=0; i<sla; i++){
+	for (int i = 0; i < sla; i++) {
 		WiFiData[i] = strURL[i];
-		if(i == koron){
+		if (i == koron) {
 			WiFiData[i] = 0;
 		}
 	}
 	WiFiData[sla] = 0;
 
-	RbSerial[WIFI_SERIAL]->print("AT+CIPSTART=4,\"TCP\",\"");
+	if (ssl) {
+		RbSerial[WIFI_SERIAL]->print("AT+CIPSTART=4,\"SSL\",\"");
+	}
+	else {
+		RbSerial[WIFI_SERIAL]->print("AT+CIPSTART=4,\"TCP\",\"");
+	}
 	RbSerial[WIFI_SERIAL]->print((const char*)WiFiData);
 	RbSerial[WIFI_SERIAL]->print("\",");
-	if( koron < sla){
+	if (koron < sla) {
 		RbSerial[WIFI_SERIAL]->println((const char*)&WiFiData[koron + 1]);
 	}
-	else{
-		RbSerial[WIFI_SERIAL]->println("80");
+	else {
+		if (ssl) {
+			RbSerial[WIFI_SERIAL]->println("443");
+		}
+		else {
+			RbSerial[WIFI_SERIAL]->println("80");
+		}
 	}
 
 	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読むか、指定されたシリアルポートに出力します
 	getData(WIFI_WAIT_MSEC);
 
-	if( !(WiFiData[strlen((const char*)WiFiData)-2] == 'K' || WiFiData[strlen((const char*)WiFiData)-3] == 'K')){
-		return mrb_fixnum_value( 0 );
+	if (!(WiFiData[strlen((const char*)WiFiData) - 2] == 'K' || WiFiData[strlen((const char*)WiFiData) - 3] == 'K')) {
+		return mrb_fixnum_value(0);
 	}
 	//Serial.print("httpServer Connect: ");
 	//Serial.print((const char*)WiFiData);
@@ -776,8 +782,8 @@ int sla, koron;
 	//****** AT+CIPSEND コマンド ******
 
 	//送信データサイズ取得
-	if( !(fp = SD.open(hedFilename, FILE_READ)) ){
-		return mrb_fixnum_value( 4 );
+	if (!(fp = SD.open(hedFilename, FILE_READ))) {
+		return mrb_fixnum_value(4);
 	}
 	//ファイルサイズ取得
 	int sByte = fp.size();
@@ -793,8 +799,8 @@ int sla, koron;
 
 	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読むか、指定されたシリアルポートに出力します
 	getData(WIFI_WAIT_MSEC);
-	if( !(WiFiData[strlen((const char*)WiFiData)-2] == 'K' || WiFiData[strlen((const char*)WiFiData)-3] == 'K')){
-		return mrb_fixnum_value( 0 );
+	if (!(WiFiData[strlen((const char*)WiFiData) - 2] == 'K' || WiFiData[strlen((const char*)WiFiData) - 3] == 'K')) {
+		return mrb_fixnum_value(0);
 	}
 
 	//Serial.print("> Waiting: ");
@@ -802,11 +808,11 @@ int sla, koron;
 
 	//****** 送信データ受付モードになったので、http GETデータを送信する ******
 	{
-		if( !(fp = SD.open(hedFilename, FILE_READ)) ){
-			return mrb_fixnum_value( 5 );
+		if (!(fp = SD.open(hedFilename, FILE_READ))) {
+			return mrb_fixnum_value(5);
 		}
 		WiFiData[1] = 0;
-		for(int i=0; i<sByte; i++){
+		for (int i = 0; i < sByte; i++) {
 			WiFiData[0] = (unsigned char)fp.read();
 			//Serial.print((const char*)WiFiData);
 			RbSerial[WIFI_SERIAL]->print((const char*)WiFiData);
@@ -818,8 +824,8 @@ int sla, koron;
 		//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読むか、指定されたシリアルポートに出力します
 		getData(WIFI_WAIT_MSEC);
 
-		if( !(WiFiData[strlen((const char*)WiFiData)-2] == 'K' || WiFiData[strlen((const char*)WiFiData)-3] == 'K')){
-			return mrb_fixnum_value( 0 );
+		if (!(WiFiData[strlen((const char*)WiFiData) - 2] == 'K' || WiFiData[strlen((const char*)WiFiData) - 3] == 'K')) {
+			return mrb_fixnum_value(0);
 		}
 		//Serial.print("Send Finish: ");
 		//Serial.print((const char*)WiFiData);
@@ -827,8 +833,8 @@ int sla, koron;
 	//****** 送信終了 ******
 
 	//****** 受信開始 ******
-	if( !(fp = SD.open(tmpFilename, FILE_WRITE)) ){
-		return mrb_fixnum_value( 6 );
+	if (!(fp = SD.open(tmpFilename, FILE_WRITE))) {
+		return mrb_fixnum_value(6);
 	}
 
 	unsigned long times;
@@ -837,18 +843,18 @@ int sla, koron;
 	times = millis();
 
 #if BOARD == BOARD_GR
-	int led = digitalRead(PIN_LED0) | ( digitalRead(PIN_LED1)<<1) | (digitalRead(PIN_LED2)<<2)| (digitalRead(PIN_LED3)<<3);
+	int led = digitalRead(PIN_LED0) | (digitalRead(PIN_LED1) << 1) | (digitalRead(PIN_LED2) << 2) | (digitalRead(PIN_LED3) << 3);
 #else
 	int led = digitalRead(RB_LED);
 #endif
 
-	while(true){
+	while (true) {
 		//wait_msec 待つ
-		if(millis() - times > wait_msec){
+		if (millis() - times > wait_msec) {
 			break;
 		}
 
-		while(len = RbSerial[WIFI_SERIAL]->available())
+		while ((len = RbSerial[WIFI_SERIAL]->available()) != 0)
 		{
 			//LEDを点灯する
 #if BOARD == BOARD_GR
@@ -859,9 +865,9 @@ int sla, koron;
 #else
 			digitalWrite(RB_LED, HIGH);
 #endif
-			for(int i=0; i<len; i++){
+			for (int i = 0; i < len; i++) {
 				recv[0] = (unsigned char)RbSerial[WIFI_SERIAL]->read();
-				fp.write( (unsigned char*)recv, 1);
+				fp.write((unsigned char*)recv, 1);
 			}
 			times = millis();
 			wait_msec = 1000;	//データが届き始めたら、1sec待ちに変更する
@@ -885,14 +891,14 @@ int sla, koron;
 
 	//受信データに '\r\n+\r\n+IPD,4,****:'というデータがあるので削除します
 	int ret = CutGarbageData("\r\n+IPD,4,", tmpFilename, strFname);
-	if(ret != 1){
-		return mrb_fixnum_value( 7 );
+	if (ret != 1) {
+		return mrb_fixnum_value(7);
 	}
 
 	//****** AT+CIPCLOSE コマンド ******
 	RbSerial[WIFI_SERIAL]->println("AT+CIPCLOSE=4");
 	getData(WIFI_WAIT_MSEC);
-	
+
 	//Serial.println((const char*)WiFiData);
 
 #if BOARD == BOARD_GR
@@ -904,75 +910,123 @@ int sla, koron;
 	digitalWrite(RB_LED, led);
 #endif
 
-	return mrb_fixnum_value( 1 );
+	return mrb_fixnum_value(1);
 }
 
 //**************************************************
-// http GETプロトコルを送信する: WiFi.httpGet
-//  WiFi.httpGet( URL[,Headers] )
-//　送信のみで、結果を受信しない　
+// http GETをSDカードに保存します: WiFi.httpGetSD
+//  WiFi.httpGetSD( Filename, URL[,Headers] )
+//	Filename: 保存するファイル名
 //	URL: URL
 //	Headers: ヘッダに追記する文字列の配列
 //
 //  戻り値は以下のとおり
 //		0: 失敗
 //		1: 成功
+//		2: SDカードが使えない
+//		... 各種エラー
 //**************************************************
-mrb_value mrb_wifi_get(mrb_state *mrb, mrb_value self)
+mrb_value mrb_wifi_getSD(mrb_state *mrb, mrb_value self)
 {
-mrb_value vURL, vHeaders;
-char	*strURL;
-int len = 0;
-int sla, cnt;
-int koron = 0;
-char sData[1024];
+	return mrb_wifi_getSD_sub(mrb, self, 0);
+}
+
+//**************************************************
+// https GETをSDカードに保存します: WiFi.httpsGetSD
+//  WiFi.httpsGetSD( Filename, URL[,Headers] )
+//	Filename: 保存するファイル名
+//	URL: URL
+//	Headers: ヘッダに追記する文字列の配列
+//
+//  戻り値は以下のとおり
+//		0: 失敗
+//		1: 成功
+//		2: SDカードが使えない
+//		... 各種エラー
+//**************************************************
+mrb_value mrb_wifi_getSD_ssl(mrb_state *mrb, mrb_value self)
+{
+	return mrb_wifi_getSD_sub(mrb, self, 1);
+}
+
+mrb_value mrb_wifi_get_sub(mrb_state *mrb, mrb_value self, int ssl)
+{
+	mrb_value vURL, vHeaders;
+	char	*strURL;
+	int len = 0;
+	int sla, cnt;
+	int koron = 0;
+	char sData[1024];
 
 	int n = mrb_get_args(mrb, "S|A", &vURL, &vHeaders);
 
 	strURL = RSTRING_PTR(vURL);
 
+	//****** AT+CIPMUXコマンド ******
+	RbSerial[WIFI_SERIAL]->println("AT+CIPMUX=1");
+	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読むか、指定されたシリアルポートに出力します
+	getData(WIFI_WAIT_MSEC);
+
+	//httpsかチェック
+	if (ssl) {
+		//DEBUG_PRINTLN1("AT+CIPSSLSIZE=4096");
+		RbSerial[WIFI_SERIAL]->println("AT+CIPSSLSIZE=4096");
+		getData(WIFI_WAIT_MSEC);
+	}
+
 	//URLからドメインを分割する
 	len = strlen(strURL);
 	sla = len;
-	for(int i=0; i<len; i++){
-		if(strURL[i] == '/'){
+	for (int i = 0; i < len; i++) {
+		if (strURL[i] == '/') {
 			sla = i;
 			break;
 		}
-		if(strURL[i] == ':'){
+		if (strURL[i] == ':') {
 			koron = i;
 		}
 	}
 
-	if(koron == 0){
+	if (koron == 0) {
 		koron = sla;
 	}
 
 	//****** AT+CIPSTARTコマンド ******
 	//WiFiData[]に、ドメインとポート番号を取得
-	for(int i=0; i<sla; i++){
+	for (int i = 0; i < sla; i++) {
 		WiFiData[i] = strURL[i];
-		if(i == koron){
+		if (i == koron) {
 			WiFiData[i] = 0;
 		}
 	}
 	WiFiData[sla] = 0;
 
-	RbSerial[WIFI_SERIAL]->print("AT+CIPSTART=4,\"TCP\",\"");
+	if (ssl) {
+		RbSerial[WIFI_SERIAL]->print("AT+CIPSTART=4,\"SSL\",\"");
+	}
+	else {
+		RbSerial[WIFI_SERIAL]->print("AT+CIPSTART=4,\"TCP\",\"");
+	}
+
 	RbSerial[WIFI_SERIAL]->print((const char*)WiFiData);
 	RbSerial[WIFI_SERIAL]->print("\",");
-	if( koron < sla){
+	if (koron < sla) {
 		RbSerial[WIFI_SERIAL]->println((const char*)&WiFiData[koron + 1]);
 	}
-	else{
-		RbSerial[WIFI_SERIAL]->println("80");
+	else {
+		if (ssl) {
+			RbSerial[WIFI_SERIAL]->println("443");
+		}
+		else {
+			RbSerial[WIFI_SERIAL]->println("80");
+		}
 	}
 
 	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読むか、指定されたシリアルポートに出力します
 	getData(WIFI_WAIT_MSEC);
 
-	if( !(WiFiData[strlen((const char*)WiFiData)-2] == 'K' || WiFiData[strlen((const char*)WiFiData)-3] == 'K')){
-		return mrb_fixnum_value( 0 );
+	if (!(WiFiData[strlen((const char*)WiFiData) - 2] == 'K' || WiFiData[strlen((const char*)WiFiData) - 3] == 'K')) {
+		return mrb_fixnum_value(0);
 	}
 
 	//****** AT+CIPSEND コマンド ******
@@ -982,7 +1036,7 @@ char sData[1024];
 		strcpy(sData, "GET /");
 
 		cnt = 5;
-		for(int i=sla + 1; i<len; i++){
+		for (int i = sla + 1; i < len; i++) {
 			sData[cnt] = strURL[i];
 			cnt++;
 		}
@@ -994,9 +1048,9 @@ char sData[1024];
 	//Hostヘッダを生成
 	{
 		strcat(sData, "Host: ");
-	
+
 		cnt = strlen(sData);
-		for(int i=0; i<koron; i++){
+		for (int i = 0; i < koron; i++) {
 			sData[cnt] = strURL[i];
 			cnt++;
 		}
@@ -1005,14 +1059,14 @@ char sData[1024];
 	}
 
 	//ヘッダ情報が追加されているとき
-	if(n >= 2){
-		n = RARRAY_LEN( vHeaders );
+	if (n >= 2) {
+		n = RARRAY_LEN(vHeaders);
 		mrb_value hes;
-		for (int i=0; i<n; i++) {
-	
+		for (int i = 0; i < n; i++) {
+
 			hes = mrb_ary_ref(mrb, vHeaders, i);
 			len = strlen(RSTRING_PTR(hes));
-			
+
 			//ヘッダの追記
 			strcat(sData, RSTRING_PTR(hes));
 			strcat(sData, "\r\n");
@@ -1030,8 +1084,8 @@ char sData[1024];
 
 	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読むか、指定されたシリアルポートに出力します
 	getData(WIFI_WAIT_MSEC);
-	if( !(WiFiData[strlen((const char*)WiFiData)-2] == 'K' || WiFiData[strlen((const char*)WiFiData)-3] == 'K')){
-		return mrb_fixnum_value( 0 );
+	if (!(WiFiData[strlen((const char*)WiFiData) - 2] == 'K' || WiFiData[strlen((const char*)WiFiData) - 3] == 'K')) {
+		return mrb_fixnum_value(0);
 	}
 
 	//****** 送信データ受付モードになったので、http GETデータを送信する ******
@@ -1041,8 +1095,8 @@ char sData[1024];
 		//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読むか、指定されたシリアルポートに出力します
 		getData(WIFI_WAIT_MSEC);
 
-		if( !(WiFiData[strlen((const char*)WiFiData)-2] == 'K' || WiFiData[strlen((const char*)WiFiData)-3] == 'K')){
-			return mrb_fixnum_value( 0 );
+		if (!(WiFiData[strlen((const char*)WiFiData) - 2] == 'K' || WiFiData[strlen((const char*)WiFiData) - 3] == 'K')) {
+			return mrb_fixnum_value(0);
 		}
 	}
 	//****** 送信終了 ******
@@ -1052,15 +1106,15 @@ char sData[1024];
 	unsigned int wait_msec = WIFI_WAIT_MSEC;
 	times = millis();
 
-	while(true){
+	while (true) {
 		//wait_msec 待つ
-		if(millis() - times > wait_msec){
+		if (millis() - times > wait_msec) {
 			break;
 		}
 
-		while(len = RbSerial[WIFI_SERIAL]->available())
+		while ((len = RbSerial[WIFI_SERIAL]->available()) != 0)
 		{
-			for(int i=0; i<len; i++){
+			for (int i = 0; i < len; i++) {
 				RbSerial[WIFI_SERIAL]->read();
 			}
 			times = millis();
@@ -1073,7 +1127,39 @@ char sData[1024];
 	RbSerial[WIFI_SERIAL]->println("AT+CIPCLOSE=4");
 	getData(WIFI_WAIT_MSEC);
 
-	return mrb_fixnum_value( 1 );
+	return mrb_fixnum_value(1);
+}
+
+//**************************************************
+// http GETプロトコルを送信する: WiFi.httpGet
+//  WiFi.httpGet( URL[,Headers] )
+//　送信のみで、結果を受信しない　
+//	URL: URL
+//	Headers: ヘッダに追記する文字列の配列
+//
+//  戻り値は以下のとおり
+//		0: 失敗
+//		1: 成功
+//**************************************************
+mrb_value mrb_wifi_get(mrb_state *mrb, mrb_value self)
+{
+	return mrb_wifi_get_sub(mrb, self, 0);
+}
+
+//**************************************************
+// https GETプロトコルを送信する: WiFi.httpsGet
+//  WiFi.httpsGet( URL[,Headers] )
+//　送信のみで、結果を受信しない　
+//	URL: URL
+//	Headers: ヘッダに追記する文字列の配列
+//
+//  戻り値は以下のとおり
+//		0: 失敗
+//		1: 成功
+//**************************************************
+mrb_value mrb_wifi_get_ssl(mrb_state *mrb, mrb_value self)
+{
+	return mrb_wifi_get_sub(mrb, self, 1);
 }
 
 //**************************************************
@@ -1097,7 +1183,7 @@ void wifi_cClose(int num)
 //**************************************************
 mrb_value mrb_wifi_cClose(mrb_state *mrb, mrb_value self)
 {
-int	num;
+	int	num;
 
 	mrb_get_args(mrb, "i", &num);
 	wifi_cClose(num);
@@ -1150,9 +1236,9 @@ static int wifi_udpOpen(int num, char *strIpAdd, int sport, int rport)
 //**************************************************
 mrb_value mrb_wifi_udpOpen(mrb_state *mrb, mrb_value self)
 {
-mrb_value vIpAdd;
-char	*strIpAdd;
-int	num, sport, rport;
+	mrb_value vIpAdd;
+	char	*strIpAdd;
+	int	num, sport, rport;
 
 	mrb_get_args(mrb, "iSii", &num, &vIpAdd, &sport, &rport);
 	strIpAdd = RSTRING_PTR(vIpAdd);
@@ -1341,10 +1427,10 @@ int wifi_recv(int num, char *recv_buf, int *recv_cnt)
 //**************************************************
 mrb_value mrb_wifi_recv(mrb_state *mrb, mrb_value self)
 {
-int	num;
-char wifi_recv_buf[256];
-mrb_value arv[256];
-int ret, i, cnt;
+	int	num;
+	char wifi_recv_buf[256];
+	mrb_value arv[256];
+	int ret, i, cnt;
 
 	mrb_get_args(mrb, "i", &num);
 
@@ -1377,40 +1463,45 @@ int ret, i, cnt;
 //**************************************************
 mrb_value mrb_wifi_postSD(mrb_state *mrb, mrb_value self)
 {
-mrb_value vFname, vURL, vHeaders;
-const char *headFilename = "headfile.tmp";
-char	*strFname, *strURL;
-int len = 0;
-File fp, fd;
-int sla, koron;
-int sBody, sHeader;
+	mrb_value vFname, vURL, vHeaders;
+	const char *headFilename = "headfile.tmp";
+	char	*strFname, *strURL;
+	int len = 0;
+	File fp, fd;
+	int sla, koron;
+	int sBody, sHeader;
 
 	//SDカードが利用可能か確かめます
-	if (!sdcard_Init(mrb)){
+	if (!sdcard_Init(mrb)) {
 		return mrb_fixnum_value(2);
 	}
 
-	int n = mrb_get_args(mrb, "SAS", &vURL, &vHeaders, &vFname );
+	int n = mrb_get_args(mrb, "SAS", &vURL, &vHeaders, &vFname);
 
 	strFname = RSTRING_PTR(vFname);
 	strURL = RSTRING_PTR(vURL);
 
 	//送信ファイルサイズ取得
-	if (!(fp = SD.open(strFname, FILE_READ))){
+	if (!(fp = SD.open(strFname, FILE_READ))) {
 		return mrb_fixnum_value(3);
 	}
 	//ファイルサイズ取得
 	sBody = fp.size();
 	fp.close();
 
+	//****** AT+CIPMUXコマンド ******
+	RbSerial[WIFI_SERIAL]->println("AT+CIPMUX=1");
+	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読むか、指定されたシリアルポートに出力します
+	getData(WIFI_WAIT_MSEC);
+
 	//httpサーバに送信するデータを、strFname ファイルに生成します。
 
 	//既にファイルがあれば消す
-	if (SD.exists(headFilename)){
+	if (SD.exists(headFilename)) {
 		SD.remove(headFilename);
 	}
 	//ファイルオープン
-	if (!(fp = SD.open(headFilename, FILE_WRITE))){
+	if (!(fp = SD.open(headFilename, FILE_WRITE))) {
 		return mrb_fixnum_value(4);
 	}
 
@@ -1422,17 +1513,17 @@ int sBody, sHeader;
 		len = strlen(strURL);
 		sla = len;
 		koron = 0;
-		for (int i = 0; i<len; i++){
-			if (strURL[i] == '/'){
+		for (int i = 0; i < len; i++) {
+			if (strURL[i] == '/') {
 				sla = i;
 				break;
 			}
-			if (strURL[i] == ':'){
+			if (strURL[i] == ':') {
 				koron = i;
 			}
 		}
 
-		for (int i = sla + 1; i<len; i++){
+		for (int i = sla + 1; i < len; i++) {
 			fp.write(strURL[i]);
 		}
 
@@ -1444,11 +1535,11 @@ int sBody, sHeader;
 	{
 		fp.write((unsigned char*)"Host: ", 6);
 
-		if (koron == 0){
+		if (koron == 0) {
 			koron = sla;
 		}
 
-		for (int i = 0; i < koron; i++){
+		for (int i = 0; i < koron; i++) {
 			fp.write(strURL[i]);
 		}
 		fp.write(0x0D);	fp.write(0x0A);
@@ -1457,8 +1548,8 @@ int sBody, sHeader;
 	//Content-Lengthを付けます
 	{
 		fp.write((unsigned char*)"Content-Length: ", 16);
-		sprintf((char*)WiFiData,"%u", sBody);
-		fp.write(WiFiData,strlen((char*)WiFiData));
+		sprintf((char*)WiFiData, "%u", sBody);
+		fp.write(WiFiData, strlen((char*)WiFiData));
 		fp.write(0x0D);	fp.write(0x0A);
 	}
 
@@ -1466,7 +1557,7 @@ int sBody, sHeader;
 	{
 		n = RARRAY_LEN(vHeaders);
 		mrb_value hes;
-		for (int i = 0; i<n; i++) {
+		for (int i = 0; i < n; i++) {
 
 			hes = mrb_ary_ref(mrb, vHeaders, i);
 			len = strlen(RSTRING_PTR(hes));
@@ -1487,9 +1578,9 @@ int sBody, sHeader;
 	//****** AT+CIPSTARTコマンド ******
 
 	//WiFiData[]に、ドメインとポート番号を取得
-	for (int i = 0; i<sla; i++){
+	for (int i = 0; i < sla; i++) {
 		WiFiData[i] = strURL[i];
-		if (i == koron){
+		if (i == koron) {
 			WiFiData[i] = 0;
 		}
 	}
@@ -1498,26 +1589,26 @@ int sBody, sHeader;
 	RbSerial[WIFI_SERIAL]->print("AT+CIPSTART=4,\"TCP\",\"");
 	RbSerial[WIFI_SERIAL]->print((const char*)WiFiData);
 	RbSerial[WIFI_SERIAL]->print("\",");
-	if (koron < sla){
+	if (koron < sla) {
 		RbSerial[WIFI_SERIAL]->println((const char*)&WiFiData[koron + 1]);
 	}
-	else{
+	else {
 		RbSerial[WIFI_SERIAL]->println("80");
 	}
 
 	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読むか、指定されたシリアルポートに出力します
 	getData(WIFI_WAIT_MSEC);
 
-	if (!(WiFiData[strlen((const char*)WiFiData) - 2] == 'K' || WiFiData[strlen((const char*)WiFiData) - 3] == 'K')){
+	if (!(WiFiData[strlen((const char*)WiFiData) - 2] == 'K' || WiFiData[strlen((const char*)WiFiData) - 3] == 'K')) {
 		return mrb_fixnum_value(0);
 	}
 	//Serial.print("httpServer Connect: ");
 	//Serial.print((const char*)WiFiData);
 
 	//****** AT+CIPSEND コマンド ******
-	
+
 	//送信ヘッダのサイズ取得
-	if (!(fp = SD.open(headFilename, FILE_READ))){
+	if (!(fp = SD.open(headFilename, FILE_READ))) {
 		return mrb_fixnum_value(5);
 	}
 	//ファイルサイズ取得
@@ -1534,7 +1625,7 @@ int sBody, sHeader;
 
 	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読むか、指定されたシリアルポートに出力します
 	getData(WIFI_WAIT_MSEC);
-	if (!(WiFiData[strlen((const char*)WiFiData) - 2] == 'K' || WiFiData[strlen((const char*)WiFiData) - 3] == 'K')){
+	if (!(WiFiData[strlen((const char*)WiFiData) - 2] == 'K' || WiFiData[strlen((const char*)WiFiData) - 3] == 'K')) {
 		return mrb_fixnum_value(0);
 	}
 
@@ -1544,11 +1635,11 @@ int sBody, sHeader;
 	//****** 送信データ受付モードになったので、http POSTデータを送信する ******
 	{
 		//先ずヘッダデータを送信する
-		if (!(fp = SD.open(headFilename, FILE_READ))){
+		if (!(fp = SD.open(headFilename, FILE_READ))) {
 			return mrb_fixnum_value(6);
 		}
 		WiFiData[1] = 0;
-		for (int i = 0; i<sHeader; i++){
+		for (int i = 0; i < sHeader; i++) {
 			WiFiData[0] = (unsigned char)fp.read();
 			//Serial.print((const char*)WiFiData);
 			RbSerial[WIFI_SERIAL]->print((const char*)WiFiData);
@@ -1556,11 +1647,11 @@ int sBody, sHeader;
 		fp.close();
 
 		//先ずボディデータを送信する
-		if (!(fp = SD.open(strFname, FILE_READ))){
+		if (!(fp = SD.open(strFname, FILE_READ))) {
 			return mrb_fixnum_value(7);
 		}
 		WiFiData[1] = 0;
-		for (int i = 0; i<sBody; i++){
+		for (int i = 0; i < sBody; i++) {
 			WiFiData[0] = (unsigned char)fp.read();
 			//Serial.print((const char*)WiFiData);
 			RbSerial[WIFI_SERIAL]->print((const char*)WiFiData);
@@ -1570,7 +1661,7 @@ int sBody, sHeader;
 		//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読むか、指定されたシリアルポートに出力します
 		getData(WIFI_WAIT_MSEC);
 
-		if (!(WiFiData[strlen((const char*)WiFiData) - 2] == 'K' || WiFiData[strlen((const char*)WiFiData) - 3] == 'K')){
+		if (!(WiFiData[strlen((const char*)WiFiData) - 2] == 'K' || WiFiData[strlen((const char*)WiFiData) - 3] == 'K')) {
 			return mrb_fixnum_value(0);
 		}
 		//Serial.print("Send Finish: ");
@@ -1583,15 +1674,15 @@ int sBody, sHeader;
 	unsigned int wait_msec = WIFI_WAIT_MSEC;
 	times = millis();
 
-	while(true){
+	while (true) {
 		//wait_msec 待つ
-		if(millis() - times > wait_msec){
+		if (millis() - times > wait_msec) {
 			break;
 		}
 
-		while(len = RbSerial[WIFI_SERIAL]->available())
+		while (len = RbSerial[WIFI_SERIAL]->available())
 		{
-			for(int i=0; i<len; i++){
+			for (int i = 0; i < len; i++) {
 				RbSerial[WIFI_SERIAL]->read();
 			}
 			times = millis();
@@ -1604,7 +1695,7 @@ int sBody, sHeader;
 	RbSerial[WIFI_SERIAL]->println("AT+CIPCLOSE=4");
 	getData(WIFI_WAIT_MSEC);
 
-	return mrb_fixnum_value( 1 );
+	return mrb_fixnum_value(1);
 }
 
 //**************************************************
@@ -1621,14 +1712,14 @@ int sBody, sHeader;
 //**************************************************
 mrb_value mrb_wifi_post(mrb_state *mrb, mrb_value self)
 {
-mrb_value vData, vURL, vHeaders;
-char	*strData;
-char	*strURL;
-int		sBody, sHeader;
-int sla, cnt;
-int koron = 0;
-char sData[1024];
-int len;
+	mrb_value vData, vURL, vHeaders;
+	char	*strData;
+	char	*strURL;
+	int		sBody, sHeader;
+	int sla, cnt;
+	int koron = 0;
+	char sData[1024];
+	int len;
 
 	mrb_get_args(mrb, "SAS", &vURL, &vHeaders, &vData);
 
@@ -1637,28 +1728,33 @@ int len;
 
 	strURL = RSTRING_PTR(vURL);
 
+	//****** AT+CIPMUXコマンド ******
+	RbSerial[WIFI_SERIAL]->println("AT+CIPMUX=1");
+	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読むか、指定されたシリアルポートに出力します
+	getData(WIFI_WAIT_MSEC);
+
 	//URLからドメインを分割する
 	len = strlen(strURL);
 	sla = len;
-	for(int i=0; i<len; i++){
-		if(strURL[i] == '/'){
+	for (int i = 0; i < len; i++) {
+		if (strURL[i] == '/') {
 			sla = i;
 			break;
 		}
-		if(strURL[i] == ':'){
+		if (strURL[i] == ':') {
 			koron = i;
 		}
 	}
 
-	if(koron == 0){
+	if (koron == 0) {
 		koron = sla;
 	}
 
 	//****** AT+CIPSTARTコマンド ******
 	//WiFiData[]に、ドメインとポート番号を取得
-	for(int i=0; i<sla; i++){
+	for (int i = 0; i < sla; i++) {
 		WiFiData[i] = strURL[i];
-		if(i == koron){
+		if (i == koron) {
 			WiFiData[i] = 0;
 		}
 	}
@@ -1667,18 +1763,18 @@ int len;
 	RbSerial[WIFI_SERIAL]->print("AT+CIPSTART=4,\"TCP\",\"");
 	RbSerial[WIFI_SERIAL]->print((const char*)WiFiData);
 	RbSerial[WIFI_SERIAL]->print("\",");
-	if( koron < sla){
+	if (koron < sla) {
 		RbSerial[WIFI_SERIAL]->println((const char*)&WiFiData[koron + 1]);
 	}
-	else{
+	else {
 		RbSerial[WIFI_SERIAL]->println("80");
 	}
 
 	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読むか、指定されたシリアルポートに出力します
 	getData(WIFI_WAIT_MSEC);
 
-	if( !(WiFiData[strlen((const char*)WiFiData)-2] == 'K' || WiFiData[strlen((const char*)WiFiData)-3] == 'K')){
-		return mrb_fixnum_value( 0 );
+	if (!(WiFiData[strlen((const char*)WiFiData) - 2] == 'K' || WiFiData[strlen((const char*)WiFiData) - 3] == 'K')) {
+		return mrb_fixnum_value(0);
 	}
 
 	//****** AT+CIPSEND コマンド ******
@@ -1688,7 +1784,7 @@ int len;
 		strcpy(sData, "POST /");
 
 		cnt = 6;
-		for(int i=sla + 1; i<len; i++){
+		for (int i = sla + 1; i < len; i++) {
 			sData[cnt] = strURL[i];
 			cnt++;
 		}
@@ -1700,9 +1796,9 @@ int len;
 	//Hostヘッダを生成
 	{
 		strcat(sData, "Host: ");
-	
+
 		cnt = strlen(sData);
-		for(int i=0; i<koron; i++){
+		for (int i = 0; i < koron; i++) {
 			sData[cnt] = strURL[i];
 			cnt++;
 		}
@@ -1714,18 +1810,18 @@ int len;
 	{
 		strcat(sData, "Content-Length: ");
 
-		sprintf((char*)WiFiData,"%d", sBody);
+		sprintf((char*)WiFiData, "%d", sBody);
 		strcat(sData, (char*)WiFiData);
 		strcat(sData, "\r\n");
 	}
 
 	//ヘッダ情報を付けます
 	{
-		int n = RARRAY_LEN( vHeaders );
+		int n = RARRAY_LEN(vHeaders);
 		mrb_value hes;
-		for (int i=0; i<n; i++) {
+		for (int i = 0; i < n; i++) {
 			hes = mrb_ary_ref(mrb, vHeaders, i);
-			
+
 			//ヘッダの追記
 			strcat(sData, RSTRING_PTR(hes));
 			strcat(sData, "\r\n");
@@ -1745,8 +1841,8 @@ int len;
 
 	//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読むか、指定されたシリアルポートに出力します
 	getData(WIFI_WAIT_MSEC);
-	if( !(WiFiData[strlen((const char*)WiFiData)-2] == 'K' || WiFiData[strlen((const char*)WiFiData)-3] == 'K')){
-		return mrb_fixnum_value( 0 );
+	if (!(WiFiData[strlen((const char*)WiFiData) - 2] == 'K' || WiFiData[strlen((const char*)WiFiData) - 3] == 'K')) {
+		return mrb_fixnum_value(0);
 	}
 
 	//****** 送信データ受付モードになったので、http POSTデータを送信する ******
@@ -1762,8 +1858,8 @@ int len;
 		//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読むか、指定されたシリアルポートに出力します
 		getData(WIFI_WAIT_MSEC);
 
-		if( !(WiFiData[strlen((const char*)WiFiData)-2] == 'K' || WiFiData[strlen((const char*)WiFiData)-3] == 'K')){
-			return mrb_fixnum_value( 0 );
+		if (!(WiFiData[strlen((const char*)WiFiData) - 2] == 'K' || WiFiData[strlen((const char*)WiFiData) - 3] == 'K')) {
+			return mrb_fixnum_value(0);
 		}
 	}
 	//****** 送信終了 ******
@@ -1773,15 +1869,15 @@ int len;
 	unsigned int wait_msec = WIFI_WAIT_MSEC;
 	times = millis();
 
-	while(true){
+	while (true) {
 		//wait_msec 待つ
-		if(millis() - times > wait_msec){
+		if (millis() - times > wait_msec) {
 			break;
 		}
 
-		while(len = RbSerial[WIFI_SERIAL]->available())
+		while (len = RbSerial[WIFI_SERIAL]->available())
 		{
-			for(int i=0; i<len; i++){
+			for (int i = 0; i < len; i++) {
 				RbSerial[WIFI_SERIAL]->read();
 			}
 			times = millis();
@@ -1794,7 +1890,7 @@ int len;
 	RbSerial[WIFI_SERIAL]->println("AT+CIPCLOSE=4");
 	getData(WIFI_WAIT_MSEC);
 
-	return mrb_fixnum_value( 1 );
+	return mrb_fixnum_value(1);
 }
 
 //**************************************************
@@ -1821,26 +1917,26 @@ int len;
 //**************************************************
 mrb_value mrb_wifi_serverSD(mrb_state *mrb, mrb_value self)
 {
-const char *tmpFilename = "header.tmp";
-const char *headFilename = "header.txt";
-char ipd[] = { 0x0d, 0x0a, '+', 'I', 'P', 'D', ',', '0', ',', 0x00 };
-int len = 0;
-File fp;
-int	port = 80;
-int sesnum = 0;
-int headerSize = 0;
-int rc, posi;
-mrb_value arv[2];
+	const char *tmpFilename = "header.tmp";
+	const char *headFilename = "header.txt";
+	char ipd[] = { 0x0d, 0x0a, '+', 'I', 'P', 'D', ',', '0', ',', 0x00 };
+	int len = 0;
+	File fp;
+	int	port = 80;
+	int sesnum = 0;
+	int headerSize = 0;
+	int rc, posi;
+	mrb_value arv[2];
 
 	int n = mrb_get_args(mrb, "|i", &port);
 
-	if(n < 1 ){
-		if(RbSerial[WIFI_SERIAL]->available() > 0){
+	if (n < 1) {
+		if (RbSerial[WIFI_SERIAL]->available() > 0) {
 
 			SD.remove(tmpFilename);		//受信するためファイルを事前に消している
 
-			if( !(fp = SD.open(tmpFilename, FILE_WRITE)) ){
-				return mrb_fixnum_value( 3 );
+			if (!(fp = SD.open(tmpFilename, FILE_WRITE))) {
+				return mrb_fixnum_value(3);
 			}
 
 			unsigned long times;
@@ -1848,17 +1944,17 @@ mrb_value arv[2];
 			unsigned char recv[2];
 			times = millis();
 
-			while(true){
+			while (true) {
 				//wait_msec 待つ
-				if(millis() - times > wait_msec){
+				if (millis() - times > wait_msec) {
 					break;
 				}
 
-				while(len = RbSerial[WIFI_SERIAL]->available())
+				while (len = RbSerial[WIFI_SERIAL]->available())
 				{
-					for(int i=0; i<len; i++){
+					for (int i = 0; i < len; i++) {
 						recv[0] = (unsigned char)RbSerial[WIFI_SERIAL]->read();
-						fp.write( (unsigned char*)recv, 1);
+						fp.write((unsigned char*)recv, 1);
 					}
 					times = millis();
 					wait_msec = 1000;	//データが届き始めたら、1sec待ちに変更する
@@ -1866,10 +1962,10 @@ mrb_value arv[2];
 			}
 			fp.flush();
 			fp.close();
-		
+
 			//セッション番号を取得します
 			{
-				if (!(fp = SD.open(tmpFilename, FILE_READ))){
+				if (!(fp = SD.open(tmpFilename, FILE_READ))) {
 					return mrb_fixnum_value(3);
 				}
 				headerSize = fp.size();
@@ -1877,30 +1973,30 @@ mrb_value arv[2];
 				unsigned char rcvc;
 				posi = 0;
 				//WiFiData[]に先頭行を取得します
-				for (int i = 0; i < headerSize; i++){
+				for (int i = 0; i < headerSize; i++) {
 					rcvc = (unsigned char)fp.read();
 
-					if (posi == 0 && rcvc == '+'){
+					if (posi == 0 && rcvc == '+') {
 						posi++;
 					}
-					else if (posi== 1 && rcvc == 'I'){
+					else if (posi == 1 && rcvc == 'I') {
 						posi++;
 					}
-					else if (posi == 2 && rcvc == 'P'){
+					else if (posi == 2 && rcvc == 'P') {
 						posi++;
 					}
-					else if (posi == 3 && rcvc == 'D'){
+					else if (posi == 3 && rcvc == 'D') {
 						posi++;
 					}
-					else if (posi == 4 && rcvc == ','){
+					else if (posi == 4 && rcvc == ',') {
 						// "+IPD,"を見つけた
 						break;
 					}
-					else{
+					else {
 						posi = 0;
 					}
 				}
-				if (posi == 4){
+				if (posi == 4) {
 					sesnum = fp.read() - 0x30;
 				}
 				fp.close();
@@ -1909,27 +2005,27 @@ mrb_value arv[2];
 			//受信データに '\r\n+\r\n+IPD,0,****:'というデータがあるので削除します
 			ipd[7] = sesnum + 0x30;
 			int ret = CutGarbageData((const char*)ipd, tmpFilename, headFilename);
-			if(ret != 1){
-				return mrb_fixnum_value( 3 );
+			if (ret != 1) {
+				return mrb_fixnum_value(3);
 			}
 
 			//***** GETならパスを返します ******
 			unsigned char *uc;
 			{
-				if( !(fp = SD.open(headFilename, FILE_READ)) ){
-					return mrb_fixnum_value( 3 );
+				if (!(fp = SD.open(headFilename, FILE_READ))) {
+					return mrb_fixnum_value(3);
 				}
 				headerSize = fp.size();
 
 				//WiFiData[]に先頭行を取得します
-				for(int i=0; i<headerSize; i++){
+				for (int i = 0; i < headerSize; i++) {
 					rc = fp.read();
 					WiFiData[i] = (unsigned char)rc;
-					if(i >= 255){
+					if (i >= 255) {
 						posi = i;
 						break;
 					}
-					if(WiFiData[i] == 0x0A){
+					if (WiFiData[i] == 0x0A) {
 						posi = i + 1;
 						break;
 					}
@@ -1939,7 +2035,7 @@ mrb_value arv[2];
 				fp.close();
 			}
 
-			if( (posi < 6) || !(WiFiData[0] == 'G' && WiFiData[1] == 'E' && WiFiData[2] == 'T')){
+			if ((posi < 6) || !(WiFiData[0] == 'G' && WiFiData[1] == 'E' && WiFiData[2] == 'T')) {
 				arv[0] = mrb_str_new_cstr(mrb, (const char*)WiFiData);
 				arv[1] = mrb_fixnum_value(sesnum);
 				return mrb_ary_new_from_values(mrb, 2, arv);
@@ -1947,48 +2043,48 @@ mrb_value arv[2];
 
 			// 先頭の'/'を探します
 			posi = -1;
-			for(int i=0; i<headerSize; i++){
-				if(WiFiData[i] == '/'){
+			for (int i = 0; i < headerSize; i++) {
+				if (WiFiData[i] == '/') {
 					posi = i;
 					break;
 				}
 			}
 
-			if(posi == -1){
+			if (posi == -1) {
 				arv[0] = mrb_str_new_cstr(mrb, (const char*)WiFiData);
 				arv[1] = mrb_fixnum_value(sesnum);
 				return mrb_ary_new_from_values(mrb, 2, arv);
 			}
 
 			//posi以降のスペースを探してnullを入れます
-			for(int i=posi + 1; i<headerSize; i++){
-				if(WiFiData[i] == ' '){
+			for (int i = posi + 1; i < headerSize; i++) {
+				if (WiFiData[i] == ' ') {
 					WiFiData[i] = 0;
 					break;
 				}
 			}
-		
+
 			uc = &WiFiData[posi];
 			arv[0] = mrb_str_new_cstr(mrb, (const char*)uc);
 			arv[1] = mrb_fixnum_value(sesnum);
 			return mrb_ary_new_from_values(mrb, 2, arv);
 		}
-		else{
+		else {
 			//データ無し
-			return mrb_fixnum_value( 0 );
+			return mrb_fixnum_value(0);
 		}
 	}
 
 	//SDカードが利用可能か確かめます
-	if (!sdcard_Init(mrb)){
-		return mrb_fixnum_value( 2 );
+	if (!sdcard_Init(mrb)) {
+		return mrb_fixnum_value(2);
 	}
 
 	//****** AT+CIPSERVERコマンド ******
-	if(port < 0){
+	if (port < 0) {
 		RbSerial[WIFI_SERIAL]->println("AT+CIPSERVER=0");
 	}
-	else{
+	else {
 		RbSerial[WIFI_SERIAL]->print("AT+CIPSERVER=1,");
 		RbSerial[WIFI_SERIAL]->println(port);
 	}
@@ -2026,8 +2122,8 @@ mrb_value mrb_wifi_server(mrb_state *mrb, mrb_value self)
 
 	int n = mrb_get_args(mrb, "|i", &port);
 
-	if (n < 1){
-		if (RbSerial[WIFI_SERIAL]->available() > 0){
+	if (n < 1) {
+		if (RbSerial[WIFI_SERIAL]->available() > 0) {
 			unsigned char recv[256];
 			unsigned char c;
 			bool rwriteFlg = true;
@@ -2041,19 +2137,19 @@ mrb_value mrb_wifi_server(mrb_state *mrb, mrb_value self)
 			unsigned int wait_msec = WIFI_WAIT_MSEC;
 			times = millis();
 
-			while (true){
+			while (true) {
 				//wait_msec 待つ
-				if (millis() - times > wait_msec){
+				if (millis() - times > wait_msec) {
 					break;
 				}
 
 				while (RbSerial[WIFI_SERIAL]->available())
 				{
-					if (redFlg){
+					if (redFlg) {
 						c = (unsigned char)RbSerial[WIFI_SERIAL]->read();
 					}
 
-					if (snmFlg){
+					if (snmFlg) {
 						sesnum = c - 0x30;
 						//Serial.print("S Num = ");
 						//Serial.println(sesnum);
@@ -2061,72 +2157,72 @@ mrb_value mrb_wifi_server(mrb_state *mrb, mrb_value self)
 						snmFlg = false;
 						crnFlg = true;	//コロンを見つけるまで飛ばすフラグ
 					}
-					else if (crnFlg){
-						if (c == ':'){
+					else if (crnFlg) {
+						if (c == ':') {
 							crnFlg = false;	//コロンを見つけるまで読み飛ばす処理終わり
 							ipdCnt = 0;		//\r\nIPD+,検索条件の初期化
 							recCnt = -1;	//バッファしたデータの廃棄フラグ
 						}
 					}
-					else if (c == ipd[ipdCnt]){
+					else if (c == ipd[ipdCnt]) {
 						//Serial.print("|");
 						//Serial.print((int)ipd[ipdCnt]);
 						//Serial.println("|");
 						redFlg = true;
 						rwriteFlg = true;
 						ipdCnt++;
-						if (ipdCnt == 7){
+						if (ipdCnt == 7) {
 							//"\r\n+IPD,"を見つけた
 							snmFlg = true;	//セッション番号を読み込むフラグ
 						}
 					}
-					else{
-						if (c == ipd[0] && redFlg == true){
+					else {
+						if (c == ipd[0] && redFlg == true) {
 							redFlg = false;
 						}
-						else{
+						else {
 							redFlg = true;
 						}
 						rwriteFlg = false;
 						ipdCnt = 0;		//\r\nIPD+,検索条件の初期化
 					}
 
-					if (rwriteFlg){
-						if (recCnt < 0){
+					if (rwriteFlg) {
+						if (recCnt < 0) {
 							recCnt = 0;
 						}
-						else{
+						else {
 							recv[recCnt] = c;
 							recCnt++;
-							if (recCnt >= 256){ break; }
+							if (recCnt >= 256) { break; }
 						}
 					}
-					else{
-						if (recCnt > 0){
-							for (int i = 0; i < recCnt; i++){
+					else {
+						if (recCnt > 0) {
+							for (int i = 0; i < recCnt; i++) {
 								WiFiData[wifCnt] = recv[i];
 								wifCnt++;
-								if (wifCnt >= 256){ break; }
+								if (wifCnt >= 256) { break; }
 							}
 							recCnt = 0;
 						}
-						if (wifCnt >= 256){ break; }
+						if (wifCnt >= 256) { break; }
 
-						if (redFlg){
+						if (redFlg) {
 							WiFiData[wifCnt] = c;
 							wifCnt++;
-							if (wifCnt >= 256){ break; }
+							if (wifCnt >= 256) { break; }
 						}
 					}
 					times = millis();
 					wait_msec = 1000;	//データが届き始めたら、1sec待ちに変更する
 				}
-				if (wifCnt >= 256){ break; }
-				if (recCnt >= 256){ break; }
+				if (wifCnt >= 256) { break; }
+				if (recCnt >= 256) { break; }
 			}
 
 			//GETが無いときはそのまま返します。
-			if (wifCnt < 6){
+			if (wifCnt < 6) {
 				arv[0] = mrb_str_new_cstr(mrb, (const char*)WiFiData);
 				arv[1] = mrb_fixnum_value(sesnum);
 				return mrb_ary_new_from_values(mrb, 2, arv);
@@ -2135,22 +2231,22 @@ mrb_value mrb_wifi_server(mrb_state *mrb, mrb_value self)
 			//"GET /"を探します
 			unsigned char *uc;
 			int posi = -1;
-			for (int i = 0; i < wifCnt - 5; i++){
-				if (WiFiData[i] == 'G' && WiFiData[i + 1] == 'E' && WiFiData[i + 2] == 'T' && WiFiData[i + 3] == ' ' && WiFiData[i + 4] == '/'){
+			for (int i = 0; i < wifCnt - 5; i++) {
+				if (WiFiData[i] == 'G' && WiFiData[i + 1] == 'E' && WiFiData[i + 2] == 'T' && WiFiData[i + 3] == ' ' && WiFiData[i + 4] == '/') {
 					posi = i + 4;
 					break;
 				}
 			}
 
-			if (posi == -1){
+			if (posi == -1) {
 				arv[0] = mrb_str_new_cstr(mrb, (const char*)WiFiData);
 				arv[1] = mrb_fixnum_value(sesnum);
 				return mrb_ary_new_from_values(mrb, 2, arv);
 			}
 
 			//スペースを検索します
-			for (int i = posi; i < wifCnt; i++){
-				if (WiFiData[i] == ' '){
+			for (int i = posi; i < wifCnt; i++) {
+				if (WiFiData[i] == ' ') {
 					WiFiData[i] = 0;
 					break;
 				}
@@ -2161,17 +2257,17 @@ mrb_value mrb_wifi_server(mrb_state *mrb, mrb_value self)
 			arv[1] = mrb_fixnum_value(sesnum);
 			return mrb_ary_new_from_values(mrb, 2, arv);
 		}
-		else{
+		else {
 			//データ無し
 			return mrb_fixnum_value(0);
 		}
 	}
 
 	//****** AT+CIPSERVERコマンド ******
-	if (port < 0){
+	if (port < 0) {
 		RbSerial[WIFI_SERIAL]->println("AT+CIPSERVER=0");
 	}
-	else{
+	else {
 		RbSerial[WIFI_SERIAL]->print("AT+CIPSERVER=1,");
 		RbSerial[WIFI_SERIAL]->println(port);
 	}
@@ -2202,13 +2298,13 @@ mrb_value base64_encode(mrb_state *mrb, char const* sourFile, char const* descFi
 	File frd, fwrt;
 
 	//読込みファイルをオープンします
-	if (!(frd = SD.open(sourFile, FILE_READ))){
+	if (!(frd = SD.open(sourFile, FILE_READ))) {
 		return mrb_fixnum_value(2);
 	}
 
 	SD.remove(descFile);		//受信するためファイルを事前に消している
 
-	if (!(fwrt = SD.open(descFile, FILE_WRITE))){
+	if (!(fwrt = SD.open(descFile, FILE_WRITE))) {
 		frd.close();
 		return mrb_fixnum_value(2);
 	}
@@ -2217,7 +2313,7 @@ mrb_value base64_encode(mrb_state *mrb, char const* sourFile, char const* descFi
 	int i = 0;
 	int j = 0;
 	long size = frd.size();
-	for (long k = 0; k < size; k++){
+	for (long k = 0; k < size; k++) {
 		char_array_3[i++] = (unsigned char)frd.read();
 		if (i == 3) {
 			char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
@@ -2245,11 +2341,11 @@ mrb_value base64_encode(mrb_state *mrb, char const* sourFile, char const* descFi
 		char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
 		char_array_4[3] = char_array_3[2] & 0x3f;
 
-		for (j = 0; (j < i + 1); j++){
+		for (j = 0; (j < i + 1); j++) {
 			fwrt.write((unsigned char*)&base64_chars[char_array_4[j]], 1);
 		}
 
-		while ((i++ < 3)){
+		while ((i++ < 3)) {
 			fwrt.write('=');
 		}
 	}
@@ -2271,13 +2367,13 @@ mrb_value base64_decode(mrb_state *mrb, char const* sourFile, char const* descFi
 	File frd, fwrt;
 
 	//読込みファイルをオープンします
-	if (!(frd = SD.open(sourFile, FILE_READ))){
+	if (!(frd = SD.open(sourFile, FILE_READ))) {
 		return mrb_fixnum_value(2);
 	}
 
 	SD.remove(descFile);		//受信するためファイルを事前に消している
 
-	if (!(fwrt = SD.open(descFile, FILE_WRITE))){
+	if (!(fwrt = SD.open(descFile, FILE_WRITE))) {
 		frd.close();
 		return mrb_fixnum_value(2);
 	}
@@ -2287,21 +2383,21 @@ mrb_value base64_decode(mrb_state *mrb, char const* sourFile, char const* descFi
 	int j = 0;
 	unsigned char c;
 	long size = frd.size();
-	for (long k = 0; k < size; k++){
+	for (long k = 0; k < size; k++) {
 		c = (unsigned char)frd.read();
 
-		if (!is_newline(c)){
-			if (c == '=' || !is_base64(c)){
+		if (!is_newline(c)) {
+			if (c == '=' || !is_base64(c)) {
 				break;
 			}
 		}
 
-		if (!is_newline(c)){
+		if (!is_newline(c)) {
 			char_array_4[i++] = c;
 		}
 
 		if (i == 4) {
-			for (i = 0; i < 4; i++){
+			for (i = 0; i < 4; i++) {
 				char_array_4[i] = strchr(base64_chars, char_array_4[i]) - base64_chars;
 			}
 			char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
@@ -2328,7 +2424,7 @@ mrb_value base64_decode(mrb_state *mrb, char const* sourFile, char const* descFi
 		char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
 		char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
 
-		for (j = 0; (j < i - 1); j++){
+		for (j = 0; (j < i - 1); j++) {
 			fwrt.write((unsigned char*)&char_array_3[j], 1);
 		}
 	}
@@ -2357,14 +2453,14 @@ mrb_value base64_decode(mrb_state *mrb, char const* sourFile, char const* descFi
 //**************************************************
 mrb_value mrb_wifi_base64(mrb_state *mrb, mrb_value self)
 {
-mrb_value vsour, vdesc;
-char *fsour;
-char *fdesc;
-int decode = 0;
+	mrb_value vsour, vdesc;
+	char *fsour;
+	char *fdesc;
+	int decode = 0;
 
 	int n = mrb_get_args(mrb, "SS|i", &vsour, &vdesc, &decode);
 
-	if (n < 3){
+	if (n < 3) {
 		decode = 0;
 	}
 
@@ -2372,11 +2468,11 @@ int decode = 0;
 	fdesc = RSTRING_PTR(vdesc);
 
 	//SDカードが利用可能か確かめます
-	if (!sdcard_Init(mrb)){
+	if (!sdcard_Init(mrb)) {
 		return mrb_fixnum_value(1);
 	}
 
-	if (decode == 0){
+	if (decode == 0) {
 		//エンコードします
 		return base64_encode(mrb, (char const*)fsour, (char const*)fdesc);
 	}
@@ -2446,7 +2542,7 @@ mrb_value mrb_wifi_ntp(mrb_state *mrb, mrb_value self)
 		((uint32_t)ntp_recv[43] << 0);
 
 	time -= 2208988800;	// conversion to Unixtime
-		
+
 	if (n == 2) {
 		time += local * 3600;
 	}
@@ -2485,11 +2581,11 @@ int esp8266_Init(mrb_state *mrb)
 	int ret;
 	int cnt = 0;
 
-	while (true){
+	while (true) {
 		//受信バッファを空にします
-		while ((len = RbSerial[WIFI_SERIAL]->available()) > 0){
+		while ((len = RbSerial[WIFI_SERIAL]->available()) > 0) {
 			//RbSerial[0]->print(len);
-			for (int i = 0; i < len; i++){
+			for (int i = 0; i < len; i++) {
 				RbSerial[WIFI_SERIAL]->read();
 			}
 		}
@@ -2499,18 +2595,18 @@ int esp8266_Init(mrb_state *mrb)
 
 		//OK 0d0a か ERROR 0d0aが来るまで WiFiData[]に読む
 		ret = getData(500);
-		if (ret == 1){
+		if (ret == 1) {
 			//1の時は、WiFiが使用可能
 			break;
 		}
-		else if (ret == 0){
+		else if (ret == 0) {
 			//タイムアウトした場合は WiFiが使えないとする
 			return 0;
 		}
 
 		//0,1で無いときは256バイト以上が返ってきている
 		cnt++;
-		if (cnt >= 3){
+		if (cnt >= 3) {
 			//3回ATE0を試みてダメだったら、あきらめる。
 			return 0;
 		}
@@ -2542,6 +2638,8 @@ int esp8266_Init(mrb_state *mrb)
 
 	mrb_define_module_function(mrb, wifiModule, "httpGetSD", mrb_wifi_getSD, MRB_ARGS_REQ(2) | MRB_ARGS_OPT(1));
 	mrb_define_module_function(mrb, wifiModule, "httpGet", mrb_wifi_get, MRB_ARGS_REQ(1) | MRB_ARGS_OPT(1));
+	mrb_define_module_function(mrb, wifiModule, "httpsGetSD", mrb_wifi_getSD_ssl, MRB_ARGS_REQ(2) | MRB_ARGS_OPT(1));
+	mrb_define_module_function(mrb, wifiModule, "httpsGet", mrb_wifi_get_ssl, MRB_ARGS_REQ(1) | MRB_ARGS_OPT(1));
 
 	mrb_define_module_function(mrb, wifiModule, "udpOpen", mrb_wifi_udpOpen, MRB_ARGS_REQ(4));
 

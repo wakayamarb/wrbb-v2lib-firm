@@ -36,14 +36,26 @@
 extern volatile char ProgVer[];
 extern char RubyFilename[];
 extern char ExeFilename[];
+extern HardwareSerial *USB_Serial;
 
 //**************************************************
 // 終了させます
-//	System.exit()
+//	System.exit([message])
+//  message: 終了時にUSBシリアルに出力する文字列
+//
 //	エラー値がもどり、即終了
 //**************************************************
 mrb_value mrb_system_exit(mrb_state *mrb, mrb_value self)
 {
+	mrb_value vMessage;
+	char	*strMessage;
+
+	int n = mrb_get_args(mrb, "|A", &vMessage);
+
+	if (n == 1) {
+		strMessage = RSTRING_PTR(vMessage);
+		USB_Serial->println(strMessage);
+	}
 	mrb_raise(mrb, mrb_class_get(mrb, "Sys#exit Called"), "Normal Completion");
 
 	return mrb_nil_value();	//戻り値は無しですよ。
@@ -55,12 +67,12 @@ mrb_value mrb_system_exit(mrb_state *mrb, mrb_value self)
 //**************************************************
 mrb_value mrb_system_setrun(mrb_state *mrb, mrb_value self)
 {
-mrb_value text;
+	mrb_value text;
 
 	mrb_get_args(mrb, "S", &text);
 	char *str = RSTRING_PTR(text);
 
-	strcpy( (char*)RubyFilename, (char*)str );
+	strcpy((char*)RubyFilename, (char*)str);
 
 	return mrb_nil_value();	//戻り値は無しですよ。
 }
@@ -72,11 +84,11 @@ mrb_value text;
 //**************************************************
 mrb_value mrb_system_version(mrb_state *mrb, mrb_value self)
 {
-int tmp;
+	int tmp;
 
 	int n = mrb_get_args(mrb, "|i", &tmp);
 
-	if( n>=1 ){
+	if (n >= 1) {
 		//return mrb_const_get(mrb, mrb_obj_value(mrb->kernel_module), mrb_intern_lit(mrb, "MRUBY_VERSION"));
 		return mrb_str_new_cstr(mrb, MRUBY_VERSION);
 	}
@@ -94,30 +106,30 @@ int tmp;
 //**************************************************
 mrb_value mrb_system_push(mrb_state *mrb, mrb_value self)
 {
-int		address;
-mrb_value value;
-int		len;
-char	*str;
+	int		address;
+	mrb_value value;
+	int		len;
+	char	*str;
 
 	mrb_get_args(mrb, "iSi", &address, &value, &len);
 
 	str = RSTRING_PTR(value);
 
-	if(address > EEPROMADDRESS){
-		return mrb_fixnum_value( 0 );
+	if (address > EEPROMADDRESS) {
+		return mrb_fixnum_value(0);
 	}
 
 	int ret = 1;
-	for(int i=0; i<len; i++){
-		ret = EEPROM.write( (unsigned long)address, (unsigned char)str[i] );
-		if(ret==-1){
+	for (int i = 0; i < len; i++) {
+		ret = EEPROM.write((unsigned long)address, (unsigned char)str[i]);
+		if (ret == -1) {
 			ret = 0;
 			break;
 		}
 		address++;
 	}
 
-	return mrb_fixnum_value( ret );
+	return mrb_fixnum_value(ret);
 }
 
 //**************************************************
@@ -130,22 +142,22 @@ char	*str;
 //**************************************************
 mrb_value mrb_system_pop(mrb_state *mrb, mrb_value self)
 {
-unsigned char str[32];
-int		address;
-int		len;
+	unsigned char str[32];
+	int		address;
+	int		len;
 
 	mrb_get_args(mrb, "ii", &address, &len);
 
-	if(len>32){
+	if (len > 32) {
 		len = 32;
 	}
 
-	if(address > EEPROMADDRESS){
+	if (address > EEPROMADDRESS) {
 		return mrb_str_new(mrb, (const char *)str, 0);
 	}
 
-	for(int i=0; i<len; i++){
-		str[i] = EEPROM.read( (unsigned long)address );
+	for (int i = 0; i < len; i++) {
+		str[i] = EEPROM.read((unsigned long)address);
 		address++;
 	}
 
@@ -159,7 +171,7 @@ int		len;
 mrb_value mrb_system_fileload(mrb_state *mrb, mrb_value self)
 {
 	//ファイルローダーの呼び出し
-	if(fileloader((const char*)ProgVer,MRUBY_VERSION) == 1){
+	if (fileloader((const char*)ProgVer, MRUBY_VERSION) == 1) {
 		mrb_full_gc(mrb);	//強制GCを入れる
 		//強制終了
 		mrb_raise(mrb, mrb_class_get(mrb, "Sys#exit Called"), "Normal Completion");
@@ -176,7 +188,7 @@ mrb_value mrb_system_fileload(mrb_state *mrb, mrb_value self)
 //**************************************************
 mrb_value mrb_system_reset(mrb_state *mrb, mrb_value self)
 {
-	system_reboot( REBOOT_USERAPP );	//リセット後にユーザアプリを起動する
+	system_reboot(REBOOT_USERAPP);	//リセット後にユーザアプリを起動する
 
 	return mrb_nil_value();	//戻り値は無しですよ。
 }
@@ -197,13 +209,13 @@ mrb_value mrb_system_getmrbpath(mrb_state *mrb, mrb_value self)
 //**************************************************
 mrb_value Is_useSD(mrb_state *mrb, mrb_value self, int mode)
 {
-int ret = 0;
+	int ret = 0;
 
 #if BOARD == BOARD_GR || FIRMWARE == SDBT || FIRMWARE == SDWF || BOARD == BOARD_P05 || BOARD == BOARD_P06
 	ret = sdcard_Init(mrb);		//SDカード関連メソッドの設定
 #endif
 
-	return (mode == 0?mrb_fixnum_value(ret):mrb_bool_value(ret == 1));
+	return (mode == 0 ? mrb_fixnum_value(ret) : mrb_bool_value(ret == 1));
 }
 
 //**************************************************
@@ -222,13 +234,13 @@ mrb_value mrb_system_useSD(mrb_state *mrb, mrb_value self)
 //**************************************************
 mrb_value Is_useWiFi(mrb_state *mrb, mrb_value self, int mode)
 {
-int ret = 0;
+	int ret = 0;
 
 #if FIRMWARE == SDWF || BOARD == BOARD_P05 || BOARD == BOARD_P06
 	ret = esp8266_Init(mrb);		//ESP8266ボード関連メソッドの設定
 #endif
 
-	return (mode == 0?mrb_fixnum_value(ret):mrb_bool_value(ret == 1));
+	return (mode == 0 ? mrb_fixnum_value(ret) : mrb_bool_value(ret == 1));
 }
 
 //**************************************************
@@ -247,13 +259,13 @@ mrb_value mrb_system_useWiFi(mrb_state *mrb, mrb_value self)
 //**************************************************
 mrb_value Is_useMp3(mrb_state *mrb, mrb_value self, int mode)
 {
-int ret = 0;
+	int ret = 0;
 
 #if BOARD == BOARD_GR || FIRMWARE == SDBT || FIRMWARE == SDWF || BOARD == BOARD_P05 || (BOARD == BOARD_P06 && FIRMWARE == CITRUS)
 	ret = mp3_Init(mrb);		//MP3関連メソッドの設定
 #endif
 
-	return (mode == 0?mrb_fixnum_value(ret):mrb_bool_value(ret == 1));
+	return (mode == 0 ? mrb_fixnum_value(ret) : mrb_bool_value(ret == 1));
 }
 
 //**************************************************
@@ -275,46 +287,46 @@ mrb_value mrb_system_useMp3(mrb_state *mrb, mrb_value self)
 //**************************************************
 mrb_value Is_use(mrb_state *mrb, mrb_value self, int mode)
 {
-mrb_value vName, vOptions;
-char	*strName;
-int ret = 0;
+	mrb_value vName, vOptions;
+	char	*strName;
+	int ret = 0;
 
 	int n = mrb_get_args(mrb, "S|A", &vName, &vOptions);
 
 	strName = RSTRING_PTR(vName);
 
-	if(strcmp(strName, SD_CLASS) == 0){
-		if(mode == 0){
+	if (strcmp(strName, SD_CLASS) == 0) {
+		if (mode == 0) {
 			return Is_useSD(mrb, self, 0);
 		}
-		else{
+		else {
 			return Is_useSD(mrb, self, 1);
 		}
 	}
-	else if(strcmp(strName, WIFI_CLASS) == 0){
-		if(mode == 0){
+	else if (strcmp(strName, WIFI_CLASS) == 0) {
+		if (mode == 0) {
 			return Is_useWiFi(mrb, self, 0);
 		}
-		else{
+		else {
 			return Is_useWiFi(mrb, self, 1);
 		}
 	}
 #if BOARD == BOARD_GR || FIRMWARE == SDBT || FIRMWARE == SDWF || BOARD == BOARD_P05 || (BOARD == BOARD_P06 && FIRMWARE == CITRUS)
-	else if(strcmp(strName, MP3_CLASS) == 0){
-		if(n == 1){
-			return (mode == 0?mrb_fixnum_value(ret):mrb_bool_value(ret == 1));
+	else if (strcmp(strName, MP3_CLASS) == 0) {
+		if (n == 1) {
+			return (mode == 0 ? mrb_fixnum_value(ret) : mrb_bool_value(ret == 1));
 		}
 
-		n = RARRAY_LEN( vOptions );
+		n = RARRAY_LEN(vOptions);
 		int pp, sp;
-		if(n >= 2){
+		if (n >= 2) {
 			pp = mrb_fixnum(mrb_ary_ref(mrb, vOptions, 0));
 			sp = mrb_fixnum(mrb_ary_ref(mrb, vOptions, 1));
 			ret = mp3_Init(mrb, pp, sp);		//MP3関連メソッドの設定
 		}
 	}
 #endif
-	return (mode == 0?mrb_fixnum_value(ret):mrb_bool_value(ret == 1));
+	return (mode == 0 ? mrb_fixnum_value(ret) : mrb_bool_value(ret == 1));
 }
 
 //**************************************************
@@ -358,7 +370,7 @@ void sys_Init(mrb_state *mrb)
 {
 	struct RClass *systemModule = mrb_define_module(mrb, "System");
 
-	mrb_define_module_function(mrb, systemModule, "exit", mrb_system_exit, MRB_ARGS_NONE());
+	mrb_define_module_function(mrb, systemModule, "exit", mrb_system_exit, MRB_ARGS_OPT(1));
 	mrb_define_module_function(mrb, systemModule, "reset", mrb_system_reset, MRB_ARGS_NONE());
 	mrb_define_module_function(mrb, systemModule, "setrun", mrb_system_setrun, MRB_ARGS_REQ(1));
 	mrb_define_module_function(mrb, systemModule, "version", mrb_system_version, MRB_ARGS_OPT(1));
@@ -372,8 +384,8 @@ void sys_Init(mrb_state *mrb)
 	mrb_define_module_function(mrb, systemModule, "useWiFi", mrb_system_useWiFi, MRB_ARGS_NONE());
 	mrb_define_module_function(mrb, systemModule, "useMP3", mrb_system_useMp3, MRB_ARGS_OPT(2));
 
-	mrb_define_module_function(mrb, systemModule, "use", mrb_system_use,  MRB_ARGS_REQ(1)|MRB_ARGS_OPT(1));
-	mrb_define_module_function(mrb, systemModule, "use?", mrb_system_use_p,  MRB_ARGS_REQ(1)|MRB_ARGS_OPT(1));
+	mrb_define_module_function(mrb, systemModule, "use", mrb_system_use, MRB_ARGS_REQ(1) | MRB_ARGS_OPT(1));
+	mrb_define_module_function(mrb, systemModule, "use?", mrb_system_use_p, MRB_ARGS_REQ(1) | MRB_ARGS_OPT(1));
 
 	//mrb_define_module_function(mrb, systemModule, "useSD?", mrb_system_useSD_p, MRB_ARGS_NONE());
 	//mrb_define_module_function(mrb, systemModule, "useWiFi?", mrb_system_useWiFi_p, MRB_ARGS_NONE());
