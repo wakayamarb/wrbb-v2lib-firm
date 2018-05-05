@@ -50,7 +50,7 @@ mrb_value mrb_system_exit(mrb_state *mrb, mrb_value self)
 	mrb_value vMessage;
 	char	*strMessage;
 
-	int n = mrb_get_args(mrb, "|A", &vMessage);
+	int n = mrb_get_args(mrb, "|S", &vMessage);
 
 	if (n == 1) {
 		strMessage = RSTRING_PTR(vMessage);

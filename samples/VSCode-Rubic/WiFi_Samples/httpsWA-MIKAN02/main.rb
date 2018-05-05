@@ -7,14 +7,8 @@ delay 500
 digitalWrite(5,HIGH)   # HIGH:Enable
 delay 500
 
-if(!System.use?("WiFi"))
-  puts "WA-MIKAN can't use."
-  System.exit
-end
-if(!System.use?("SD"))
-  puts "SD can't use."
-  System.exit
-end
+System.exit "WA-MIKAN can't use." if(!System.use?("WiFi"))
+System.exit("SD can't use.") if(!System.use?("SD"))
 
 Usb = Serial.new(0,115200)
 
@@ -27,9 +21,9 @@ def SetRTC()
     Rtc.init
     if(!tm.instance_of?(Array))
       Rtc.setTime([2000,1,1,0,0,0])
+    else
+      Rtc.setTime(tm)
     end
-    Rtc.init
-    Rtc.setTime(tm)
   end
   Rtc.getTime
 end
@@ -81,7 +75,7 @@ if(SD.exists('index.htm'))
 end
 
 #https 通信
-#puts WiFi.httpsGetSD("index.htm",'twitter.com/?lang=ja')  #-> HTTP/1.1 200 OK
+puts WiFi.httpsGetSD("index.htm",'twitter.com/?lang=ja')  #-> HTTP/1.1 200 OK
 #puts WiFi.httpsGetSD("index.htm",'www.instagram.com') #-> HTTP/1.1 200 OK タイミングでつながらないときもある
 #puts WiFi.httpsGetSD("index.htm",'www.facebook.com',heds)  #-> HTTP/1.1 200 OK
 
@@ -94,7 +88,7 @@ end
 #puts WiFi.httpGetSD("index.htm",'google.co.jp') #-> HTTP/1.1 301 Moved Permanently
 #puts WiFi.httpGetSD("index.htm",'yahoo.co.jp') #-> HTTP/1.1 301 Moved Permanently
 #puts WiFi.httpGetSD("index.htm",'qiita.com')  #-> HTTP/1.1 301 Moved Permanently
-puts WiFi.httpGetSD("index.htm",'tarosay.github.io/httpssiteTest/')  #-> HTTP/1.1 301 Moved Permanently
+#puts WiFi.httpGetSD("index.htm",'tarosay.github.io/httpssiteTest/')  #-> HTTP/1.1 301 Moved Permanently
 #puts WiFi.httpGetSD("index.htm",'connpass.com/dashboard') #-> HTTP/1.1 301 Moved Permanently
 
 #puts WiFi.at "CIPSSLSIZE=4096"

@@ -51,7 +51,7 @@
 //#define SAMBOUKAN
 
 //バージョンと日付
-#define WRBB_VERSION	"-2.47(2018/5/4)"
+#define WRBB_VERSION	"-2.48(2018/5/5)"
 
 //バイトコードフォーマットの設定
 //#define BYTECODE	BYTE_CODE2
