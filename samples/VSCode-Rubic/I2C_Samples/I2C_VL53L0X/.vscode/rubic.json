@@ -1,5 +1,4 @@
 {
-    "transfer": {},
     "hardware": {
         "boardClass": "GrCitrusBoard",
         "repositoryUuid": "809d1206-8cd8-46f6-a657-2f60c050d7c9",
@@ -8,7 +7,6 @@
         "boardPath": "COM3"
     },
     "rubicVersion": {
-        "last": "0.99.17",
-        "min": "0.99.8"
+        "last": "0.99.17"
     }
 }

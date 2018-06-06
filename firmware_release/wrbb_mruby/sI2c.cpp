@@ -19,8 +19,7 @@
 
 #define WIRE_MAX	6
 
-TwoWire *RbWire[WIRE_MAX];		//0:Wire1, 1:Wire3, 2:Wire2, 3:Wire6 4:Wire7
-
+TwoWire *RbWire[WIRE_MAX];		//0:Wire, 1:Wire1, 2:Wire2, 3:Wire3 4:Wire4 5:Wire5
 
 //**************************************************
 // I2cをラップしたI2c2クラス作成

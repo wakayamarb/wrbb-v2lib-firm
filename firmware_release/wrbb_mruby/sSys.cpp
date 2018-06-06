@@ -31,6 +31,8 @@
 	#include "sMp3.h"
 #endif
 
+#include "sVL53L0X.h"
+
 #define EEPROMADDRESS	0xFF
 
 extern volatile char ProgVer[];
@@ -326,6 +328,9 @@ mrb_value Is_use(mrb_state *mrb, mrb_value self, int mode)
 		}
 	}
 #endif
+	else if (strcmp(strName, VL53L0X_CLASS) == 0) {
+		ret = vl53l0x_Init(mrb);		// VL53L0X関連メソッドの設定
+	}
 	return (mode == 0 ? mrb_fixnum_value(ret) : mrb_bool_value(ret == 1));
 }
 
