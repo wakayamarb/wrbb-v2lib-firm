@@ -66,12 +66,21 @@ bool VL53L0X::init(bool io_2v8)
 	// sensor uses 1V8 mode for I/O by default; switch to 2V8 mode if necessary
 	if (io_2v8)
 	{
-		writeReg(VHV_CONFIG_PAD_SCL_SDA__EXTSUP_HV,
-			readReg(VHV_CONFIG_PAD_SCL_SDA__EXTSUP_HV) | 0x01); // set bit 0
+		uint8_t reg = readReg(VHV_CONFIG_PAD_SCL_SDA__EXTSUP_HV);
+		//Serial.println(last_status);
+		//if (last_status != 0) {
+		//	return false;
+		//}
+		writeReg(VHV_CONFIG_PAD_SCL_SDA__EXTSUP_HV, reg | 0x01); // set bit 0
 	}
 
 	// "Set I2C standard mode"
 	writeReg(0x88, 0x00);
+
+	//Serial.println(last_status);
+	//if (last_status != 0) {
+	//	return false;
+	//}
 
 	writeReg(0x80, 0x01);
 	writeReg(0xFF, 0x01);

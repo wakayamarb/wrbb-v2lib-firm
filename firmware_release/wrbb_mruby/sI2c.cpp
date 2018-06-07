@@ -30,10 +30,33 @@ public:
 		num_ = num;
 
 		//ソフトI2Cの場合は18PINと19PINをOUTPUTにする
-		if(num == 0){
-			pinMode(RB_PIN18, OUTPUT);
+		switch(num){
+		case 0:
+			pinMode(RB_PIN18, INPUT_PULLUP);
 			pinMode(RB_PIN19, OUTPUT);
+			break;
+		case 1:
+			pinMode(RB_PIN0, INPUT_PULLUP);
+			pinMode(RB_PIN1, OUTPUT);
+			break;
+		case 2:
+			pinMode(RB_PIN5, INPUT_PULLUP);
+			pinMode(RB_PIN6, OUTPUT);
+			break;
+		case 3:
+			pinMode(RB_PIN7, INPUT_PULLUP);
+			pinMode(RB_PIN8, OUTPUT);
+			break;
+		case 4:
+			pinMode(RB_PIN11, OUTPUT);
+			pinMode(RB_PIN12, INPUT_PULLUP);
+			break;
+		case 5:
+			pinMode(RB_PIN22, OUTPUT);
+			pinMode(RB_PIN26, INPUT_PULLUP);
+			break;
 		}
+
 		RbWire[num_]->begin();
 	}
 	virtual ~I2c2() {

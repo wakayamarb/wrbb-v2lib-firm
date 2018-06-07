@@ -11,6 +11,9 @@ ErrCnt = 0
 MaxDatInCnt = 1000
 DatInCnt = 0
 WiFiEN = 5          #WiFiのEN:LOWでDisableです
+VL53Enable = false   #VL53L0Xを使うかどうか
+IsConnectVL53 = false #VL53L0Xが接続されているかどうか
+Distance = 80   #mm以下まで近づくと止まる
 Usb = Serial.new(0,9600)
 #Usb = Serial.new(0,115200)
 
@@ -23,6 +26,40 @@ pinMode(WiFiEN, OUTPUT) #WiFi_ENのピン設定
 #ESP8266を一度停止させる(リセットと同じ)
 digitalWrite(WiFiEN,LOW)   # LOW:Disable
 #delay 500
+
+if(System.use?("VL53L0X"))
+  IsConnectVL53 = true
+  VL53L0X.init(1) #I2Cの1番に接続します
+  VL53L0X.startContinuous
+end
+
+#-------
+# 前に障害物があるかどうか調べます
+#-------
+def sensorChk(p, tp)
+  if(VL53Enable && IsConnectVL53 && VL53L0X.readContinuous < Distance)
+    if(p > 0 && tp > 0)
+      puts VL53L0X.readContinuous
+      mMove(ML, 0)
+      mMove(MR, 0)
+      true
+      return
+    elsif(p == 0 && tp == 0)
+      #puts VL53L0X.readContinuous
+      if(digitalRead(Cpin[MR][0]) == LOW \
+        && digitalRead(Cpin[MR][1]) == HIGH \
+        && digitalRead(Cpin[ML][0]) == LOW \
+        && digitalRead(Cpin[ML][1]) == HIGH)
+        puts VL53L0X.readContinuous
+        mMove(ML, 0)
+        mMove(MR, 0)
+        true
+        return
+      end
+    end
+  end
+  false
+end
 
 #-------
 # p==0 -> 停止に
@@ -73,8 +110,10 @@ def command(cmd)
   tp = p
   if(y == 127)
     #前進 or 後退
-    mMove(ML, p)
-    mMove(MR, p)
+    if(!sensorChk(p,p))
+      mMove(ML, p)
+      mMove(MR, p)
+    end      
   else
     turn = (y - 127.0) / 128.0
 
@@ -82,18 +121,22 @@ def command(cmd)
       #MLを変化させる
       turn = -1 if(turn < -0.99) #turnが-0.99以下なら -1とする
       tp = (p * (turn + 0.5) / 0.5).round
-      mMove(ML, tp)
-      mMove(MR, p)
+
+      if(!sensorChk(p,tp))
+        mMove(ML, tp)
+        mMove(MR, p)
+      end
     else
       #MRを変化させる
       tp = (-p * (turn - 0.5) / 0.5).round
-      mMove(ML, p)
-      mMove(MR, tp)
+      if(!sensorChk(p,tp))
+        mMove(ML, p)
+        mMove(MR, tp)
+      end      
     end
   end
 
   btn = cmd[4..5].hex
-
   puts p.to_s + ", " + turn.to_s + ", " + tp.to_s
 end
 
@@ -140,5 +183,8 @@ while(true)do
   else
     DatInCnt = 0
   end
+  
+  sensorChk(0,0)
+
   delay 0
 end

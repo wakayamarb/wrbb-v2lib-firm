@@ -1,17 +1,18 @@
 #!mruby
-#V2.49
-# AE-AQM0802 LCD
+#Ver2.50
 
 ADD = 0x3E
 Lcd = I2c.new(1)
 RST = 6
 
 pinMode(RST,OUTPUT)
+Num = 0
 
 #液晶へ１コマンド出力
 def lcd_cmd(cmd)
+    #puts millis
     Lcd.write(ADD,0x00,cmd)
-
+    #puts millis
     if((cmd == 0x01)||(cmd == 0x02))then
         delay(2)
     else
@@ -75,18 +76,34 @@ def lcd_print(cs)
     cs.each_byte{|c| lcd_data(c)}
 end
 
+lcd_begin() #//初期設定
 
-    lcd_begin() #//初期設定
-    puts 
+#"GRCITRUS".each_byte{|c| Lcd.write(ADD,0x40,c)}
 
-    "GRCITRUS".each_byte{|c| Lcd.write(ADD,0x40,c)}
+ lcd_clear()             #全消去
+ lcd_setCursor(0,0)      #カーソルを0行に位置設定
+ lcd_print("192 168")    #文字列表示
+ lcd_setCursor(0,1)      #カーソルを1行、2文字目に位置設定
+ lcd_print("1 130")      #数字を表示
 
-    lcd_clear()             #全消去
-    lcd_setCursor(0,0)      #カーソルを0行に位置設定
-    lcd_print("192 168")    #文字列表示
-    lcd_setCursor(0,1)      #カーソルを1行、2文字目に位置設定
-    lcd_print("1 130")      #数字を表示
+ System.exit "VL53L0X can't use." if(!System.use?("VL53L0X"))
+VL53L0X.setI2C(1)
+#VL53L0X.begin
+puts VL53L0X.init()
+VL53L0X.startContinuous
 
-    #lcd_setCursor(0,1)      #//カーソルを0行に位置設定
-    #"GRCITRUS".each_byte{|c| @Lcd.write(@ID,0x40,c)}
-    
+lcd_setCursor(0,0)       #カーソルを1行、2文字目に位置設定
+lcd_print("        ")    #文字列表示
+while(true)
+  #lcd_clear()             #全消去
+  lcd_setCursor(0,0)      #カーソルを0行に位置設定
+  lcd_print(VL53L0X.readContinuous.to_s + " ")    #文字列表示
+  #puts VL53L0X.readContinuous
+  #puts VL53L0X.readSingle
+  if (VL53L0X.isTimeout)
+    lcd_setCursor(0,1)       #カーソルを1行、2文字目に位置設定
+    lcd_print("TIMEOUT ")    #文字列表示
+    #puts "TIMEOUT"
+  end
+  delay 0
+end

@@ -7,14 +7,11 @@ delay 500
 digitalWrite(5,HIGH)   # HIGH:Enable
 delay 500
 
-if(!System.use?("WiFi"))
-  puts "WA-MIKAN can't use."
-  System.exit
-end
+System.exit "WA-MIKAN can't use." if(!System.use?("WiFi"))
 
 puts WiFi.connect("TAROSAY","37000")
 tm = WiFi.ntp("ntp.jst.mfeed.ad.jp", +9)
-System.exit if(!tm.instance_of?(Array))
+System.exit "時間の取得に失敗しました" if(!tm.instance_of?(Array))
 
 #puts tm
 Rtc.init

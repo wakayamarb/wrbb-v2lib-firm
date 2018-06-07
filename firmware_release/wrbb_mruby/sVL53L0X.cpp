@@ -23,9 +23,69 @@ VL53L0X sensor;
 extern TwoWire *WireVL53L0X;		//0:Wire, 1:Wire1, 2:Wire2, 3:Wire3 4:Wire4 5:Wire5
 
 //**************************************************
+// LV53L0Xを初期化します: VL53L0X.setI2C
+//  VL53L0X.setI2C(number)
+//  number: I2Cの番号(0～5)
+//**************************************************
+mrb_value mrb_lv53l0x_setI2C(mrb_state *mrb, mrb_value self)
+{
+	int num;
+	mrb_get_args(mrb, "i", &num);
+
+	//0:Wire, 1:Wire1, 2:Wire2, 3:Wire3 4:Wire4 5:Wire5
+	switch (num) {
+	case 0:
+		//ソフトI2Cの場合は18PINと19PINをOUTPUTにする
+		pinMode(RB_PIN18, INPUT_PULLUP);
+		pinMode(RB_PIN19, OUTPUT);
+		WireVL53L0X = &Wire;
+		break;
+	case 1:
+		pinMode(RB_PIN0, INPUT_PULLUP);
+		pinMode(RB_PIN1, OUTPUT);
+		WireVL53L0X = &Wire1;
+		break;
+	case 2:
+		pinMode(RB_PIN5, INPUT_PULLUP);
+		pinMode(RB_PIN6, OUTPUT);
+		WireVL53L0X = &Wire2;
+		break;
+	case 3:
+		pinMode(RB_PIN7, INPUT_PULLUP);
+		pinMode(RB_PIN8, OUTPUT);
+		WireVL53L0X = &Wire3;
+		break;
+	case 4:
+		pinMode(RB_PIN11, OUTPUT);
+		pinMode(RB_PIN12, INPUT_PULLUP);
+		WireVL53L0X = &Wire4;
+		break;
+	case 5:
+		pinMode(RB_PIN22, OUTPUT);
+		pinMode(RB_PIN26, INPUT_PULLUP);
+		WireVL53L0X = &Wire5;
+		break;
+	default:
+		return  mrb_bool_value(false);
+		break;
+	}
+
+	return mrb_nil_value();			//戻り値は無しですよ。
+}
+
+//**************************************************
+// LV53L0Xを初期化します: VL53L0X.begin
+//  VL53L0X.begin()
+//**************************************************
+mrb_value mrb_lv53l0x_begin(mrb_state *mrb, mrb_value self)
+{
+	WireVL53L0X->begin();
+	return mrb_nil_value();			//戻り値は無しですよ。
+}
+
+//**************************************************
 // LV53L0Xを初期化します: VL53L0X.init
-//  VL53L0X.init(I2Cport[,timeout])
-//  I2Cport: I2Cの番号(0～5)
+//  VL53L0X.init([timeout])
 //　timeout: タイムアウト時間 ms (省略時は500ms)
 //
 // 戻り値
@@ -34,45 +94,17 @@ extern TwoWire *WireVL53L0X;		//0:Wire, 1:Wire1, 2:Wire2, 3:Wire3 4:Wire4 5:Wire
 //**************************************************
 mrb_value mrb_lv53l0x_init(mrb_state *mrb, mrb_value self)
 {
-	int wirePort, ms;
+	int ms;
 
-	int n = mrb_get_args(mrb, "i|i", &wirePort, &ms);
+	int n = mrb_get_args(mrb, "|i", &ms);
 
-	if (n < 2) {
+	if (n < 1) {
 		ms = 500;
 	}
 
-	//0:Wire, 1:Wire1, 2:Wire2, 3:Wire3 4:Wire4 5:Wire5
-	switch (wirePort) {
-	case 0:
-		//ソフトI2Cの場合は18PINと19PINをOUTPUTにする
-		pinMode(RB_PIN18, OUTPUT);
-		pinMode(RB_PIN19, OUTPUT);
-		WireVL53L0X = &Wire;
-		break;
-	case 1:
-		WireVL53L0X = &Wire1;
-		break;
-	case 2:
-		WireVL53L0X = &Wire2;
-		break;
-	case 3:
-		WireVL53L0X = &Wire3;
-		break;
-	case 4:
-		WireVL53L0X = &Wire4;
-		break;
-	case 5:
-		WireVL53L0X = &Wire5;
-		break;
-	default:
-		return  mrb_bool_value(false);
-		break;
+	if (!sensor.init()) {
+		return mrb_bool_value(false);
 	}
-
-	WireVL53L0X->begin();
-
-	sensor.init();
 	sensor.setTimeout(ms);
 
 	return mrb_bool_value(true);
@@ -195,7 +227,9 @@ int vl53l0x_Init(mrb_state *mrb)
 {
 	struct RClass *vl53l0xModule = mrb_define_module(mrb, VL53L0X_CLASS);
 
-	mrb_define_module_function(mrb, vl53l0xModule, "init", mrb_lv53l0x_init, MRB_ARGS_REQ(1)|MRB_ARGS_OPT(1));
+	mrb_define_module_function(mrb, vl53l0xModule, "setI2C", mrb_lv53l0x_setI2C, MRB_ARGS_REQ(1));
+	mrb_define_module_function(mrb, vl53l0xModule, "begin", mrb_lv53l0x_begin, MRB_ARGS_NONE());
+	mrb_define_module_function(mrb, vl53l0xModule, "init", mrb_lv53l0x_init, MRB_ARGS_OPT(1));
 	mrb_define_module_function(mrb, vl53l0xModule, "range", mrb_lv53l0x_setRange, MRB_ARGS_REQ(3));
 	mrb_define_module_function(mrb, vl53l0xModule, "timingBudget", mrb_lv53l0x_TimingBudget, MRB_ARGS_REQ(1));
 	mrb_define_module_function(mrb, vl53l0xModule, "startContinuous", mrb_lv53l0x_startContinuous, MRB_ARGS_OPT(1));
