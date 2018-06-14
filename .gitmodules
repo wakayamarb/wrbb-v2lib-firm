@@ -1,0 +1,3 @@
+[submodule "firmware_release/mruby"]
+	path = firmware_release/mruby
+	url = https://github.com/mruby/mruby.git
