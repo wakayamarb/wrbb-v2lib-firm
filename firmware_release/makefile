@@ -120,6 +120,8 @@ clean_mruby:
 	cd $(MRUBY_ROOT) && make clean
 	rm -f ./wrbb_mruby/libmruby.a
 
+distclean: clean clean_mruby
+
 bin: core
 	$(CNVB) $(TARGET).x  $(TARGET).bin
 
