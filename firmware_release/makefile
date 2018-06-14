@@ -61,6 +61,9 @@ CNVB = $(GNU_PATH)bin/rx-elf-objcopy -O binary
 DMP = $(GNU_PATH)bin/rx-elf-objdump
 OBJS = $(OBJFILES) $(LIBFILES)
 AOBJS = $(filter-out ./gr_sketch.o, $(OBJFILES))
+MRUBY_ROOT = $(abspath mruby)
+MRUBY_CONFIG = $(abspath build_config.rb)
+MRUBY_OBJ = ./wrbb_mruby/libmruby.a
 
 #TARGET = sakura_sketch_128K
 #LFLAGS = -Map ./gr_build/$(TARGET).map -e_PowerON_Reset -T"./gr_common/linker_arduino_BDDFP.gsi" -no-keep-memory -S -L"$(GNU_PATH)rx-elf/lib/64-bit-double" -L"$(GNU_PATH)lib/gcc/rx-elf/$(GCC_VERSION)/64-bit-double" -L"$(GNU_PATH)rx-elf/lib/64-bit-double" -L"$(GNU_PATH)lib/gcc/rx-elf/$(GCC_VERSION)/64-bit-double" --no-flag-mismatch-warnings --start-group -lstdc++ -lnosys -lsim -lm -lc -lgcc --end-group
@@ -80,7 +83,7 @@ make = make --no-print-directory
 
 all:	rom
 
-rom:	$(OBJS) $(MAKEFILE)
+rom:	$(MRUBY_OBJ) $(OBJS) $(MAKEFILE)
 	$(LNK) $(OBJS) $(LFLAGS) -o ./gr_build/$(TARGET).x
 	$(CNVB) ./gr_build/$(TARGET).x  $(TARGET).bin
 	$(CNVS) ./gr_build/$(TARGET).x  ./gr_build/$(TARGET).mot
@@ -100,12 +103,22 @@ rom:	$(OBJS) $(MAKEFILE)
 %.o: %.cpp $(HEADERFILES)
 	$(CPP) $(CFLAGS) $(CCINC) -c -x c++ $< -o $@
 
+$(MRUBY_OBJ): build_mruby
+
+build_mruby:
+	cd $(MRUBY_ROOT) && make MRUBY_CONFIG=$(MRUBY_CONFIG)
+	mv $(MRUBY_ROOT)/build/RX630/lib/libmruby.a ./wrbb_mruby/libmruby.a
+
 clean:
 	rm -f $(OBJFILES)
 	rm -f ./gr_build/$(TARGET).x
 	rm -f ./gr_build/$(TARGET).mot
 	rm -f ./gr_build/$(TARGET).map
 #	rm -f $(TARGET).bin
+
+clean_mruby:
+	cd $(MRUBY_ROOT) && make clean
+	rm -f ./wrbb_mruby/libmruby.a
 
 bin: core
 	$(CNVB) $(TARGET).x  $(TARGET).bin
