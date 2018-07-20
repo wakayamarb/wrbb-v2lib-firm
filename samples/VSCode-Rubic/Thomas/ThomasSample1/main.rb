@@ -1,5 +1,6 @@
+
 #!mruby
-#Ver2.48
+#Ver2.50
 #TB6612FNG L-L->STOP. L-H->CCW, H-L->CW, H-H->ShortBrake
 ML = 0    #左のモーター
 MR = 1    #右のモーター
@@ -14,9 +15,11 @@ WiFiEN = 5          #WiFiのEN:LOWでDisableです
 VL53Enable = false   #VL53L0Xを使うかどうか
 IsConnectVL53 = false #VL53L0Xが接続されているかどうか
 Distance = 80   #mm以下まで近づくと止まる
+
+#LCD AE-AQM0802
 Lcd_AD = 0x3E
 RST = 6
-pinMode(RST, OUTPUT)
+pinMode(RST,OUTPUT)
 
 Usb = Serial.new(0,9600)
 #Usb = Serial.new(0,115200)
@@ -72,6 +75,7 @@ end
 #LCDの初期化
 #-------
 def lcd_begin()
+  delay(300)
   #puts "lcd_begin"
   digitalWrite(RST, LOW)
   delay(1)
@@ -112,7 +116,12 @@ end
 # 前に障害物があるかどうか調べます
 #-------
 def sensorChk(p, tp)
-  if(VL53Enable && IsConnectVL53 && VL53L0X.readContinuous < Distance)
+  #lcd_clear()             #全消去
+  len = VL53L0X.readContinuous
+  lcd_setCursor(0,0)      #カーソルを0行に位置設定
+  lcd_print(len.to_s + " ")    #文字列表示
+
+  if(VL53Enable && IsConnectVL53 && len < Distance)
     if(p > 0 && tp > 0)
       puts VL53L0X.readContinuous
       mMove(ML, 0)
@@ -120,12 +129,12 @@ def sensorChk(p, tp)
       true
       return
     elsif(p == 0 && tp == 0)
-      #puts VL53L0X.readContinuous
+      #puts len
       if(digitalRead(Cpin[MR][0]) == LOW \
         && digitalRead(Cpin[MR][1]) == HIGH \
         && digitalRead(Cpin[ML][0]) == LOW \
         && digitalRead(Cpin[ML][1]) == HIGH)
-        puts VL53L0X.readContinuous
+        puts len
         mMove(ML, 0)
         mMove(MR, 0)
         true
@@ -135,7 +144,6 @@ def sensorChk(p, tp)
   end
   false
 end
-
 #-------
 # p==0 -> 停止に
 # p>0 -> CW , p<0 -> CCW に設定します
@@ -156,7 +164,6 @@ def mMove(dir,p)
   end
   pwm(Vpin[dir], Vero[dir])
 end
-
 #-------
 # HEX 6バイトデータの読み込み
 # 先頭の2文字が X のデータ(0x00～0xFF)
@@ -214,15 +221,34 @@ def command(cmd)
   btn = cmd[4..5].hex
   puts p.to_s + ", " + turn.to_s + ", " + tp.to_s
 end
+#-------------------------------------------------------------------
 
-#-----------------------------------------
+#LCDの初期化
+lcd_begin
+
+lcd_clear()             #全消去
 lcd_setCursor(0, 0)
 lcd_print("Thomas  ")
 lcd_setCursor(0, 1)
 lcd_print("Starting")
+lcd_setCursor(0,0)       #カーソルを1行、2文字目に位置設定
+lcd_print("        ")    #文字列表示
 
-System.exit
-
+##################################################################
+# while(true)
+#   #lcd_clear()             #全消去
+#   lcd_setCursor(0,0)      #カーソルを0行に位置設定
+#   lcd_print(VL53L0X.readContinuous.to_s + " ")    #文字列表示
+#   #puts VL53L0X.readContinuous
+#   #puts VL53L0X.readSingle
+#   if (VL53L0X.isTimeout)
+#     lcd_setCursor(0,1)       #カーソルを1行、2文字目に位置設定
+#     lcd_print("TIMEOUT ")    #文字列表示
+#     #puts "TIMEOUT"
+#   end
+#   delay 0
+# end
+##################################################################
 
 cmd = ""
 while(true)do

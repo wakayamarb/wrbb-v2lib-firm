@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <style>
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .v-wrap {
+      display: flex;
+      align-items: stretch;
+      justify-content: space-between;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .h-wrap {
+      display: flex;
+      align-items: stretch;
+      justify-content: space-between;
+      flex-direction: row;
+      height: 100%;
+      margin: 5px;
+      padding: 0;
+    }
+
+    .btn {
+      position: relative;
+      transition: none;
+      outline: none;
+      box-shadow: 0 3px 0 #ff43a1;
+      border: 1px solid #c71585;
+      color: #660033;
+      font-size: 20px;
+      font-weight: bold;
+      border-radius: 0;
+      height: 100%;
+      background: #ffd9eb;
+      /* Old browsers */
+      background: -moz-linear-gradient(top, white 0%, #ffd9eb 100%);
+      /* FF3.6-15 */
+      background: -webkit-linear-gradient(top, white 0%, #ffd9eb 100%);
+      /* Chrome10-25,Safari5.1-6 */
+      background: linear-gradient(to bottom, white 0%, #ffd9eb 100%);
+      /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+      filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='white', endColorstr='#ffd9eb', GradientType=0);
+      /* IE6-9 */
+      transition-duration: 0.2s;
+      border-radius: 4px;
+      -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+      /* iOSで出てくる黒い影を消す */
+      -webkit-transition: none;
+      -webkit-appearance: none;
+    }
+
+    .btn:hover {
+      cursor: pointer;
+    }
+
+    .btn:active,
+    .is-active {
+      top: 3px;
+      box-shadow: none;
+    }
+
+    .f1 {
+      padding: 0;
+      margin: auto 5px;
+      flex: 1;
+    }
+
+    .sq {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .circle {
+      display: block;
+      border-radius: 100%;
+      min-height: 75px;
+    }
+  </style>
+  <title>crosskey</title>
+</head>
+
+<body>
+  <div class="v-wrap">
+    <div class="h-wrap">
+      <div class="sq f1"><button class="btn circle" id="camera">カメラ</button></div>
+      <button class="btn f1" id="front">前進</button>
+      <div class="sq f1"><button class="btn circle" id="video">ビデオ</button></div>
+    </div>
+    <div class="h-wrap">
+      <button class="btn f1" id="left">左旋回</button>
+      <button class="btn f1" id="stop">停止</button>
+      <button class="btn f1" id="right">右旋回</button>
+    </div>
+    <div class="h-wrap">
+      <div class="f1">
+        <!--詰め物-->
+      </div>
+      <button class="btn f1" id="back">後退</button>
+      <div class="f1">
+        <!--詰め物-->
+      </div>
+    </div>
+  </div>
+  <script>
+    // minify用にブロックスコープを作る
+    {
+      // 以下で定義しているプロパティ名は、minifyの時に最小化される
+
+      // global由来の変数をスコープに閉じ込める
+      let localDocument = document
+      let LocalObject = Object
+
+      // 長くてたくさん使っているメソッド名文字列もローカルで持っておく
+      let addEventListener = 'addEventListener'
+
+      // スクロールを殺す
+      localDocument[addEventListener]('touchmove', e => e.preventDefault())
+
+      // iOSで、画面ダブルタップで拡大してしまうのを防ぐ
+      {
+        let flag = false
+        localDocument[addEventListener](
+          'touchend',
+          event => {
+            if (flag) {
+              event.preventDefault()
+            } else {
+              flag = true
+              setTimeout(() => (flag = false), 500)
+            }
+          },
+          true
+        )
+      }
+
+      // ボタン種類の定義とキーマップを定義
+      let keyMap = {
+        38: 'front',
+        37: 'left',
+        39: 'right',
+        40: 'back',
+        32: 'stop', // スペース
+        67: 'camera', // C
+        86: 'video', // V
+      }
+      // ボタンのイベントクリックのリスナーを作成
+      // '/?front=1' などの URL にリクエストする
+      let createClickLisnter = type => () => fetch('?' + type + '=1')
+
+      // ボタンエレメントの取得
+      let buttons = LocalObject.values(keyMap).reduce((prev, type) => {
+        prev[type] = document.getElementById(type)
+        return prev
+      }, {})
+
+      // スマートフォンの場合はclickではなくタッチを使う
+      let touchclick = window.ontouchstart === null ? 'touchstart' : 'mousedown'
+      // ボタンにイベントリスナーをつける
+      LocalObject.keys(buttons).forEach(type =>
+        buttons[type][addEventListener](touchclick, createClickLisnter(type))
+      )
+
+      // キーボードでの操作の定義 (ボタン押下時)
+      localDocument[addEventListener]('keydown', e => {
+        // クリックとエフェクトのエミュレートする関数を作成
+        let emulateClick = element => {
+          element.classList.add('is-active')
+          createClickLisnter(element.id)()
+        }
+        let type = keyMap[e.keyCode]
+        type && emulateClick(buttons[type])
+      })
+
+      // キーボードでの操作の定義 (ボタンを離した時)
+      localDocument[addEventListener]('keyup', e =>
+        // ボタンのアクティブ状態を解除する
+        LocalObject.values(buttons).forEach(element =>
+          element.classList.remove('is-active')
+        )
+      )
+    }
+  </script>
+</body>
+</html>

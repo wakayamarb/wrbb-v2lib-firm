@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<style>
+html,
+body {
+height: 100%;
+margin: 0;
+overflow: hidden;
+}
+.v-wrap {
+display: flex;
+align-items: stretch;
+justify-content: space-between;
+flex-direction: column;
+height: 100%;
+}
+.h-wrap {
+display: flex;
+align-items: stretch;
+justify-content: space-between;
+flex-direction: row;
+height: 100%;
+margin: 5px;
+padding: 0;
+}
+.btn {
+position: relative;
+transition: none;
+outline: none;
+box-shadow: 0 3px 0 #ff43a1;
+border: 1px solid #c71585;
+color: #660033;
+font-size: 20px;
+font-weight: bold;
+border-radius: 0;
+height: 100%;
+background: #ffd9eb;
+background: -moz-linear-gradient(top, white 0%, #ffd9eb 100%);
+background: -webkit-linear-gradient(top, white 0%, #ffd9eb 100%);
+background: linear-gradient(to bottom, white 0%, #ffd9eb 100%);
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='white', endColorstr='#ffd9eb', GradientType=0);
+transition-duration: 0.2s;
+border-radius: 4px;
+-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+-webkit-transition: none;
+-webkit-appearance: none;
+}
+.btn:hover {
+cursor: pointer;
+}
+.btn:active,
+.is-active {
+top: 3px;
+box-shadow: none;
+}
+.f1 {
+padding: 0;
+margin: auto 5px;
+flex: 1;
+}
+.sq {
+display: flex;
+align-items: center;
+justify-content: center;
+}
+.circle {
+display: block;
+border-radius: 100%;
+min-height: 75px;
+}
+</style>
+<title>crosskey</title>
+</head>
+<body>
+<div class="v-wrap">
+<div class="h-wrap">
+<div class="sq f1"><button class="btn circle" id="camera">カメラ</button></div>
+<button class="btn f1" id="front">前進</button>
+<div class="sq f1"><button class="btn circle" id="video">ビデオ</button></div>
+</div>
+<div class="h-wrap">
+<button class="btn f1" id="left">左旋回</button>
+<button class="btn f1" id="stop">停止</button>
+<button class="btn f1" id="right">右旋回</button>
+</div>
+<div class="h-wrap">
+<div class="f1">
+</div>
+<button class="btn f1" id="back">後退</button>
+<div class="f1">
+</div>
+</div>
+</div>
+<script>
+{
+let localDocument = document
+let LocalObject = Object
+let addEventListener = 'addEventListener'
+localDocument[addEventListener]('touchmove', e => e.preventDefault())
+{
+let flag = false
+localDocument[addEventListener](
+'touchend',
+event => {
+if (flag) {
+event.preventDefault()
+} else {
+flag = true
+setTimeout(() => (flag = false), 500)
+}
+},
+true
+)
+}
+let keyMap = {
+38: 'front',
+37: 'left',
+39: 'right',
+40: 'back',
+32: 'stop',
+67: 'camera',
+86: 'video',
+}
+let createClickLisnter = type => () => fetch('?' + type + '=1')
+let buttons = LocalObject.values(keyMap).reduce((prev, type) => {
+prev[type] = document.getElementById(type)
+return prev
+}, {})
+let touchclick = window.ontouchstart === null ? 'touchstart' : 'mousedown'
+LocalObject.keys(buttons).forEach(type =>
+buttons[type][addEventListener](touchclick, createClickLisnter(type))
+)
+localDocument[addEventListener]('keydown', e => {
+let emulateClick = element => {
+element.classList.add('is-active')
+createClickLisnter(element.id)()
+}
+let type = keyMap[e.keyCode]
+type && emulateClick(buttons[type])
+})
+localDocument[addEventListener]('keyup', e =>
+LocalObject.values(buttons).forEach(element =>
+element.classList.remove('is-active')
+)
+)
+}
+</script>
+</body>
+</html>

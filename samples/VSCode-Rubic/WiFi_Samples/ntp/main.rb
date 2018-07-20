@@ -1,16 +1,19 @@
 #!mruby
-#GR-CITRUS Version 2.46
+#GR-CITRUS Version 2.50
 #ESP8266を一度停止させる(リセットと同じ)
-pinMode(5,OUTPUT)
-digitalWrite(5,LOW)   # LOW:Disable
+WiFiEN = 5          #WiFiのEN:LOWでDisableです
+
+pinMode(WiFiEN, OUTPUT)
+digitalWrite(WiFiEN, LOW)     # LOW:Disable
 delay 500
-digitalWrite(5,HIGH)   # HIGH:Enable
+digitalWrite(WiFiEN ,HIGH)    # HIGH:Enable
 delay 500
 
 System.exit "WA-MIKAN can't use." if(!System.use?("WiFi"))
 
-puts WiFi.connect("TAROSAY","37000")
+puts WiFi.connect("TAROSAY","37000370")
 tm = WiFi.ntp("ntp.jst.mfeed.ad.jp", +9)
+
 System.exit "時間の取得に失敗しました" if(!tm.instance_of?(Array))
 
 #puts tm
