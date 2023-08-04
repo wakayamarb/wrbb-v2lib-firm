@@ -384,53 +384,25 @@ mrb_value mrb_kernel_random(mrb_state *mrb, mrb_value self)
 }
 
 //**************************************************
-// putsの再帰呼び出し部
-//**************************************************
-void putsRecursible(mrb_state *mrb, mrb_value value)
-{
-	if (mrb_array_p(value)) {
-		int len = RARRAY_LEN(value);
-		for (int i = 0; i < len; i++) {
-			putsRecursible(mrb, mrb_ary_ref(mrb, value, i));
-		}
-	}
-	else if (mrb_fixnum_p(value)) {
-		USB_Serial->println(mrb_fixnum(value));
-	}
-	else if (mrb_float_p(value)) {
-		USB_Serial->println(mrb_float(value), 7);
-	}
-	else if (mrb_string_p(value)) {
-		USB_Serial->println(RSTRING_PTR(value));
-	}
-	else if (mrb_nil_p(value)) {
-		USB_Serial->println("nil");
-	}
-	else if (mrb_bool(value)) {
-		USB_Serial->println(mrb_bool(value));
-	}
-	else {
-		USB_Serial->println(0);
-	}
-}
-
-//**************************************************
 // USBシリアルに文字を出力: puts
-//	puts([object])
+//	puts([object, ...])
 //**************************************************
 mrb_value mrb_kernel_puts(mrb_state *mrb, mrb_value self)
 {
-	mrb_value value;
+	mrb_int argc;
+	mrb_value *argv;
 
-	int n = mrb_get_args(mrb, "|o", &value);
+	mrb_get_args(mrb, "*", &argv, &argc);
 
-	if (n == 0) {
+	if (argc == 0) {
 		USB_Serial->println("");
 		return mrb_nil_value();			//戻り値は無しですよ。
 	}
 
-	//puts処理部分です中で再帰呼び出ししています
-	putsRecursible(mrb, value);
+	while (argc--) {
+		mrb_value v = mrb_check_convert_type(mrb, *argv++, MRB_TT_STRING, "String", "to_s");
+		USB_Serial->println(RSTRING_PTR(v));
+	}
 
 	return mrb_nil_value();			//戻り値は無しですよ。
 }
@@ -601,7 +573,7 @@ void kernel_Init(mrb_state *mrb)
 	mrb_define_method(mrb, mrb->kernel_module, "shiftOut", mrb_kernel_shiftOut, MRB_ARGS_REQ(4));
 	mrb_define_method(mrb, mrb->kernel_module, "shiftIn", mrb_kernel_shiftIn, MRB_ARGS_REQ(3));
 
-	mrb_define_method(mrb, mrb->kernel_module, "puts", mrb_kernel_puts, MRB_ARGS_OPT(1));
+	mrb_define_method(mrb, mrb->kernel_module, "puts", mrb_kernel_puts, MRB_ARGS_ANY());
 
 	struct RClass *El_PsyModule = mrb_define_module(mrb, "El_Psy");
 	mrb_define_module_function(mrb, El_PsyModule, "Congroo", mrb_El_Psy_congroo, MRB_ARGS_NONE());
