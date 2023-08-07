@@ -239,6 +239,8 @@ bool writefile(const char *fname, int size, char code, char *readData)
 	USB_Serial->clearBreakState();		//ブレーク信号のクリア
 	USB_Serial->clearDtrOffEvent();		//DTR OFFイベントのクリア
 	result = true;
+	char buf[32];
+	bool first_block = true;
 	for (int i = 0; i < binsize; i++) {
 		//b2aFlgが 0 のときはバイナリ、1 のときはバイナリが2バイトテキストで送られてくる
 		if (b2aFlg == 0) {
@@ -249,11 +251,19 @@ bool writefile(const char *fname, int size, char code, char *readData)
 			//****テキスト
 			c = (char)HexText2Int(readData[2 * i], readData[2 * i + 1]);
 		}
+		buf[(i + fp->offsetaddress) % 32] = c;
 
-		if (EEP.fwrite(fp, c) == -1) {
-			USB_Serial->println("..Save Error!");
-			result = false;
-			break;
+		if ((i + fp->offsetaddress) % 32 == 31 || i == binsize - 1) {
+			int len = (i == binsize - 1) ? (binsize + fp->offsetaddress) % 32 : 32;
+			if (first_block) {
+				len = 32 - fp->offsetaddress;
+			}
+			if (EEP.fwrite(fp, first_block ? buf + fp->offsetaddress: buf, &len) == -1) {
+				USB_Serial->println("..Save Error!");
+				result = false;
+				break;
+			}
+			first_block = false;
 		}
 		if ((i % 256) == 0) {
 			USB_Serial->print(".");
