@@ -130,6 +130,7 @@ bool EEPROMClass::diff_flash(int address, void *data, int len)
 	return false;
 }
 
+// Write partial data (smaller than a block) to the specified address.
 uint8_t EEPROMClass::write_partial(int address, void *data, int len)
 {
 	uint8_t result = FLASH_SUCCESS;
@@ -150,6 +151,7 @@ uint8_t EEPROMClass::write_partial(int address, void *data, int len)
 		}
 	}
 
+	// Check if we need to erase the block.
 	for (int i = aligned_addr; i < aligned_end_addr; i += DF_ALIGN) {
 		if (diff_flash(i, buf + i - block_addr, DF_ALIGN)) {
 			if (flash_datarom_blankcheck(DF_ADDRESS + i)) {
@@ -177,6 +179,8 @@ uint8_t EEPROMClass::write_partial(int address, void *data, int len)
 	return result;
 }
 
+// Write data to the specified block.
+// The address and the length must be block-aligned.
 uint8_t EEPROMClass::write_block(int address, void *data, int len)
 {
 	uint8_t result = FLASH_SUCCESS;
@@ -213,6 +217,8 @@ uint8_t EEPROMClass::write_block(int address, void *data, int len)
 	return result;
 }
 
+// Write data to flash rom.
+// This accepts non-block-aligned address and length.
 uint8_t EEPROMClass::write(int address, void *data, int len)
 {
 	uint8_t result = FLASH_SUCCESS;
