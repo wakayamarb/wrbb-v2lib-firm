@@ -313,17 +313,29 @@ int EEPFILE::fwrite(FILEEEP *file, char *arry, int *len)
 	}
 	return 1;
 #else
-	int secadd = 0;
+	unsigned char *p = (unsigned char *)arry;
+	int remain = *len;
 
-	//書き込むセクタを求めます
-	int sect = getSect(file, &secadd);
-	if (sect == -1) {
-		return -1;
+	while (remain > 0) {
+		int secadd = 0;
+
+		//書き込むセクタを求めます
+		int sect = getSect(file, &secadd);
+		if (sect == -1) {
+			*len -= remain;
+			return -1;
+		}
+
+		//書き込みます
+		int add = sect * EEPSECTOR_SIZE + secadd;
+		int wlen = EEPSECTOR_SIZE - secadd;
+		if (remain < wlen) {
+			wlen = remain;
+		}
+		epWrite(add, p, wlen);
+		remain -= wlen;
+		p += wlen;
 	}
-
-	//書き込みます
-	int add = sect * EEPSECTOR_SIZE + secadd;
-	epWrite(add, (unsigned char *)arry, *len);
 
 	//seekをlen進めます
 	file->seek += *len;
