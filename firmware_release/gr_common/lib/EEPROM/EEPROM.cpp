@@ -209,7 +209,7 @@ uint8_t EEPROMClass::write_block(int address, void *data, int len)
 		if (need_erase) {
 			result = flash_datarom_EraseBlock(DF_ADDRESS + address + block_ofs);
 		}
-	    result = flash_datarom_WriteData(
+		result = flash_datarom_WriteData(
 				DF_ADDRESS + address + block_ofs,
 				(uint8_t *)data + block_ofs,
 				DF_ERASE_BLOCK_SIZE);
