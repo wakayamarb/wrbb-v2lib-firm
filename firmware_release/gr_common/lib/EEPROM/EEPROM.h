@@ -31,6 +31,13 @@ class EEPROMClass
 #endif
         uint8_t read(int);
         uint8_t write(int, uint8_t);
+#ifdef __RX600__
+        uint8_t write_partial(int, void *, int);
+        uint8_t write_block(int, void *, int);
+        uint8_t write(int, void *, int);
+  private:
+        bool diff_flash(int address, void *data, int len);
+#endif
 };
 
 extern EEPROMClass EEPROM;

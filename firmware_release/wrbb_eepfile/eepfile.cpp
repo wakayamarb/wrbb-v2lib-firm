@@ -302,6 +302,7 @@ int EEPFILE::fdelete(const char *filename)
 //******************************************************
 int EEPFILE::fwrite(FILEEEP *file, char *arry, int *len)
 {
+#if 0
 	int mlen = 0;
 	for(int i=0; i<*len; i++){
 		if (fwrite(file, arry[i])==-1){
@@ -311,6 +312,40 @@ int EEPFILE::fwrite(FILEEEP *file, char *arry, int *len)
 		mlen++;
 	}
 	return 1;
+#else
+	unsigned char *p = (unsigned char *)arry;
+	int remain = *len;
+
+	while (remain > 0) {
+		int secadd = 0;
+
+		//書き込むセクタを求めます
+		int sect = getSect(file, &secadd);
+		if (sect == -1) {
+			*len -= remain;
+			return -1;
+		}
+
+		//書き込みます
+		int add = sect * EEPSECTOR_SIZE + secadd;
+		int wlen = EEPSECTOR_SIZE - secadd;
+		if (remain < wlen) {
+			wlen = remain;
+		}
+		epWrite(add, p, wlen);
+		remain -= wlen;
+		p += wlen;
+	}
+
+	//seekをlen進めます
+	file->seek += *len;
+
+	//seek位置がfileSizeを超えた場合
+	if (file->seek > file->filesize) {
+		file->filesize = file->seek;
+	}
+	return 1;
+#endif
 }
 
 //******************************************************
@@ -319,6 +354,7 @@ int EEPFILE::fwrite(FILEEEP *file, char *arry, int *len)
 //******************************************************
 int EEPFILE::fwrite(FILEEEP *file, char dat)
 {
+#if 0
 	int secadd = 0;
 
 	//書き込むセクタを求めます
@@ -339,6 +375,10 @@ int EEPFILE::fwrite(FILEEEP *file, char dat)
 		file->filesize = file->seek;
 	}
 	return 1;
+#else
+	int len = 1;
+	return fwrite(file, &dat, &len);
+#endif
 }
 
 //******************************************************
@@ -389,8 +429,7 @@ void EEPFILE::fclose(FILEEEP *file)
 		//ファイルサイズを書き込みます
 		DEBUG_PRINT("fclose", "EEP_WRITE");
 		int add = file->stasector * EEPSECTOR_SIZE;
-		epWrite(add + file->offsetaddress - 1, (file->filesize>>8) & 0xFF);
-		epWrite(add + file->offsetaddress - 2, file->filesize & 0xFF);
+		epWrite(add + file->offsetaddress - 2, (unsigned char *)&file->filesize, 2);
 	}
 
 	int next;
@@ -582,16 +621,12 @@ void EEPFILE::setFile( FILEEEP *file, const char *filename, int sect, int mode)
 	Sect[sect] |= mode << 10;		//ファイル使用中フラグ
 
 	//ファイル名を書き込む
-	for( int i=0; i<len; i++){
-		epWrite( add + i, filename[i] );
-	}
-	epWrite( add + len, 0 );
+	epWrite( add, (unsigned char *)filename, len + 1 );
 
 	//ファイルサイズ 0 セット
-	epWrite( add + len + 1, 0 );
-	epWrite( add + len + 2, 0 );
-
 	file->filesize = 0;
+	epWrite( add + len + 1, (unsigned char *)&file->filesize, 2 );
+
 	file->stasector = sect;
 	file->offsetaddress = len + 3;
 	file->seek = 0;
@@ -607,8 +642,10 @@ void EEPFILE::saveFat(void)
 		// 11,12ビット目は0にして保存する 1111 0011 1111 1111
 		//a1 = (Sect[i] & (~(3 << 10))) & 0xFF;
 		//a2 = ((Sect[i] & (~(3 << 10)))>>8) & 0xFF;
-		epWrite( EEPFAT_START + i*2, (Sect[i] & (~(3 << 10))) & 0xFF);
-		epWrite( EEPFAT_START + i*2 + 1, ((Sect[i] & (~(3 << 10)))>>8) & 0xFF);
+		unsigned char buf[2];
+		buf[0] = (Sect[i] & (~(3 << 10))) & 0xFF;
+		buf[1] = ((Sect[i] & (~(3 << 10)))>>8) & 0xFF;
+		epWrite(EEPFAT_START + i*2, buf, 2);
 	}
 }
 
@@ -685,6 +722,11 @@ int EEPFILE::epWrite(unsigned long addr,unsigned char data)
 		return (EEPROM.write(addr, data) == FLASH_SUCCESS ? 1 : -1);
 	}
 	return 1;
+}
+
+int EEPFILE::epWrite(unsigned long addr, unsigned char *data, unsigned long len)
+{
+	return (EEPROM.write(addr, data, len) == FLASH_SUCCESS ? 1 : -1);
 }
 
 //*********

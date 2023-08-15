@@ -58,6 +58,7 @@ class EEPFILE
 	void saveFat(void);
 	int getSect(FILEEEP *file, int *add);
 	int epWrite(unsigned long addr,unsigned char data);
+	int epWrite(unsigned long addr, unsigned char *data, unsigned long len);
 	int isReady();
 };
 
